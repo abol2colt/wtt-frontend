@@ -1,18 +1,18 @@
 **// Branch: feature/001-workspace-and-core**
 
-- [ ] Initialize frontend workspace and configure VS Code settings (Prettier, ESLint).
-- [ ] Install and configure Tailwind CSS and base SCSS architecture (variables, typography).
-- [ ] Install `date-fns-jalali` and create a global date helper utility (`YYYY-MM-DD HH:MM:SS` in `Asia/Tehran`).
-- [ ] Create core HTTP service and `HttpInterceptor` for handling base URLs.
+- [x] Initialize frontend workspace and configure VS Code settings (Prettier, ESLint).
+- [x] Install and configure Tailwind CSS and base SCSS architecture (variables, typography).
+- [x] Install `date-fns-jalali` and create a global date helper utility (`YYYY-MM-DD HH:MM:SS` in `Asia/Tehran`).
+- [x] Create core HTTP service and `HttpInterceptor` for handling base URLs.
       // در این برنچ، پیکربندی پایه محیط توسعه، ابزارهای استایل‌دهی و کتابخانه تاریخ جلالی به همراه تایم‌زون ست می‌شود و سرویس پایه برای ارسال درخواست‌ها ساخته می‌شود.
 
 **// Branch: feature/002-auth-and-security**
 
-- [ ] Create `AuthService` to fetch user profile via `GET /api/v1/profile/`.
-- [ ] Implement Token Interceptor to automatically inject `Authorization: Token <key>`.
-- [ ] Set up global application state (using signals) to safely store the authenticated user ID.
-- [ ] Implement global error handler logic for `401 Unauthorized` and `403/503` codes.
-- [ ] Refactor routing to eliminate user ID from URLs (Enforcing Zero Client Trust).
+- [x] Create `AuthService` to fetch user profile via `GET /api/v1/profile/`.
+- [x] Implement Token Interceptor to automatically inject `Authorization: Token <key>`.
+- [x] Set up global application state (using signals) to safely store the authenticated user ID.
+- [x] Implement global error handler logic for `401 Unauthorized` and `403/503` codes.
+- [x] Refactor routing to eliminate user ID from URLs (Enforcing Zero Client Trust).
       // سیستم احراز هویت و مدیریت خطاهای شبکه (مثل 401 و 403) راه‌اندازی می‌شود. با استفاده از مدیریت وضعیت سراسری، آیدی کاربر از URLها حذف می‌شود تا جلوی باگ IDOR در سطح کلاینت گرفته شود.
 
 **// Branch: feature/003-layout-and-routing**
