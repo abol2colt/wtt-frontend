@@ -17,10 +17,10 @@
 
 **// Branch: feature/003-ui-layout-and-theme**
 
-- [ ] Configure Tailwind CSS for Dark Mode support (class strategy).
-- [ ] Design the main application shell (Sidebar navigation, Top Header).
-- [ ] Create a reusable Theme Toggle button (Light/Dark switcher).
-- [ ] Ensure layout responsiveness (mobile, tablet, desktop) using Tailwind utility classes.
+- [x] Configure Tailwind CSS for Dark Mode support (class strategy).
+- [x] Design the main application shell (Sidebar navigation, Top Header).
+- [x] Create a reusable Theme Toggle button (Light/Dark switcher).
+- [x] Ensure layout responsiveness (mobile, tablet, desktop) using Tailwind utility classes.
       // در این برنچ، اسکلت اصلی قالب (سایدبار و هدر) دقیقاً مطابق با طراحی‌های جدید به صورت کاملاً استاتیک پیاده‌سازی می‌شود و سیستم تغییر تم (تاریک/روشن) راه‌اندازی می‌گردد.
 
 **// Branch: feature/004-ui-dashboard-widgets**

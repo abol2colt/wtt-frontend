@@ -10,38 +10,165 @@
       </p>
       <p class="sidebar-profile-role">Developer</p>
     </div>
-    <div class="sidebar-avatar">
+    <div class="sidebar-avatar border-0 overflow-hidden">
       <img
-        src="https://ui-avatars.com/api/?name=Mehdi+Karimi&background=2563eb&color=fff&rounded=true&bold=true"
+        src="https://ui-avatars.com/api/?name=Mehdi+Karimi&background=000&color=fff&rounded=false&bold=true"
         alt="User"
+        class="rounded-full w-full h-full"
       />
       <span class="sidebar-online-dot"></span>
     </div>
   </div>
 
   <nav class="sidebar-nav">
-    @for (item of menuItems; track item.route) {
-      <a [routerLink]="item.route" routerLinkActive="active" class="sidebar-nav-item">
-        <span class="sidebar-nav-icon text-xl">{{ item.icon }}</span>
-        <span class="sidebar-nav-label">{{ item.title }}</span>
-      </a>
-    }
+    <a routerLink="/dashboard" routerLinkActive="active" class="sidebar-nav-item">
+      <span class="sidebar-nav-icon text-xl flex items-center justify-center w-6 h-6">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path
+            d="M4 4H10V10H4V4Z"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M14 4H20V10H14V4Z"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M4 14H10V20H4V14Z"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M14 14H20V20H14V14Z"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      <span class="sidebar-nav-label">داشبورد</span>
+    </a>
+
+    <a routerLink="/tasks" routerLinkActive="active" class="sidebar-nav-item">
+      <span class="sidebar-nav-icon text-xl flex items-center justify-center w-6 h-6">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path
+            d="M16 18L22 12L16 6"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M8 6L2 12L8 18"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      <span class="sidebar-nav-label">مدیریت وظایف</span>
+    </a>
+
+    <a routerLink="/presence" routerLinkActive="active" class="sidebar-nav-item">
+      <span class="sidebar-nav-icon text-xl flex items-center justify-center w-6 h-6">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M12 6V12L16 14"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+      <span class="sidebar-nav-label">حضور و غیاب</span>
+    </a>
+
+    <a routerLink="/reports" routerLinkActive="active" class="sidebar-nav-item">
+      <span class="sidebar-nav-icon text-xl flex items-center justify-center w-6 h-6">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M18 20V10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          <path d="M12 20V4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          <path d="M6 20V14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+        </svg>
+      </span>
+      <span class="sidebar-nav-label">گزارش‌ها</span>
+    </a>
   </nav>
 
   <div class="sidebar-bottom">
     <div class="sidebar-bottom-menu">
       <a class="sidebar-nav-item">
-        <span class="sidebar-nav-icon text-xl">⚙️</span>
+        <span class="sidebar-nav-icon w-5 h-5 flex items-center">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5A3.5 3.5 0 0 0 12 15.5Z" stroke="currentColor" />
+            <path
+              d="M19.4 15A1.65 1.65 0 0 0 19.73 16.82L19.79 16.88A2 2 0 1 1 16.96 19.71L16.9 19.65A1.65 1.65 0 0 0 15.08 19.32A1.65 1.65 0 0 0 14.08 20.83V21A2 2 0 1 1 10.08 21V20.91A1.65 1.65 0 0 0 9 19.4A1.65 1.65 0 0 0 7.18 19.73L7.12 19.79A2 2 0 1 1 4.29 16.96L4.35 16.9A1.65 1.65 0 0 0 4.68 15.08A1.65 1.65 0 0 0 3.17 14.08H3A2 2 0 1 1 3 10.08H3.09A1.65 1.65 0 0 0 4.6 9A1.65 1.65 0 0 0 4.27 7.18L4.21 7.12A2 2 0 1 1 7.04 4.29L7.1 4.35A1.65 1.65 0 0 0 8.92 4.68H9A1.65 1.65 0 0 0 10 3.17V3A2 2 0 1 1 14 3V3.09A1.65 1.65 0 0 0 15 4.6A1.65 1.65 0 0 0 16.82 4.27L16.88 4.21A2 2 0 1 1 19.71 7.04L19.65 7.1A1.65 1.65 0 0 0 19.32 8.92V9A1.65 1.65 0 0 0 20.83 10H21A2 2 0 1 1 21 14H20.91A1.65 1.65 0 0 0 19.4 15Z"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
         <span class="sidebar-nav-label">تنظیمات</span>
       </a>
       <a class="sidebar-nav-item">
-        <span class="sidebar-nav-icon text-xl text-red-500">🚪</span>
-        <span class="sidebar-nav-label text-red-500">خروج</span>
+        <span class="sidebar-nav-icon w-5 h-5 flex items-center text-red-400 dark:text-red-500">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M9 21H5C3.9 21 3 20.1 3 19V5C3 3.9 3.9 3 5 3H9"
+              stroke="currentColor"
+              stroke-linecap="round"
+            />
+            <path
+              d="M16 17L21 12L16 7"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path d="M21 12H9" stroke="currentColor" stroke-linecap="round" />
+          </svg>
+        </span>
+        <span class="sidebar-nav-label text-red-400 dark:text-red-500">خروج</span>
       </a>
     </div>
 
-    <button class="sidebar-collapse" type="button" title="جمع کردن">
-      <span class="text-xl">▶️</span>
+    <button
+      class="sidebar-collapse text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+      type="button"
+      title="جمع کردن"
+    >
+      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M15 18L9 12L15 6"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M20 18L14 12L20 6"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
     </button>
   </div>
 </aside>
