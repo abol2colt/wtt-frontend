@@ -1,0 +1,47 @@
+<aside class="right-sidebar transition-colors duration-300">
+  <div class="sidebar-profile">
+    <div class="sidebar-profile-info">
+      <p class="sidebar-profile-name">
+        @if (authService.currentUser()) {
+          {{ authService.currentUser()?.first_name }} {{ authService.currentUser()?.last_name }}
+        } @else {
+          مهدی کریمی
+        }
+      </p>
+      <p class="sidebar-profile-role">Developer</p>
+    </div>
+    <div class="sidebar-avatar">
+      <img
+        src="https://ui-avatars.com/api/?name=Mehdi+Karimi&background=2563eb&color=fff&rounded=true&bold=true"
+        alt="User"
+      />
+      <span class="sidebar-online-dot"></span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    @for (item of menuItems; track item.route) {
+      <a [routerLink]="item.route" routerLinkActive="active" class="sidebar-nav-item">
+        <span class="sidebar-nav-icon text-xl">{{ item.icon }}</span>
+        <span class="sidebar-nav-label">{{ item.title }}</span>
+      </a>
+    }
+  </nav>
+
+  <div class="sidebar-bottom">
+    <div class="sidebar-bottom-menu">
+      <a class="sidebar-nav-item">
+        <span class="sidebar-nav-icon text-xl">⚙️</span>
+        <span class="sidebar-nav-label">تنظیمات</span>
+      </a>
+      <a class="sidebar-nav-item">
+        <span class="sidebar-nav-icon text-xl text-red-500">🚪</span>
+        <span class="sidebar-nav-label text-red-500">خروج</span>
+      </a>
+    </div>
+
+    <button class="sidebar-collapse" type="button" title="جمع کردن">
+      <span class="text-xl">▶️</span>
+    </button>
+  </div>
+</aside>

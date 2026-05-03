@@ -1,0 +1,51 @@
+<header
+  class="h-[62px] border-b border-[var(--border-main)] pb-[14px] flex items-start justify-between [direction:rtl] shrink-0"
+>
+  <div class="w-[290px] text-right [direction:rtl]">
+    <h1 class="m-0 text-[25px] leading-none font-black tracking-[-0.5px] text-[var(--text-main)]">
+      داشبورد
+    </h1>
+    <p class="mt-[8px] text-[12px] leading-[1.4] font-semibold text-[var(--text-soft)]">
+      نمای کلی از عملکرد و فعالیت‌ها
+    </p>
+  </div>
+
+  <div
+    class="mt-[2px] flex h-[36px] w-[330px] items-center gap-[8px] rounded-[8px] border border-[var(--search-border)] bg-[var(--search-bg)] px-[12px] shadow-[var(--shadow-card)] [direction:rtl] transition-shadow duration-300"
+  >
+    <span class="text-[18px] text-[var(--text-soft)]">⌕</span>
+    <input
+      class="min-w-0 flex-1 border-0 bg-transparent text-[12px] font-semibold text-[var(--text-main)] outline-none placeholder:text-[var(--text-muted)]"
+      placeholder="جستجوی سریع..."
+    />
+    <kbd
+      class="flex h-[22px] min-w-[58px] items-center justify-center rounded-[5px] bg-[var(--kbd-bg)] px-[7px] text-[11px] font-bold text-[var(--kbd-text)] [direction:ltr]"
+    >
+      Ctrl + K
+    </kbd>
+  </div>
+
+  <div
+    class="mt-[2px] flex h-[36px] w-[130px] items-center justify-end gap-[18px] text-[var(--text-main)]"
+  >
+    <button class="relative grid size-[24px] place-items-center hover:opacity-80 cursor-pointer">
+      🔔
+      <span
+        class="absolute right-[-8px] top-[-10px] grid size-[18px] place-items-center rounded-full bg-[var(--purple-badge)] text-[10px] font-black text-white shadow-[0_4px_12px_rgba(124,58,237,0.4)]"
+      >
+        3
+      </span>
+    </button>
+    <button
+      (click)="themeService.toggleTheme()"
+      class="grid size-[24px] place-items-center hover:opacity-80 cursor-pointer"
+    >
+      @if (themeService.isDarkMode()) {
+        ☀️
+      } @else {
+        ☾
+      }
+    </button>
+    <button class="grid size-[24px] place-items-center hover:opacity-80 cursor-pointer">⚙</button>
+  </div>
+</header>

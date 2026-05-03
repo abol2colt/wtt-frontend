@@ -15,49 +15,49 @@
 - [x] Refactor routing to eliminate user ID from URLs (Enforcing Zero Client Trust).
       // سیستم احراز هویت و مدیریت خطاهای شبکه (مثل 401 و 403) راه‌اندازی می‌شود. با استفاده از مدیریت وضعیت سراسری، آیدی کاربر از URLها حذف می‌شود تا جلوی باگ IDOR در سطح کلاینت گرفته شود.
 
-**// Branch: feature/003-layout-and-routing**
+**// Branch: feature/003-ui-layout-and-theme**
 
-- [ ] Design main layout shell (Sidebar, Top Navigation Header, Main Viewport).
-- [ ] Implement responsive behavior for the sidebar using Tailwind utility classes.
-- [ ] Configure lazy-loaded routing modules (`/dashboard`, `/tasks`, `/presence`).
-      // پوسته اصلی برنامه طراحی شده و مسیریابی بهینه‌سازی می‌شود تا ماژول‌های سنگین‌تر فقط زمان نیاز لود شوند (Lazy Loading).
+- [ ] Configure Tailwind CSS for Dark Mode support (class strategy).
+- [ ] Design the main application shell (Sidebar navigation, Top Header).
+- [ ] Create a reusable Theme Toggle button (Light/Dark switcher).
+- [ ] Ensure layout responsiveness (mobile, tablet, desktop) using Tailwind utility classes.
+      // در این برنچ، اسکلت اصلی قالب (سایدبار و هدر) دقیقاً مطابق با طراحی‌های جدید به صورت کاملاً استاتیک پیاده‌سازی می‌شود و سیستم تغییر تم (تاریک/روشن) راه‌اندازی می‌گردد.
 
-**// Branch: feature/004-dashboard-metrics**
+**// Branch: feature/004-ui-dashboard-widgets**
 
-- [ ] Integrate chart library (e.g., Chart.js or ECharts).
-- [ ] Create Pie Chart component fetching data from `/api/v1/dashboard/pie_chart/`.
-- [ ] Create Line Chart component fetching data from `/api/v1/dashboard/line_chart/`.
-- [ ] Create `computed` properties tied to signals to dynamically calculate overall efficiency and overtime from `a_user_details`.
-- [ ] Design structural placeholders for future GitLab/Jira statistic widgets.
-      // نمودارهای داشبورد و آمار کارکرد پیاده‌سازی می‌شوند و متغیرهای محاسبه‌شده برای نمایش در لحظه‌یِ درصدها آماده می‌شوند. جایگاه ابزارک‌های آینده نیز در UI رزرو می‌شود.
+- [ ] Design static stat cards (Total Work, Overtime, etc.) with mock data.
+- [ ] Integrate ECharts or Chart.js and render static Mock Pie Chart.
+- [ ] Render static Mock Line Chart for performance trends.
+- [ ] Build the UI placeholder for the future AI/GitLab integration widgets.
+      // در این برنچ، صفحه داشبورد با کارت‌های آماری زیبا و نمودارهای نمایشی (بدون اتصال به بک‌اند) طراحی می‌شود تا ظاهر صفحه کاملاً شبیه به عکس‌های طراحی شده دربیاید.
 
-**// Branch: feature/005-task-management-crud**
+**// Branch: feature/005-ui-tasks-and-presence**
 
-- [ ] Implement task list data-table component with server-side pagination (`/api/v1/tasks/`).
-- [ ] Build cascading dropdowns (Projects -> Services -> Contracts) calling respective `/project_details/` endpoints.
-- [ ] Develop Task Creation form ensuring rigorous validation for required payload fields.
-- [ ] Develop Task Edit/Delete flows.
-- [ ] Add visual mock badge for the "Reviewer" feature on task cards.
-      // سیستم کامل مدیریت وظایف شامل ساخت، ویرایش و حذف به همراه لیست‌های کشویی وابسته برای انتخاب دقیق پروژه‌ها ساخته می‌شود.
+- [ ] Design the Tasks Data-Table with static rows and pagination UI.
+- [ ] Design the "Create Task" modal/form with static cascading dropdowns.
+- [ ] Design the Presence Timer widget (static UI with mock "00:00:00" display).
+- [ ] Add static visual badges for task status and the future "Reviewer" feature.
+      // بخش‌های مدیریت وظایف (جداول و فرم‌ها) و ظاهر تایمر حضور و غیاب بدون درگیر شدن با منطق فرم‌ها و فقط با استفاده از کلاس‌های Tailwind پیاده‌سازی می‌شوند.
 
-**// Branch: feature/006-presence-timer**
+**// Branch: feature/006-logic-state-and-dashboard**
 
-- [ ] Create a real-time visual timer component.
-- [ ] Call `no_end_time_presence` on initialization to sync the timer with an active session.
-- [ ] Implement "Clock In" button dispatching exact local time payload.
-- [ ] Implement "Clock Out" logic for presence termination.
-      // تایمر حضور و غیاب بر اساس منطق فعلی بک‌اند ساخته می‌شود که توانایی همگام‌سازی زمان کلاینت با دیتابیس سرور را دارد.
+- [ ] Connect Theme Toggle to global Signal state and local storage.
+- [ ] Fetch real data from `/api/v1/users/a_user_details/` and populate stat cards.
+- [ ] Connect Pie Chart and Line Chart to their respective backend endpoints.
+      // از این برنچ فاز منطق آغاز می‌شود. کامپوننت‌های استاتیک داشبورد زنده شده و داده‌های واقعی کاربر را از سرویس‌ها دریافت و نمایش می‌دهند.
 
-**// Branch: feature/007-realtime-orchestration-prep**
+**// Branch: feature/007-logic-tasks-crud**
 
-- [ ] Create `connection-orchestration.service` to act as a manager for real-time updates.
-- [ ] Set up notification polling (or prepare WebSocket listeners) for `get_message_data` to check for AI logs.
-- [ ] Design the UI notification toast/badge that will trigger when a task transitions to "Pending" via AI.
-      // سرویس مدیریت ارتباطات برای دریافت لحظه‌ای اعلان‌ها (مخصوصاً برای زمانی که هوش مصنوعی تسک جدید می‌سازد) آماده می‌شود تا با معماری آینده سازگار باشد.
+- [ ] Implement reactive forms logic for Task Creation/Edit.
+- [ ] Connect Cascading Dropdowns to `/api/v1/projects/project_details/`.
+- [ ] Connect Task Data-Table to `/api/v1/tasks/` with server-side pagination.
+      // فرم‌ها و جداول وظایف که در فاز UI ساخته شده بودند، حالا به API متصل شده و قابلیت ثبت، ویرایش و حذف واقعی پیدا می‌کنند.
 
-**// Branch: refactor/008-review-and-mock-tests**
+**// Branch: feature/008-logic-presence-timer**
 
-- [ ] Audit component logic to ensure all observables/signals are properly cleaned up to prevent memory leaks.
-- [ ] Test layout responsiveness with simulated (Mock) data mimicking AI-generated Markdown logs.
-- [ ] Verify timezone strictness across all POST/PUT requests.
-      // کدها ریویو می‌شوند تا از عملکرد بهینه حافظه اطمینان حاصل شود. همچنین رفتار UI در هنگام دریافت متون طولانی (تولید شده توسط هوش مصنوعی) شبیه‌سازی و تست می‌گردد.
+- [ ] Implement real-time interval logic for the visual timer.
+- [ ] Connect "Clock In" and "Clock Out" buttons to the backend payload.
+- [ ] Handle timezone strictness (`Asia/Tehran`) using `date-fns-jalali` before payload submission.
+      // منطق پیچیده تایمر حضور و غیاب و ارسال دقیق زمان‌ها به سرور به کامپوننت نمایشی تایمر متصل می‌گردد.
+
+---

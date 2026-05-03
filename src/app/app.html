@@ -1,7 +1,12 @@
-<main class="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-  <h1 class="text-4xl font-extrabold text-blue-600 text-center mb-8">
-    سلام WTT! سیستم شبکه و Zoneless فعال شد 🚀
-  </h1>
+<div class="dashboard-shell transition-colors duration-300">
+  <app-left-sidebar></app-left-sidebar>
 
-  <router-outlet></router-outlet>
-</main>
+  <main class="main-panel">
+    <app-header></app-header>
+    <div class="flex-1 overflow-y-auto mt-4 pr-2 dir-rtl">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+
+  <app-sidebar></app-sidebar>
+</div>
