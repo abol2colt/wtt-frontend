@@ -1,17 +1,17 @@
 <header
-  class="h-[62px] border-b border-[var(--border-main)] pb-[14px] flex items-start justify-between [direction:rtl] shrink-0 transition-colors duration-300"
+  class="h-[58px] border-b border-[var(--border-main)] pb-[12px] flex items-start justify-between [direction:rtl] shrink-0 transition-colors duration-300"
 >
   <div class="w-[290px] text-right">
-    <h1 class="m-0 text-[25px] leading-none font-black tracking-[-0.5px] text-[var(--text-main)]">
+    <h1 class="m-0 text-[25px] leading-[1.1] font-black tracking-[-0.5px] text-[var(--text-main)]">
       داشبورد
     </h1>
-    <p class="mt-[8px] text-[12px] leading-[1.4] font-semibold text-[var(--text-soft)]">
+    <p class="mt-[6px] text-[12px] leading-[1.4] font-semibold text-[var(--text-soft)]">
       نمای کلی از عملکرد و فعالیت‌های شما
     </p>
   </div>
 
   <div
-    class="mt-[2px] flex h-[38px] w-[355px] items-center gap-[8px] rounded-[10px] border border-[rgba(20,48,74,0.1)] dark:border-[rgba(20,48,74,0.82)] bg-white dark:bg-[#03111d] px-[12px] shadow-[inset_0_1px_0_rgba(255,255,255,0.02),0_8px_18px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.02),0_8px_18px_rgba(0,0,0,0.22)] transition-shadow duration-300"
+    class="mt-[4px] flex h-[36px] w-[330px] items-center gap-[8px] rounded-[10px] border border-[rgba(20,48,74,0.1)] dark:border-[rgba(20,48,74,0.82)] bg-white dark:bg-[#03111d] px-[12px] shadow-[inset_0_1px_0_rgba(255,255,255,0.02),0_8px_18px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.02),0_8px_18px_rgba(0,0,0,0.22)] transition-shadow duration-300"
   >
     <svg class="w-5 h-5 text-[var(--text-soft)]" viewBox="0 0 24 24" fill="none">
       <path
@@ -21,21 +21,17 @@
         stroke-linejoin="round"
       />
     </svg>
-
     <input
       class="min-w-0 flex-1 border-0 bg-transparent text-[12px] font-semibold text-[var(--text-main)] outline-none placeholder:text-[var(--text-muted)] dark:placeholder:text-[rgba(104,117,135,0.5)]"
       placeholder="جستجوی سریع..."
     />
-
     <kbd
       class="flex h-[22px] min-w-[58px] items-center justify-center rounded-[6px] bg-[#f1f5f9] dark:bg-[#0f1a29] px-[7px] text-[11px] font-[800] text-[#64748b] dark:text-[#9aa6ba] [direction:ltr]"
+      >Ctrl + K</kbd
     >
-      Ctrl + K
-    </kbd>
   </div>
-
   <div
-    class="mt-[2px] flex h-[36px] w-[130px] items-center justify-end gap-[18px] text-[var(--text-soft)] hover:text-[var(--text-main)] [direction:ltr]"
+    class="mt-[4px] flex h-[36px] w-[130px] items-center justify-end gap-[18px] text-[var(--text-soft)] hover:text-[var(--text-main)] [direction:ltr]"
   >
     <button
       class="relative grid size-[24px] place-items-center hover:text-blue-500 transition-colors"
@@ -56,11 +52,9 @@
       </svg>
       <span
         class="absolute right-[-6px] top-[-6px] grid size-[16px] place-items-center rounded-full bg-[var(--purple)] text-[9px] font-black text-white shadow-[0_2px_8px_rgba(124,58,237,0.4)]"
+        >3</span
       >
-        3
-      </span>
     </button>
-
     <button
       (click)="themeService.toggleTheme()"
       class="grid size-[24px] place-items-center hover:text-yellow-500 transition-colors"
@@ -86,7 +80,6 @@
         </svg>
       }
     </button>
-
     <button class="grid size-[24px] place-items-center hover:text-blue-500 transition-colors">
       <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
         <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5A3.5 3.5 0 0 0 12 15.5Z" stroke="currentColor" />

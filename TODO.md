@@ -25,10 +25,10 @@
 
 **// Branch: feature/004-ui-dashboard-widgets**
 
-- [ ] Design static stat cards (Total Work, Overtime, etc.) with mock data.
-- [ ] Integrate ECharts or Chart.js and render static Mock Pie Chart.
-- [ ] Render static Mock Line Chart for performance trends.
-- [ ] Build the UI placeholder for the future AI/GitLab integration widgets.
+- [x] Design static stat cards (Total Work, Overtime, etc.) with mock data.
+- [x] Integrate ECharts or Chart.js and render static Mock Pie Chart.
+- [x] Render static Mock Line Chart for performance trends.
+- [x] Build the UI placeholder for the future AI/GitLab integration widgets.
       // در این برنچ، صفحه داشبورد با کارت‌های آماری زیبا و نمودارهای نمایشی (بدون اتصال به بک‌اند) طراحی می‌شود تا ظاهر صفحه کاملاً شبیه به عکس‌های طراحی شده دربیاید.
 
 **// Branch: feature/005-ui-tasks-and-presence**
