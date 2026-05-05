@@ -2,15 +2,15 @@ import { Component, inject } from '@angular/core';
 import { LayoutService } from '../../core/services/layout/layout.service';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-tasks',
   standalone: true,
-  templateUrl: './dashboard.html',
+  templateUrl: './tasks.html',
 })
-export class DashboardComponent {
+export class TasksComponent {
   layout = inject(LayoutService);
 
   constructor() {
-    // به محض ورود به داشبورد، این رو False کن
-    this.layout.isTasksPage.set(false);
+    // به محض ورود به صفحه وظایف، این رو True کن
+    this.layout.isTasksPage.set(true);
   }
 }

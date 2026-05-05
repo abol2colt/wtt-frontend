@@ -1,9 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { LayoutService } from '../../services/layout/layout.service'; // ایمپورت سرویس
 
 @Component({
   selector: 'app-left-sidebar',
-  imports: [],
+  standalone: true,
   templateUrl: './left-sidebar.html',
-  styleUrl: './left-sidebar.scss',
 })
-export class LeftSidebar {}
+export class LeftSidebarComponent {
+  // تزریق سرویس
+  public layout = inject(LayoutService);
+}

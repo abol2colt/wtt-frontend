@@ -17,20 +17,18 @@ export interface UserProfile {
 })
 export class AuthService {
   private http = inject(HttpClient);
-  // بعداً می‌بریم تو فایل environment
+
+  //TODO: بعداً می‌بریم تو فایل environment
   private apiUrl = 'http://api.your-backend.com/api/v1';
 
-  // سیگنال سراسری: در ابتدا null است چون کاربر هنوز لود نشده
   currentUser = signal<UserProfile | null>(null);
 
   constructor() {}
 
-  // متد دریافت اطلاعات پروفایل
   fetchProfile(userId: number) {
-    // طبق داکیومنت، آیدی کاربر به عنوان query param ارسال می‌شه
+    // example doc query param
     return this.http.get<UserProfile>(`${this.apiUrl}/profile/?user=${userId}`).pipe(
       tap((profile) => {
-        // وقتی دیتا از سرور اومد، اون رو تو سیگنال ذخیره می‌کنیم
         this.currentUser.set(profile);
         console.log('✅ اطلاعات پروفایل دریافت و در State ذخیره شد:', profile);
       }),

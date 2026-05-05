@@ -1,4 +1,4 @@
-<aside class="left-sidebar">
+<aside class="left-sidebar transition-colors duration-300">
   <div class="left-logo-area">
     <div>
       <h1 class="left-logo-title">WTT</h1>
@@ -7,120 +7,129 @@
         HUB EDITION 2.5
       </p>
     </div>
-
     <button class="left-menu-dots" type="button" aria-label="menu">
       <span></span>
     </button>
   </div>
 
-  <section class="left-card attendance-card">
-    <div class="attendance-title">
-      <span>وضعیت حضور</span>
-      <span class="attendance-title-dot"></span>
-    </div>
+  @if (!layout.isTasksPage()) {
+    <section class="left-card attendance-card">
+      <div class="attendance-title">
+        <span>وضعیت حضور</span><span class="attendance-title-dot"></span>
+      </div>
+      <div class="status-orb">
+        <svg viewBox="0 0 64 64" fill="none">
+          <path
+            d="M10 34H22L27 22L34 46L40 30L44 34H54"
+            stroke="currentColor"
+            stroke-width="4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+      <div class="attendance-status-text">
+        <span>حاضر - آنلاین</span><span class="attendance-live-dot"></span>
+      </div>
+      <div class="attendance-time">08:26 · امروز</div>
+    </section>
 
-    <div class="status-orb">
-      <svg viewBox="0 0 64 64" fill="none">
-        <path
-          d="M10 34H22L27 22L34 46L40 30L44 34H54"
-          stroke="currentColor"
-          stroke-width="4"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </div>
+    <section class="left-card running-task-card">
+      <div class="running-task-header">
+        <span class="running-task-title">پروژه در حال اجرا</span>
+      </div>
+      <div class="running-task-project">IDEAL-9011</div>
+      <div class="running-task-desc">رفع مشکل احراز هویت کاربران</div>
+      <div class="running-task-timer text-cyan-500 drop-shadow-[0_0_8px_rgba(0,228,186,0.5)]">
+        02:15:40
+      </div>
+    </section>
 
-    <div class="attendance-status-text">
-      <span>حاضر - آنلاین</span>
-      <span class="attendance-live-dot"></span>
-    </div>
-
-    <div class="attendance-time">08:26 · امروز</div>
-  </section>
-
-  <section class="left-card running-task-card">
-    <div class="running-task-header">
-      <span class="running-task-title">پروژه در حال اجرا</span>
-
-      <svg class="running-task-code-icon" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M16 18L22 12L16 6"
-          stroke="currentColor"
-          stroke-width="2.2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M8 6L2 12L8 18"
-          stroke="currentColor"
-          stroke-width="2.2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </div>
-
-    <div class="running-task-project">IDEAL-9011</div>
-
-    <div class="running-task-desc">رفع مشکل احراز هویت کاربران</div>
-
-    <div class="running-task-timer">02:15:40</div>
-
-    <div class="running-task-start">
-      <span class="running-task-clock"></span>
-      <span>شروع · 10:45:12</span>
-    </div>
-  </section>
-
-  <section class="left-card distribution-card">
-    <h3 class="distribution-title">توزیع پروژه‌ها</h3>
-
-    <div class="distribution-body">
-      <div class="project-donut">
-        <div class="project-donut-hole">
-          <span class="project-donut-label">کل زمان</span>
-          <strong class="project-donut-value">42.6h</strong>
+    <section class="left-card distribution-card">
+      <h3 class="distribution-title">توزیع پروژه‌ها</h3>
+      <div class="distribution-body">
+        <div class="project-donut">
+          <div class="project-donut-hole">
+            <span class="project-donut-label">کل زمان</span
+            ><strong class="project-donut-value">42.6h</strong>
+          </div>
+        </div>
+        <div class="distribution-legend">
+          <div class="legend-item">
+            <span class="legend-dot legend-green"></span><span class="legend-name">NeoERP</span
+            ><span class="legend-percent" style="color: var(--left-green)">42%</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot legend-purple"></span><span class="legend-name">IDEAL</span
+            ><span class="legend-percent" style="color: var(--left-purple)">28%</span>
+          </div>
         </div>
       </div>
-
-      <div class="distribution-legend">
-        <div class="legend-item">
-          <span class="legend-dot legend-green"></span>
-          <span class="legend-name">NeoERP</span>
-          <span class="legend-percent" style="color: var(--left-green)">42%</span>
+    </section>
+  } @else {
+    <section class="left-card p-4 mt-3">
+      <h3 class="text-[13px] font-black text-[var(--text-main)] mb-4 flex items-center gap-2">
+        <svg class="w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        فیلترهای پیشرفته
+      </h3>
+      <div class="flex flex-col gap-3">
+        <div
+          class="bg-slate-50 dark:bg-[var(--card-bg-soft)] border border-[var(--card-border)] rounded-lg p-2.5 flex justify-between items-center cursor-pointer"
+        >
+          <span class="text-xs font-bold text-[var(--text-soft)]">انتخاب پروژه...</span>
+          <span class="text-[var(--text-soft)]">▾</span>
         </div>
-
-        <div class="legend-item">
-          <span class="legend-dot legend-purple"></span>
-          <span class="legend-name">IDEAL</span>
-          <span class="legend-percent" style="color: var(--left-purple)">28%</span>
-        </div>
-
-        <div class="legend-item">
-          <span class="legend-dot legend-orange"></span>
-          <span class="legend-name">علائم</span>
-          <span class="legend-percent" style="color: var(--left-orange)">18%</span>
-        </div>
-
-        <div class="legend-item">
-          <span class="legend-dot legend-blue"></span>
-          <span class="legend-name">پشتیبان</span>
-          <span class="legend-percent" style="color: var(--left-blue)">7%</span>
-        </div>
-
-        <div class="legend-item">
-          <span class="legend-dot legend-gray"></span>
-          <span class="legend-name">سایر</span>
-          <span class="legend-percent" style="color: var(--left-gray)">5%</span>
+        <div
+          class="bg-slate-50 dark:bg-[var(--card-bg-soft)] border border-[var(--card-border)] rounded-lg p-2.5 flex justify-between items-center cursor-pointer"
+        >
+          <span class="text-xs font-bold text-[var(--text-soft)]">نوع سرویس...</span>
+          <span class="text-[var(--text-soft)]">▾</span>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="left-card today-stats-card">
+    <section
+      class="border border-dashed border-purple-400/40 bg-purple-500/5 dark:bg-purple-900/10 rounded-[14px] p-4 flex flex-col items-center justify-center text-center gap-3 relative overflow-hidden min-h-[140px] mt-3"
+    >
+      <div
+        class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(159,77,230,0.1)_0%,transparent_70%)] pointer-events-none"
+      ></div>
+      <div
+        class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 z-10"
+      >
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+      <div class="z-10">
+        <h4 class="text-[13px] font-black text-[var(--text-main)]">پیشنهادهای GitLab</h4>
+        <p class="text-[10px] font-bold text-[var(--text-soft)] mt-1">
+          تولید خودکار تسک از Commitها
+        </p>
+      </div>
+      <span
+        class="z-10 px-2.5 py-1 rounded-md bg-slate-200/50 dark:bg-[#071a2b] text-[var(--text-muted)] text-[9px] font-black tracking-wider uppercase"
+        >Coming Soon</span
+      >
+    </section>
+  }
+
+  <section class="left-card today-stats-card mt-auto">
     <h3 class="today-stats-title">آمار امروز</h3>
-
     <div class="today-stats-grid">
       <div class="today-mini-card">
         <svg class="today-mini-icon" viewBox="0 0 24 24" fill="none">
@@ -137,12 +146,9 @@
             stroke-width="2.2"
           />
         </svg>
-
         <div class="today-mini-label">کارکرد</div>
-        <strong class="today-mini-value">05:48</strong>
-        <span class="today-mini-unit">ساعت</span>
+        <strong class="today-mini-value">05:48</strong><span class="today-mini-unit">ساعت</span>
       </div>
-
       <div class="today-mini-card">
         <svg class="today-mini-icon" viewBox="0 0 24 24" fill="none">
           <path
@@ -159,12 +165,9 @@
             stroke-linejoin="round"
           />
         </svg>
-
         <div class="today-mini-label">تسک‌ها</div>
-        <strong class="today-mini-value">7</strong>
-        <span class="today-mini-unit">تسک</span>
+        <strong class="today-mini-value">7</strong><span class="today-mini-unit">تسک</span>
       </div>
-
       <div class="today-mini-card">
         <svg class="today-mini-icon" viewBox="0 0 24 24" fill="none">
           <path
@@ -182,10 +185,8 @@
             stroke-linejoin="round"
           />
         </svg>
-
         <div class="today-mini-label">بهره‌وری</div>
-        <strong class="today-mini-value">72%</strong>
-        <span class="today-mini-unit">نسبت مفید</span>
+        <strong class="today-mini-value">72%</strong><span class="today-mini-unit">نسبت مفید</span>
       </div>
     </div>
   </section>

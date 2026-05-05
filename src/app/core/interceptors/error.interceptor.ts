@@ -8,7 +8,6 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      // بررسی نوع خطاهای بازگشتی از سمت سرور
       if (error.status === 401) {
         console.error('🔒 خطای ۴۰۱: توکن نامعتبر است یا منقضی شده. هدایت به صفحه لاگین...');
         // TODO: بعداً اینجا کد پاک کردن Signal کاربر و هدایت به صفحه لاگین رو می‌زنیم
@@ -25,7 +24,6 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         console.error(`❌ خطای ناشناخته رخ داد: ${error.message}`);
       }
 
-      // پاس دادن ارور به کامپوننت (تا اگر خواست به کاربر پیام خاصی نشون بده)
       return throwError(() => error);
     }),
   );

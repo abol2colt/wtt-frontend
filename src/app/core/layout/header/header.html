@@ -3,33 +3,53 @@
 >
   <div class="w-[290px] text-right">
     <h1 class="m-0 text-[25px] leading-[1.1] font-black tracking-[-0.5px] text-[var(--text-main)]">
-      داشبورد
+      {{ layout.isTasksPage() ? 'مرکز وظایف' : 'داشبورد' }}
     </h1>
     <p class="mt-[6px] text-[12px] leading-[1.4] font-semibold text-[var(--text-soft)]">
-      نمای کلی از عملکرد و فعالیت‌های شما
+      {{
+        layout.isTasksPage()
+          ? 'بررسی، ثبت و پیگیری تسک‌های روزانه'
+          : 'نمای کلی از عملکرد و فعالیت‌های شما'
+      }}
     </p>
   </div>
 
-  <div
-    class="mt-[4px] flex h-[36px] w-[330px] items-center gap-[8px] rounded-[10px] border border-[rgba(20,48,74,0.1)] dark:border-[rgba(20,48,74,0.82)] bg-white dark:bg-[#03111d] px-[12px] shadow-[inset_0_1px_0_rgba(255,255,255,0.02),0_8px_18px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.02),0_8px_18px_rgba(0,0,0,0.22)] transition-shadow duration-300"
-  >
-    <svg class="w-5 h-5 text-[var(--text-soft)]" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M21 21L16.65 16.65M11 19C6.58 19 3 15.42 3 11C3 6.58 6.58 3 11 3C15.42 3 19 6.58 19 11C19 15.42 15.42 19 11 19Z"
-        stroke="currentColor"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-    </svg>
-    <input
-      class="min-w-0 flex-1 border-0 bg-transparent text-[12px] font-semibold text-[var(--text-main)] outline-none placeholder:text-[var(--text-muted)] dark:placeholder:text-[rgba(104,117,135,0.5)]"
-      placeholder="جستجوی سریع..."
-    />
-    <kbd
-      class="flex h-[22px] min-w-[58px] items-center justify-center rounded-[6px] bg-[#f1f5f9] dark:bg-[#0f1a29] px-[7px] text-[11px] font-[800] text-[#64748b] dark:text-[#9aa6ba] [direction:ltr]"
-      >Ctrl + K</kbd
+  @if (layout.isTasksPage()) {
+    <div class="mt-[4px] flex items-center gap-3">
+      <button
+        class="bg-slate-100 dark:bg-[#071a2b] text-[var(--text-soft)] px-4 h-[36px] rounded-lg text-sm font-bold border border-[var(--card-border)] hover:bg-slate-200 transition-colors cursor-pointer"
+      >
+        تولید با AI ⚡
+      </button>
+      <button
+        class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 h-[36px] rounded-lg text-sm font-bold shadow-lg shadow-purple-500/30 hover:opacity-90 transition-opacity cursor-pointer"
+      >
+        + ثبت وظیفه جدید
+      </button>
+    </div>
+  } @else {
+    <div
+      class="mt-[4px] flex h-[36px] w-[330px] items-center gap-[8px] rounded-[10px] border border-[rgba(20,48,74,0.1)] dark:border-[rgba(20,48,74,0.82)] bg-white dark:bg-[#03111d] px-[12px] shadow-[inset_0_1px_0_rgba(255,255,255,0.02),0_8px_18px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.02),0_8px_18px_rgba(0,0,0,0.22)] transition-shadow duration-300"
     >
-  </div>
+      <svg class="w-5 h-5 text-[var(--text-soft)]" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M21 21L16.65 16.65M11 19C6.58 19 3 15.42 3 11C3 6.58 6.58 3 11 3C15.42 3 19 6.58 19 11C19 15.42 15.42 19 11 19Z"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+      <input
+        class="min-w-0 flex-1 border-0 bg-transparent text-[12px] font-semibold text-[var(--text-main)] outline-none placeholder:text-[var(--text-muted)] dark:placeholder:text-[rgba(104,117,135,0.5)]"
+        placeholder="جستجوی سریع..."
+      />
+      <kbd
+        class="flex h-[22px] min-w-[58px] items-center justify-center rounded-[6px] bg-[#f1f5f9] dark:bg-[#0f1a29] px-[7px] text-[11px] font-[800] text-[#64748b] dark:text-[#9aa6ba] [direction:ltr]"
+        >Ctrl + K</kbd
+      >
+    </div>
+  }
+
   <div
     class="mt-[4px] flex h-[36px] w-[130px] items-center justify-end gap-[18px] text-[var(--text-soft)] hover:text-[var(--text-main)] [direction:ltr]"
   >

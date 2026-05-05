@@ -432,3 +432,113 @@ body {
 .dark .activity-badge.task { background: rgba(159,77,230,.14); color: var(--purple); }
 .dark .activity-badge.meeting { background: rgba(0,228,186,.12); color: var(--cyan); }
 .dark .activity-badge.report { background: rgba(251,191,36,.12); color: var(--orange); }
+
+/* =========================
+   TASKS PAGE TOKENS
+========================= */
+.tasks-control-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0;
+  direction: rtl;
+}
+
+.quick-filters {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-chip {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.filter-chip:hover {
+  background: var(--card-bg-soft);
+}
+
+.filter-chip.active {
+  background: rgba(123, 67, 220, 0.1);
+  color: var(--purple);
+  border-color: rgba(123, 67, 220, 0.2);
+}
+
+.dark .filter-chip.active {
+  background: rgba(159, 77, 230, 0.15);
+  border-color: rgba(159, 77, 230, 0.3);
+}
+
+/* --- Task List Rows --- */
+.task-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.task-row-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfc 100%);
+  box-shadow: 0 4px 12px rgba(21, 32, 56, 0.04);
+  position: relative;
+  overflow: hidden;
+  direction: rtl;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.task-row-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(21, 32, 56, 0.08);
+}
+
+.dark .task-row-card {
+  background: linear-gradient(180deg, rgba(7, 24, 39, 0.96) 0%, rgba(3, 13, 27, 0.98) 100%);
+  box-shadow: 0 0 0 1px rgba(0, 228, 186, 0.02), 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.dark .task-row-card:hover {
+  box-shadow: 0 0 0 1px rgba(0, 228, 186, 0.06), 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+/* نوار وضعیت کنار کارت */
+.task-status-rail {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+.task-status-rail.done { background: var(--green); }
+.task-status-rail.progress { background: var(--blue); }
+.task-status-rail.review { background: var(--orange); }
+
+/*(Inline Play) */
+.task-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 228, 186, 0.1);
+  color: var(--cyan);
+  cursor: pointer;
+  transition: all 200ms;
+}
+.task-play-btn:hover {
+  background: var(--cyan);
+  color: white;
+  box-shadow: 0 0 12px rgba(0, 228, 186, 0.4);
+}
