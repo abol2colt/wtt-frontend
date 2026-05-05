@@ -33,13 +33,13 @@
 
 **// Branch: feature/005-ui-tasks-and-presence**
 
-- [ ] Design the Tasks Data-Table with static rows and pagination UI.
-- [ ] Design the "Create Task" modal/form with static cascading dropdowns.
+- [x] Build Task Command Center layout with smart filters and inline actions (Play/Stop timer).
+- [x] Implement Global `LayoutService` using Signals for context-aware Headers and Sidebars.
+- [x] Add static visual badges for task status and the future "Reviewer" feature.
 - [ ] Design the Presence Timer widget (static UI with mock "00:00:00" display).
 - [ ] Add static visual badges for task status and the future "Reviewer" feature.
-      // بخش‌های مدیریت وظایف (جداول و فرم‌ها) و ظاهر تایمر حضور و غیاب بدون درگیر شدن با منطق فرم‌ها و فقط با استفاده از کلاس‌های Tailwind پیاده‌سازی می‌شوند.
-
-**// Branch: feature/006-logic-state-and-dashboard**
+      // مرکز فرماندهی وظایف و سیستم رادار هوشمند سایدبارها پیاده‌سازی شد. بخش‌های فرم‌ساز و صفحه حضور به برنچ بعدی منتقل شدند.
+      **// Branch: feature/006-logic-state-and-dashboard**
 
 - [ ] Connect Theme Toggle to global Signal state and local storage.
 - [ ] Fetch real data from `/api/v1/users/a_user_details/` and populate stat cards.
