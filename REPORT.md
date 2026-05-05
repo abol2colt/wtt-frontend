@@ -151,3 +151,80 @@
 طراحی مودال هوشمند ثبت وظیفه (Smart Modal).
 
 طراحی رابط کاربری صفحه مجزای حضور و غیاب / مرخصی (Presence).
+
+---
+
+#### 📦 Package Version Notes
+
+- Angular current installed version: 21.2.x
+- Tailwind CSS: 4.2.x
+- RxJS: 7.8.x
+- date-fns-jalali: 4.1.x
+- No chart library is installed yet.
+
+Temporary technical debt:
+Token is currently hardcoded for development because real login is not implemented in redesigned frontend yet.
+
+### 📝 گزارش مرحله ۰ تا ۱۰۰ - شماره ۶
+
+- **تاریخ ثبت:**
+- **Branch:** `feature/006-api-contracts-and-data-foundation`
+- **هدف برنچ:** آماده‌سازی پایه اتصال API برای Dashboard و Tasks بدون تغییر سنگین UI.
+
+#### ✅ کارهای انجام‌شده
+
+1. بررسی نسخه‌های نصب‌شده پروژه از روی `package-lock.json`.
+2. ثبت این نکته که نسخه فعلی Angular برابر 21.2.x است.
+3. ایجاد فایل‌های environment برای مدیریت API Base URL.
+4. حذف وابستگی مستقیم `AuthService` به URL هاردکد.
+5. ایجاد مدل‌های TypeScript برای User، Dashboard، Task، Project و ApiState.
+6. ساخت JSON contract برای Dashboard و Tasks جهت ارسال به لید.
+7. اصلاح route صفحه Tasks از `Tasks` به `tasks`.
+
+#### 🔌 APIهای بررسی‌شده
+
+| بخش             | Endpoint                             | Method | وضعیت             |
+| --------------- | ------------------------------------ | ------ | ----------------- |
+| User Profile    | `/api/v1/profile/`                   | GET    | Contract reviewed |
+| Dashboard Stats | `/api/v1/users/a_user_details/`      | GET    | Contract reviewed |
+| Pie Chart       | `/api/v1/dashboard/pie_chart/`       | GET    | Contract reviewed |
+| Line Chart      | `/api/v1/dashboard/line_chart/`      | GET    | Contract reviewed |
+| Tasks List      | `/api/v1/tasks/`                     | GET    | Contract reviewed |
+| Task Create     | `/api/v1/tasks/`                     | POST   | Contract reviewed |
+| Task Update     | `/api/v1/tasks/{id}/`                | PUT    | Contract reviewed |
+| Task Delete     | `/api/v1/tasks/{id}/`                | DELETE | Contract reviewed |
+| Projects        | `/api/v1/projects/get_all_projects/` | GET    | Contract reviewed |
+
+#### 🧠 نکات آموزشی
+
+1. `package-lock.json` منبع دقیق نسخه‌های نصب‌شده است.
+2. `environment` محل نگهداری تنظیمات وابسته به محیط است، نه کامپوننت و سرویس.
+3. Interfaceها قبل از API integration باعث می‌شوند mapping داده‌ها قابل کنترل شود.
+4. Routeهای lowercase استانداردتر و قابل نگهداری‌تر هستند.
+5. Token و UserId فعلاً temporary هستند و باید در گزارش به عنوان technical debt ثبت شوند.
+
+#### ⚠️ تصمیم‌های فنی
+
+1. فعلاً chart library نصب نشد.
+2. فعلاً UI جدید اضافه نشد.
+3. اتصال واقعی داشبورد به API به branch بعدی منتقل شد.
+4. UserId فعلاً از environment خوانده می‌شود تا backend فعلی که `user` query param می‌خواهد قابل استفاده باشد.
+
+#### 🧾 JSON / Contract Notes
+
+- `dashboard.contract.json` برای مشخص کردن shape مورد نیاز داشبورد ساخته شد.
+- `tasks.contract.json` برای مشخص کردن shape مورد نیاز لیست و فرم تسک ساخته شد.
+- این contractها برای هماهنگی با لید backend استفاده می‌شوند.
+
+#### 🛑 محدودیت‌ها / وابستگی‌ها
+
+- redesigned frontend هنوز login واقعی ندارد.
+- token فعلاً موقت است.
+- userId هنوز به خاطر API v1 باید ارسال شود.
+- chart library هنوز انتخاب/نصب نشده.
+- endpointهای واقعی باید توسط لید تأیید شوند.
+
+#### 🎯 قدم بعدی
+
+- **Branch بعدی:** `feature/007-dashboard-api-integration`
+- **هدف:** اتصال داشبورد به APIهای واقعی و جایگزین کردن mock data با data-driven UI.
