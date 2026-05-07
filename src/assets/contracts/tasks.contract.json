@@ -1,0 +1,43 @@
+{
+  "tasks_list": {
+    "_status": "PROPOSED UPDATE TO V1",
+    "_reason": "Added project_title, location, start_time, end_time to prevent N+1 frontend requests.",
+    "endpoint": "/api/v1/tasks/",
+    "method": "GET",
+    "query": { "user": 273, "page": 1, "range": "month_till_today" },
+    "requested_ui_response": {
+      "data": [
+        {
+          "id": 259354,
+          "status": "pending",
+          "title": "[IDEAL-901]: رفع مشکل موقعیت اسکرول",
+          "project_id": 30,
+          "project_title": "مگاپروژه > للویاینک",
+          "date": "1405-02-08",
+          "duration": 30,
+          "location": "teleworking",
+          "start_time": "1405-02-08 09:00:00",
+          "end_time": "1405-02-08 09:30:00"
+        }
+      ],
+      "meta": {
+        "page": 1,
+        "page_size": 10,
+        "total": 100
+      }
+    }
+  },
+  "tasks_kpi_summary": {
+    "_status": "PROPOSED - NEW FAKE API",
+    "_reason": "Need summary for the 4 top cards in Tasks page.",
+    "endpoint": "/api/v1/tasks/summary/",
+    "method": "GET",
+    "query": { "user": 273, "range": "today" },
+    "response": {
+      "today_tasks_count": 7,
+      "logged_time_minutes": 348,
+      "pending_review_count": 3,
+      "needs_fix_count": 1
+    }
+  }
+}
