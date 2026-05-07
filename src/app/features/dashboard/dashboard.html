@@ -108,94 +108,32 @@
       <button class="trend-chart-filter">۳۰ روز اخیر</button>
     </div>
 
-    <svg class="trend-chart-svg" viewBox="0 0 900 165" fill="none">
-      <defs>
-        <linearGradient id="trendLine" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stop-color="#00e4ba" />
-          <stop offset="45%" stop-color="#3b82f6" />
-          <stop offset="100%" stop-color="#9f4de6" />
-        </linearGradient>
-        <linearGradient id="trendFill" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0%" stop-color="#00e4ba" stop-opacity=".16" />
-          <stop offset="50%" stop-color="#3b82f6" stop-opacity=".11" />
-          <stop offset="100%" stop-color="#9f4de6" stop-opacity=".22" />
-        </linearGradient>
-        <filter id="trendGlow">
-          <feDropShadow
-            dx="0"
-            dy="0"
-            stdDeviation="2.6"
-            flood-color="var(--purple)"
-            flood-opacity=".35"
-          />
-        </filter>
-      </defs>
-
-      <g class="chart-grid-line">
-        <path d="M55 20H890" />
-        <path d="M55 45H890" />
-        <path d="M55 70H890" />
-        <path d="M55 95H890" />
-        <path d="M55 120H890" />
-        <path d="M55 145H890" />
-      </g>
-      <g class="chart-grid-line" opacity=".7">
-        <path d="M150 15V145" />
-        <path d="M265 15V145" />
-        <path d="M380 15V145" />
-        <path d="M495 15V145" />
-        <path d="M610 15V145" />
-        <path d="M725 15V145" />
-        <path d="M840 15V145" />
-      </g>
-
-      <g class="chart-axis-text">
-        <text x="12" y="148" text-anchor="start">0h</text>
-        <text x="12" y="123" text-anchor="start">2h</text>
-        <text x="12" y="98" text-anchor="start">4h</text>
-        <text x="12" y="73" text-anchor="start">6h</text>
-        <text x="12" y="48" text-anchor="start">8h</text>
-        <text x="12" y="23" text-anchor="start">12h</text>
-      </g>
-
-      <g transform="translate(15, 0)">
-        <path
-          d="M40 122 C70 90, 95 88, 120 108 C145 128, 170 116, 195 96 C220 60, 245 52, 270 84 C295 116, 320 64, 345 74 C370 84, 395 46, 420 54 C445 62, 470 92, 495 84 C520 76, 545 58, 570 72 C595 86, 620 46, 645 52 C670 58, 695 42, 720 18 C745 -2, 770 72, 795 30 C820 -8, 845 38, 890 54 L890 145 L40 145 Z"
-          fill="url(#trendFill)"
-        />
-        <path
-          d="M40 122 C70 90, 95 88, 120 108 C145 128, 170 116, 195 96 C220 60, 245 52, 270 84 C295 116, 320 64, 345 74 C370 84, 395 46, 420 54 C445 62, 470 92, 495 84 C520 76, 545 58, 570 72 C595 86, 620 46, 645 52 C670 58, 695 42, 720 18 C745 -2, 770 72, 795 30 C820 -8, 845 38, 890 54"
-          stroke="url(#trendLine)"
-          stroke-width="3"
-          stroke-linecap="round"
-          fill="none"
-          filter="url(#trendGlow)"
-        />
-        <g fill="url(#trendLine)" stroke="var(--card-bg)" stroke-width="2">
-          <circle cx="40" cy="122" r="4" />
-          <circle cx="120" cy="108" r="4" />
-          <circle cx="195" cy="96" r="4" />
-          <circle cx="270" cy="84" r="4" />
-          <circle cx="345" cy="74" r="4" />
-          <circle cx="420" cy="54" r="4" />
-          <circle cx="495" cy="84" r="4" />
-          <circle cx="570" cy="72" r="4" />
-          <circle cx="645" cy="52" r="4" />
-          <circle cx="720" cy="18" r="4" />
-          <circle cx="795" cy="30" r="4" />
-          <circle cx="890" cy="54" r="4" />
-        </g>
-        <g class="chart-axis-text">
-          <text x="85" y="158">فروردین 12</text>
-          <text x="200" y="158">فروردین 17</text>
-          <text x="315" y="158">فروردین 22</text>
-          <text x="430" y="158">فروردین 27</text>
-          <text x="560" y="158">اردیبهشت 1</text>
-          <text x="680" y="158">اردیبهشت 6</text>
-          <text x="810" y="158">اردیبهشت 11</text>
-        </g>
-      </g>
-    </svg>
+    @if (lineChartState().loading) {
+      <div class="trend-chart-svg flex items-center justify-center animate-pulse">
+        <span class="text-xs font-bold text-[var(--text-soft)]">در حال دریافت نمودار...</span>
+      </div>
+    } @else if (lineChartState().error) {
+      <div class="trend-chart-svg flex flex-col items-center justify-center gap-3">
+        <p class="text-xs font-bold text-red-500">{{ lineChartState().error }}</p>
+        <button
+          type="button"
+          (click)="loadLineChart()"
+          class="px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-bold"
+        >
+          تلاش مجدد
+        </button>
+      </div>
+    } @else if (lineChartState().data; as lineChartOptions) {
+      <div
+        echarts
+        [options]="lineChartOptions"
+        class="trend-chart-svg block w-full h-[220px]"
+      ></div>
+    } @else {
+      <div class="trend-chart-svg flex items-center justify-center">
+        <span class="text-xs font-bold text-[var(--text-soft)]">داده‌ای برای نمایش وجود ندارد</span>
+      </div>
+    }
   </section>
 
   <section class="announcements-grid">

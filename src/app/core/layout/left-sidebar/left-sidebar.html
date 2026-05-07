@@ -48,21 +48,36 @@
     <section class="left-card distribution-card">
       <h3 class="distribution-title">توزیع پروژه‌ها</h3>
       <div class="distribution-body">
-        <div class="project-donut">
-          <div class="project-donut-hole">
-            <span class="project-donut-label">کل زمان</span
-            ><strong class="project-donut-value">42.6h</strong>
+        @if (pieChartState().loading) {
+          <div class="project-donut flex items-center justify-center animate-pulse">
+            <span class="text-[10px] font-bold text-[var(--text-soft)]">...</span>
           </div>
+        } @else if (pieChartState().error) {
+          <div class="project-donut flex items-center justify-center">
+            <button
+              type="button"
+              (click)="loadPieChart()"
+              class="text-[10px] font-black text-red-500"
+            >
+              تلاش مجدد
+            </button>
+          </div>
+        } @else if (pieChartState().data; as pieChartOptions) {
+          <div echarts [options]="pieChartOptions" class="project-chart block"></div>
+        } @else {
+          <div class="project-donut flex items-center justify-center">
+            <span class="text-[10px] font-bold text-[var(--text-soft)]">بدون داده</span>
+          </div>
+        }
+      </div>
+      <div class="distribution-legend">
+        <div class="legend-item">
+          <span class="legend-dot legend-green"></span><span class="legend-name">NeoERP</span
+          ><span class="legend-percent" style="color: var(--left-green)">42%</span>
         </div>
-        <div class="distribution-legend">
-          <div class="legend-item">
-            <span class="legend-dot legend-green"></span><span class="legend-name">NeoERP</span
-            ><span class="legend-percent" style="color: var(--left-green)">42%</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-dot legend-purple"></span><span class="legend-name">IDEAL</span
-            ><span class="legend-percent" style="color: var(--left-purple)">28%</span>
-          </div>
+        <div class="legend-item">
+          <span class="legend-dot legend-purple"></span><span class="legend-name">IDEAL</span
+          ><span class="legend-percent" style="color: var(--left-purple)">28%</span>
         </div>
       </div>
     </section>
