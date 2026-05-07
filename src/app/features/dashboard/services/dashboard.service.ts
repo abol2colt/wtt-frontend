@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { delay, of } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
   DashboardLinePoint,
@@ -14,32 +15,127 @@ import {
 export class DashboardService {
   private readonly http = inject(HttpClient);
   private readonly apiBaseUrl = environment.apiBaseUrl;
+  private readonly useMock = environment.useMockData;
 
   getStats(userId: number, range: string) {
-    const params = new HttpParams().set('user', userId).set('range', range);
+    console.log('وضعیت ماک دیتا در این لحظه:', this.useMock);
+    if (this.useMock) {
+      const mockResponse: DashboardStatsResponse = {
+        data: {
+          first_name: 'مهدی',
+          last_name: 'کریمی',
+          expected_time: 6336,
+          total_work: 6824,
+          overtime_working: 488,
+          this_year_vacations: 2,
+        },
+      };
+      return of(mockResponse).pipe(delay(800));
+    }
 
+    const params = new HttpParams().set('user', userId).set('range', range);
     return this.http.get<DashboardStatsResponse>(`${this.apiBaseUrl}/users/a_user_details/`, {
       params,
     });
   }
 
   getPieChart(userId: number, range: string) {
-    const params = new HttpParams().set('user', userId).set('range', range);
+    if (this.useMock) {
+      const mockResponse: DashboardPieItem[] = [
+        { project: 'NeoBRK', value: 2625 },
+        { project: 'غیر مفید', value: 1468 },
+      ];
+      return of(mockResponse).pipe(delay(800));
+    }
 
+    const params = new HttpParams().set('user', userId).set('range', range);
     return this.http.get<DashboardPieItem[]>(`${this.apiBaseUrl}/dashboard/pie_chart/`, { params });
   }
 
   getLineChart(userId: number, range: string) {
-    const params = new HttpParams().set('user', userId).set('range', range);
+    if (this.useMock) {
+      const mockResponse: DashboardLinePoint[] = [
+        {
+          date: '1405-01-26',
+          presence: 549,
+          rejected: 0,
+          pending: 0,
+          teleworking: 0,
+          incompany_working: 435,
+        },
+        {
+          date: '1405-01-20',
+          presence: 420,
+          rejected: 0,
+          pending: 30,
+          teleworking: 120,
+          incompany_working: 300,
+        },
+        {
+          date: '1405-01-21',
+          presence: 510,
+          rejected: 0,
+          pending: 0,
+          teleworking: 200,
+          incompany_working: 310,
+        },
+        {
+          date: '1405-01-22',
+          presence: 390,
+          rejected: 40,
+          pending: 0,
+          teleworking: 90,
+          incompany_working: 300,
+        },
+        {
+          date: '1405-01-23',
+          presence: 610,
+          rejected: 0,
+          pending: 20,
+          teleworking: 180,
+          incompany_working: 430,
+        },
+        {
+          date: '1405-01-24',
+          presence: 480,
+          rejected: 0,
+          pending: 0,
+          teleworking: 160,
+          incompany_working: 320,
+        },
+        {
+          date: '1405-01-25',
+          presence: 700,
+          rejected: 0,
+          pending: 0,
+          teleworking: 240,
+          incompany_working: 460,
+        },
+        {
+          date: '1405-01-26',
+          presence: 549,
+          rejected: 0,
+          pending: 0,
+          teleworking: 0,
+          incompany_working: 435,
+        },
+      ];
+      return of(mockResponse).pipe(delay(800));
+    }
 
+    const params = new HttpParams().set('user', userId).set('range', range);
     return this.http.get<DashboardLinePoint[]>(`${this.apiBaseUrl}/dashboard/line_chart/`, {
       params,
     });
   }
 
   getUnreadMessages() {
-    const params = new HttpParams().set('state', 'unread_count');
+    if (this.useMock) {
+      const mockResponse: MessageCountResponse = { private: 0, public: 82, regulations: 0 };
+      return of(mockResponse).pipe(delay(800));
+    }
 
+    const params = new HttpParams().set('state', 'unread_count');
     return this.http.get<MessageCountResponse>(`${this.apiBaseUrl}/news/get_message_data/`, {
       params,
     });

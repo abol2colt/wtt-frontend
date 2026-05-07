@@ -60,22 +60,24 @@
 
 **// Branch: feature/007-dashboard-api-integration**
 
-- [ ] Create `DashboardService` for dashboard-related APIs.
-- [ ] Move dashboard API calls out of `DashboardComponent`.
-- [ ] Fetch dashboard stats from `/api/v1/users/a_user_details/`.
-- [ ] Fetch pie chart data from `/api/v1/dashboard/pie_chart/`.
-- [ ] Fetch line chart data from `/api/v1/dashboard/line_chart/`.
-- [ ] Fetch unread message counts from `/api/v1/news/get_message_data/`.
-- [ ] Create dashboard page state using `ApiState`.
-- [ ] Replace mock KPI card values with real API data.
-- [ ] Keep current SVG chart UI for now and prepare data mapping only.
-- [ ] Add loading state for dashboard cards.
-- [ ] Add error state for failed dashboard APIs.
-- [ ] Add empty state for empty chart responses.
-- [ ] Write branch report with API mapping and remaining mock sections.
+- [x] Create `DashboardService` for dashboard-related APIs.
+- [x] Move dashboard API calls out of `DashboardComponent`.
+- [x] Fetch dashboard stats from `/api/v1/users/a_user_details/`.
+- [x] Fetch pie chart data from `/api/v1/dashboard/pie_chart/`.
+- [x] Fetch line chart data from `/api/v1/dashboard/line_chart/`.
+- [~] Fetch unread message counts from `/api/v1/news/get_message_data/`.
+- [x] Create dashboard page state using `ApiState`.
+- [x] Replace mock KPI card values with real API data.
+- [x] Replace static SVG/CSS charts with ECharts.
+- [x] Add loading state for dashboard cards.
+- [x] Add error state for failed dashboard APIs.
+- [x] Add empty state for empty chart responses.
+- [x] Implement Environment-based Mock Mode for independent UI development.
+- [x] Write branch report with API mapping and remaining mock sections.
+      [~] unread messages endpoint method exists in DashboardService, but UI binding to Header notification is intentionally deferred.
 
-      // در این برنچ داشبورد از حالت استاتیک خارج می‌شود و داده‌های اصلی آن از API خوانده می‌شود.
-      // هنوز chart library نصب نمی‌کنیم؛ اول data flow، service، state و mapping را اصولی می‌چینیم.
+        // در این برنچ داشبورد از حالت استاتیک خارج می‌شود و داده‌های اصلی آن از API خوانده می‌شود.
+        // هنوز chart library نصب نمی‌کنیم؛ اول data flow، service، state و mapping را اصولی می‌چینیم.
 
   **// Branch: feature/008-tasks-read-and-filter-integration**
 
