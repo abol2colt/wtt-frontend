@@ -17,7 +17,7 @@ export class DashboardComponent implements OnInit {
 
   statsState = signal<ApiState<DashboardStats>>({
     data: null,
-    loading: false,
+    loading: true,
     error: null,
   });
 
@@ -58,11 +58,10 @@ export class DashboardComponent implements OnInit {
   }
 
   formatMinutes(minutes: number | null | undefined): string {
-    if (minutes == null) return '-';
-
+    if (minutes == null || minutes === 0) return '۰ دقیقه';
     const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-
-    return `${hours}:${remainingMinutes.toString().padStart(2, '0')}`;
+    const mins = minutes % 60;
+    if (hours === 0) return `${mins} دقیقه`;
+    return `${hours}${mins > 0 ? ':' + mins : ''}`;
   }
 }

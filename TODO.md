@@ -73,6 +73,7 @@
 - [ ] Add error state for failed dashboard APIs.
 - [ ] Add empty state for empty chart responses.
 - [ ] Write branch report with API mapping and remaining mock sections.
+- [ ] Implement Environment-based Mock Mode for independent UI development.
 
       // در این برنچ داشبورد از حالت استاتیک خارج می‌شود و داده‌های اصلی آن از API خوانده می‌شود.
       // هنوز chart library نصب نمی‌کنیم؛ اول data flow، service، state و mapping را اصولی می‌چینیم.
