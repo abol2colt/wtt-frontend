@@ -30,3 +30,16 @@ export interface MessageCountResponse {
   public: number;
   regulations: number;
 }
+
+export interface DashboardStats {
+  first_name: string;
+  last_name: string;
+  expected_time: number;
+  total_work: number;
+  overtime_working: number;
+  this_year_vacations: number;
+}
+
+export interface DashboardStatsResponse {
+  data: DashboardStats;
+}

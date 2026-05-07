@@ -1,9 +1,22 @@
 <div class="flex flex-col gap-[10px] pb-6">
   <section class="summary-stats-row">
+    @if (statsState().error) {
+      <div
+        class="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm font-bold text-red-500"
+      >
+        {{ statsState().error }}
+      </div>
+    }
     <article class="summary-stat-card tint-cyan">
-      <div class="summary-stat-label">تسک‌های کامل شده</div>
-      <div class="summary-stat-value">24</div>
-      <div class="summary-stat-growth">↑ 18٪ نسبت به ماه قبل</div>
+      <div class="summary-stat-label">زمان مورد انتظار</div>
+      <div class="summary-stat-value">
+        @if (statsState().loading) {
+          <span>...</span>
+        } @else {
+          {{ formatMinutes(statsState().data?.expected_time) }}
+        }
+      </div>
+      <div class="summary-stat-growth">بر اساس بازه انتخاب‌شده</div>
       <div class="summary-stat-icon blue">
         <svg viewBox="0 0 24 24" fill="none">
           <path
@@ -17,9 +30,15 @@
     </article>
 
     <article class="summary-stat-card tint-purple">
-      <div class="summary-stat-label">ساعت‌های متمرکز</div>
-      <div class="summary-stat-value">12:45</div>
-      <div class="summary-stat-growth">↑ 5٪ نسبت به ماه قبل</div>
+      <div class="summary-stat-label">کل کارکرد این ماه</div>
+      <div class="summary-stat-value">
+        @if (statsState().loading) {
+          <span>...</span>
+        } @else {
+          {{ formatMinutes(statsState().data?.total_work) }}
+        }
+      </div>
+      <div class="summary-stat-growth">مجموع کارکرد ثبت‌شده</div>
       <div class="summary-stat-icon purple">
         <svg viewBox="0 0 24 24" fill="none">
           <path
@@ -32,9 +51,15 @@
     </article>
 
     <article class="summary-stat-card tint-cyan">
-      <div class="summary-stat-label">میانگین روزانه</div>
-      <div class="summary-stat-value">07:24</div>
-      <div class="summary-stat-growth">↑ 8٪ نسبت به ماه قبل</div>
+      <div class="summary-stat-label">اضافه‌کاری</div>
+      <div class="summary-stat-value">
+        @if (statsState().loading) {
+          <span>...</span>
+        } @else {
+          {{ formatMinutes(statsState().data?.overtime_working) }}
+        }
+      </div>
+      <div class="summary-stat-growth">بیشتر از زمان مورد انتظار</div>
       <div class="summary-stat-icon cyan">
         <svg viewBox="0 0 24 24" fill="none">
           <path d="M8 2V5" stroke="currentColor" stroke-linecap="round" />
@@ -50,9 +75,15 @@
     </article>
 
     <article class="summary-stat-card tint-purple">
-      <div class="summary-stat-label">کل کارکرد این ماه</div>
-      <div class="summary-stat-value">162:35</div>
-      <div class="summary-stat-growth">↑ 12٪ نسبت به ماه قبل</div>
+      <div class="summary-stat-label">مرخصی امسال</div>
+      <div class="summary-stat-value">
+        @if (statsState().loading) {
+          <span>...</span>
+        } @else {
+          {{ statsState().data?.this_year_vacations ?? '-' }}
+        }
+      </div>
+      <div class="summary-stat-growth">تعداد روزهای ثبت‌شده</div>
       <div class="summary-stat-icon purple">
         <svg viewBox="0 0 24 24" fill="none">
           <path

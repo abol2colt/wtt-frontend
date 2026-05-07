@@ -2,8 +2,6 @@ export interface Project {
   id: number;
   title: string;
   description?: string;
-  services?: ProjectService[];
-  contracts?: ProjectContract[];
 }
 
 export interface ProjectService {
@@ -14,4 +12,9 @@ export interface ProjectService {
 export interface ProjectContract {
   id: number;
   contract: string;
+}
+
+export interface ProjectDetailsResponse {
+  services: ProjectService[];
+  contracts: ProjectContract[];
 }

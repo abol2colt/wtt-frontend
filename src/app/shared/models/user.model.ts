@@ -1,19 +1,19 @@
-export interface User {
+export type UserRole = 'developer' | string;
+
+export interface UserProfile {
   id: number;
   username: string;
-  role: 'developer' | string;
+  role: UserRole;
   first_name: string;
   last_name: string;
-  workflow?: {
-    manager: {
-      id: number;
-      first_name: string;
-    };
-  };
-  stats?: {
-    expected_time: number;
-    total_work: number;
-    overtime_working: number;
-    this_year_vacations: number;
-  };
+  workflow?: UserWorkflow;
+}
+
+export interface UserWorkflow {
+  manager: UserManager;
+}
+
+export interface UserManager {
+  id: number;
+  first_name: string;
 }
