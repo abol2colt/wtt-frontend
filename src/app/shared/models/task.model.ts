@@ -7,8 +7,12 @@ export interface TaskItem {
   status: TaskStatus | string;
   title: string;
   project_id: number;
+  project_title?: string;
   date: string;
   duration: number;
+  location?: WorkLocation | string;
+  start_time?: string;
+  end_time?: string;
 }
 
 export interface TaskListMeta {
