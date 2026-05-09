@@ -81,17 +81,17 @@
 
   **// Branch: feature/008-tasks-read-and-filter-integration**
 
-- [ ] Create `TasksService`.
-- [ ] Connect `/api/v1/tasks/` to task list.
-- [ ] Implement server-side pagination based on API `meta`.
-- [ ] Replace static task rows with dynamic rendering.
-- [ ] Map backend task statuses to UI status rails and badges.
-- [ ] Connect quick filters to query params/range strategy.
-- [ ] Create task summary cards from loaded task data: - today tasks - total duration - pending count - rejected/needs-edit count
-- [ ] Add loading skeleton for task rows.
-- [ ] Add empty state for no tasks.
-- [ ] Add error state with retry action.
-- [ ] Write branch report with task response sample and UI mapping table.
+- [x] Create `TasksService`.
+- [x] Connect `/api/v1/tasks/` to task list.
+- [x] Implement server-side pagination based on API `meta`.
+- [x] Replace static task rows with dynamic rendering.
+- [x] Map backend task statuses to UI status rails and badges.
+- [x] Connect quick filters to query params/range strategy.
+- [x] Create task summary cards from loaded task data: - today tasks - total duration - pending count - rejected/needs-edit count
+- [x] Add loading skeleton for task rows.
+- [x] Add empty state for no tasks.
+- [x] Add error state with retry action.
+- [x] Write branch report with task response sample and UI mapping table.
 
         // این برنچ فقط خواندن و نمایش تسک‌ها را واقعی می‌کند.
         // هنوز create/update/delete را وارد نمی‌کنیم تا پیچیدگی فرم‌ها با لیست قاطی نشود.

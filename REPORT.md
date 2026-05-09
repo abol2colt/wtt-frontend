@@ -840,3 +840,443 @@ Branch 007 با موفقیت Dashboard را وارد فاز Data-driven کرد.
 ```text
 Model → Service → ApiState → Load Method → Template Binding → Loading/Error/Empty
 ```
+
+---
+
+## 📝 گزارش پایان Branch 008
+
+**Branch:** `feature/008-tasks-read-and-filter-integration`  
+**موضوع:** اتصال لیست Tasks به Data Flow واقعی، ساخت TasksService، رندر داینامیک تسک‌ها، Pagination و Quick Filters  
+**وضعیت:** Completed  
+**تاریخ:** ۷ می ۲۰۲۶
+
+---
+
+## 1. هدف این Branch
+
+هدف Branch 008 این بود که صفحه Tasks از حالت Static/Mock UI خارج شود و لیست وظایف با الگوی استاندارد پروژه به داده واقعی یا mock environment-based وصل شود.
+
+تمرکز این Branch فقط روی خواندن و نمایش وظایف بود:
+
+- خواندن لیست تسک‌ها
+- نمایش داینامیک ردیف‌های task
+- ساخت summary cards از داده لودشده
+- اضافه کردن loading / error / empty state
+- پیاده‌سازی pagination
+- آماده‌سازی quick filters
+- بدون ورود به create / edit / delete
+
+در این Branch عمداً وارد mutation نشدیم، چون عملیات create/edit/delete نیازمند فرم، validation، project dropdown، service/contract dropdown و payload دقیق است و باید در Branch جدا انجام شود.
+
+---
+
+## 2. API اصلی Branch
+
+### Tasks List
+
+```text
+GET /api/v1/tasks/
+
+Query params:
+
+user={id}
+page={page}
+range={range}
+
+Response مورد انتظار:
+
+{
+  "data": [
+    {
+      "id": 259354,
+      "status": "pending",
+      "title": "[IDEAL-901]: رفع مشکل موقعیت اسکرول",
+      "project_id": 30,
+      "date": "1405-02-08",
+      "duration": 30
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "page_size": 10,
+    "total": 100
+  }
+}
+
+این ساختار از قبل در contract پروژه برای Tasks مشخص شده بود و مدل TaskListResponse هم بر اساس همین data + meta ساخته شد.
+
+3. فایل‌های اصلی درگیر
+src/app/features/tasks/services/tasks.service.ts
+
+در این Branch سرویس اختصاصی Tasks ساخته شد.
+
+متد اصلی:
+
+getTasks(userId: number, page: number, range: string)
+
+وظیفه این متد:
+
+اگر environment.useMockData === true باشد، داده mock برگرداند.
+اگر useMockData === false باشد، درخواست واقعی HTTP به /tasks/ بفرستد.
+query params شامل user, page, range را با HttpParams بسازد.
+
+دلیل اینکه TasksService داخل features/tasks/services ساخته شد:
+
+چون فعلاً فقط feature تسک‌ها از آن استفاده می‌کند.
+
+پس آن را زودتر از موعد داخل shared نبردیم. این تصمیم باعث می‌شود معماری feature-driven تمیزتر بماند.
+
+src/app/features/tasks/tasks.ts
+
+در این فایل منطق صفحه Tasks از حالت static خارج شد.
+
+موارد اضافه‌شده:
+
+Inject کردن TasksService
+استفاده از LayoutService برای تشخیص اینکه کاربر داخل صفحه Tasks است
+ساخت tasksState با ApiState<TaskListResponse>
+ساخت currentPage با signal
+ساخت activeRange
+ساخت activeStatus
+اضافه کردن ngOnInit
+اضافه کردن loadTasks
+اضافه کردن getterهای محاسباتی
+اضافه کردن helperهای status
+اضافه کردن pagination methods
+اضافه کردن filter methods
+اضافه کردن formatMinutes با فرمت HH:mm
+
+الگوی اصلی استفاده‌شده:
+
+Task model → TasksService → ApiState<TaskListResponse> → loadTasks() → tasks.html
+src/app/shared/models/task.model.ts
+
+مدل‌های اصلی Tasks استفاده شدند:
+
+TaskItem
+TaskListMeta
+TaskListResponse
+TaskMutationPayload
+
+مدل TaskListResponse شامل دو بخش مهم است:
+
+data: TaskItem[];
+meta: TaskListMeta;
+
+نکته مهم آموزشی این بود که برای listها حتی وقتی data خالی است، باز هم meta مهم است؛ چون pagination و total count از آن می‌آید.
+
+src/app/features/tasks/tasks.html
+
+در این فایل UI صفحه Tasks به state واقعی وصل شد.
+
+موارد انجام‌شده:
+
+مقدار کارت‌های summary از حالت عدد ثابت خارج شد.
+totalTasks از meta.total خوانده شد.
+totalDuration از مجموع durationهای صفحه فعلی ساخته شد.
+pendingCount از تسک‌های pending صفحه فعلی حساب شد.
+rejectedCount از تسک‌های rejected صفحه فعلی حساب شد.
+ردیف‌های static قدیمی حذف شدند.
+لیست با @for از tasks رندر شد.
+loading skeleton اضافه شد.
+error state با دکمه retry اضافه شد.
+empty state برای زمانی که لیست خالی است اضافه شد.
+وضعیت taskها به rail و متن مناسب map شد.
+SVGهای تکراری داخل task rows حذف شدند و UI سبک‌تر شد.
+pagination UI اضافه شد.
+quick filters از حالت تزئینی خارج شدند.
+4. State Management
+
+برای این Branch هم مثل Dashboard از ApiState<T> استفاده شد:
+
+ApiState<TaskListResponse>
+
+Stateهای اصلی:
+
+loading
+success with data
+success but empty
+error
+
+نمونه ذهنی:
+
+{
+  data: null,
+  loading: true,
+  error: null
+}
+
+برای loading.
+
+{
+  data: response,
+  loading: false,
+  error: null
+}
+
+برای success.
+
+{
+  data: null,
+  loading: false,
+  error: 'خطا در دریافت لیست وظایف'
+}
+
+برای error.
+
+5. Empty State در لیست Tasks
+
+در Dashboard chartها، وقتی response خالی بود، می‌توانستیم data: null بگذاریم. اما در Tasks این کار را نکردیم.
+
+دلیل:
+
+در list response، meta هنوز مهم است.
+
+مثلاً این response خطا نیست:
+
+{
+  "data": [],
+  "meta": {
+    "page": 1,
+    "page_size": 10,
+    "total": 0
+  }
+}
+
+این یعنی درخواست موفق بوده، ولی در آن بازه زمانی task وجود ندارد.
+
+پس در HTML این شرط اضافه شد:
+
+اگر tasks.length === 0 → Empty State نمایش بده
+
+نکته آموزشی:
+
+Empty با Error فرق دارد.
+
+[] یعنی API موفق جواب داده ولی داده‌ای برای نمایش وجود ندارد.
+
+6. Dynamic Task Rows
+
+قبل از این Branch، task rowها کاملاً static بودند و اطلاعاتی مثل عنوان، پروژه، زمان، وضعیت و آیدی task داخل HTML نوشته شده بود.
+
+در این Branch:
+
+Static task rows → Dynamic task rows
+
+هر task از response خوانده می‌شود و این فیلدها نمایش داده می‌شوند:
+
+Field	UI Usage
+id	شناسه task در row
+title	عنوان task
+project_id	fallback برای نام پروژه
+project_title	اگر backend در آینده بدهد، عنوان پروژه
+status	rail color و status text
+date	تاریخ task
+duration	مدت زمان task
+
+برای project_title fallback گذاشته شد:
+
+اگر project_title نبود → پروژه #project_id
+
+چون در response فعلی backend فقط project_id قطعی است و project_title ممکن است بعداً اضافه شود.
+
+7. Status Mapping
+
+Backend status خام می‌دهد، مثل:
+
+pending
+approved
+rejected
+draft
+edited
+
+ولی UI به متن و رنگ نیاز دارد.
+
+پس چند helper ساخته شد:
+
+getStatusLabel(status)
+getStatusRailClass(status)
+getStatusTextClass(status)
+
+نمونه mapping:
+
+Backend Status	Label	UI Meaning
+approved	تایید شده	done
+pending	در انتظار تایید	review
+rejected	نیازمند اصلاح	review/red
+draft	پیش‌نویس	progress
+edited	ویرایش شده	progress
+
+نکته آموزشی:
+
+Template نباید پر از switch و if شود.
+
+منطق تبدیل status به label/class داخل component ماند و HTML فقط خروجی آماده را نمایش داد.
+
+8. Duration Formatting
+
+ابتدا duration با متن فارسی مثل این نمایش داده شد:
+
+1 ساعت و 15 دقیقه
+
+ولی برای rowهای task، این فرمت UI را شلوغ می‌کرد.
+
+پس formatMinutes به فرمت تایمری تغییر کرد:
+
+HH:mm
+
+مثال:
+
+30  → 00:30
+75  → 01:15
+120 → 02:00
+
+دلیل این تصمیم:
+
+در task list، duration باید سریع، کوتاه و ستونی خوانده شود.
+
+فرمت HH:mm برای لیست بهتر از جمله فارسی است.
+
+9. Summary Cards
+
+چهار کارت بالای صفحه Tasks از حالت static خارج شدند.
+
+وظایف امروز / تعداد وظایف
+
+از:
+
+عدد ثابت 7
+
+به:
+
+totalTasks
+
+تغییر کرد.
+
+نکته: فعلاً این عدد از meta.total می‌آید و وابسته به range فعال است.
+
+زمان ثبت‌شده
+
+از:
+
+05:48
+
+به:
+
+formatMinutes(totalDuration)
+
+تغییر کرد.
+
+نکته مهم:
+
+totalDuration فعلاً مجموع taskهای صفحه فعلی است، نه کل دیتابیس.
+
+چون API فعلی summary جدا برای کل range نمی‌دهد.
+
+در انتظار بررسی
+
+از عدد ثابت به:
+
+pendingCount
+
+تغییر کرد.
+
+نیازمند اصلاح
+
+از عدد ثابت به:
+
+rejectedCount
+
+تغییر کرد.
+
+10. Pagination
+
+چون response API شامل meta است، pagination روی meta.page, meta.page_size, meta.total ساخته شد.
+
+Getterهای اضافه‌شده:
+
+pageSize
+totalPages
+hasPreviousPage
+hasNextPage
+
+Methods:
+
+goToPreviousPage()
+goToNextPage()
+
+محاسبه تعداد صفحه‌ها:
+
+Math.ceil(totalTasks / pageSize)
+
+نکته آموزشی مهم:
+
+تعداد صفحات را از tasks.length حساب نمی‌کنیم.
+
+چون tasks.length فقط تعداد آیتم‌های صفحه فعلی است، نه کل تعداد آیتم‌های backend.
+
+مثلاً اگر صفحه فعلی ۱۰ آیتم داشته باشد، ولی کل taskها ۱۰۰ تا باشند، tasks.length فقط ۱۰ است؛ اما meta.total عدد ۱۰۰ را نشان می‌دهد.
+
+11. Quick Filters
+
+Quick Filters از حالت دکمه‌های تزئینی خارج شدند.
+
+فیلترهای اضافه‌شده:
+
+همه
+امروز
+هفته جاری
+در انتظار تایید
+نیاز به اصلاح
+Range Filters
+
+این فیلترها به API فرستاده شدند:
+
+today
+week_till_today
+month_till_today
+
+چون API طبق contract پارامتر range دارد.
+
+Status Filters
+
+این فیلترها فعلاً client-side هستند:
+
+pending
+rejected
+
+دلیل:
+
+در contract فعلی GET /tasks پارامتر status رسمی نداریم.
+
+پس نباید چیزی مثل status=pending را بدون هماهنگی با backend به API بفرستیم.
+
+تصمیم ثبت‌شده برای گزارش:
+
+Range filters are wired through API query params.
+Status filters are applied client-side on the loaded page until backend status filtering is confirmed.
+12. Mock Mode
+
+مثل Dashboard، برای Tasks هم Mock Mode رعایت شد.
+
+اگر:
+
+environment.useMockData === true
+
+باشد، TasksService داده mock برمی‌گرداند.
+
+اگر:
+
+environment.useMockData === false
+
+باشد، درخواست واقعی به API ارسال می‌شود.
+
+مزیت این کار:
+
+توسعه UI بدون نیاز دائم به backend
+تست loading
+تست empty state
+تست pagination
+تست فیلترها
+آماده بودن برای اتصال واقعی
+```
