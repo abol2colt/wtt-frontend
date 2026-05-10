@@ -98,21 +98,43 @@
 
   **// Branch: feature/009-tasks-mutation-and-smart-form**
 
-- [ ] Design or complete Smart Task Modal UI.
-- [ ] Implement Reactive Form for create/edit task.
-- [ ] Connect `/api/v1/projects/get_all_projects/` to project dropdown.
-- [ ] Connect `/api/v1/projects/project_details/` to service and contract cascading dropdowns.
-- [ ] Implement create task using `POST /api/v1/tasks/`.
-- [ ] Implement edit task using `PUT /api/v1/tasks/{id}/`.
-- [ ] Implement delete task using `DELETE /api/v1/tasks/{id}/`.
-- [ ] Validate required fields before submit: - title - project - project_service - project_contract - location - date - start_time - end_time - duration
-- [ ] Convert duration/time fields safely before sending payload.
-- [ ] Refresh task list after successful mutation.
-- [ ] Show success/error feedback.
-- [ ] Write branch report with form model, validation rules, and mutation payload samples.
+- [x] Extend TasksService with createTask.
+- [x] Extend TasksService with updateTask.
+- [x] Extend TasksService with deleteTask.
+- [x] Extend TasksService with getProjects.
+- [x] Extend TasksService with getProjectDetails.
+- [x] Add Reactive Form to TasksComponent.
+- [x] Add task modal.
+- [x] Connect modal to taskForm.
+- [x] Add create mode.
+- [x] Add edit mode.
+- [x] Build TaskMutationPayload from form.
+- [x] Calculate duration from start_time/end_time.
+- [x] Validate end_time after start_time.
+- [x] Add mutation loading/error state.
+- [x] Connect submit to create/update.
+- [x] Refetch task list after mutation.
+- [x] Load projects for project dropdown.
+- [x] Load project details for service/contract dropdowns.
+- [x] Reset service/contract when project changes.
+- [x] Add delete flow.
+- [x] Add row-level deleting state.
+- [x] Add delete error state.
+- [x] Test CORS/proxy/contract API behavior.
+      _مواردی که عمداً برای Branchهای بعدی ماندند:_
 
-        // در این برنچ صفحه Tasks کامل عملیاتی می‌شود.
-        // تمرکز روی فرم، دراپ‌داون‌های زنجیره‌ای، validation، و هماهنگی دقیق با contract بک‌اند است.
+- [ ] Real backend persistence for create/update/delete.
+- [ ] Task detail endpoint for full edit prefill.
+- [ ] Prefill project_service and project_contract in edit mode.
+- [ ] Replace window.confirm with custom confirm modal.
+- [ ] Add field-level validation messages under inputs.
+- [ ] Add success toast after create/update/delete.
+- [ ] Add real AI task generation.
+- [ ] Add timer/presence integration.
+- [ ] Remove temporary contract API bridge before final merge if still present.
+- [ ] Finalize CORS with backend/mock server instead of relying on browser extension.
+      // در این برنچ صفحه Tasks کامل عملیاتی می‌شود.
+      // تمرکز روی فرم، دراپ‌داون‌های زنجیره‌ای، validation، و هماهنگی دقیق با contract بک‌اند است.
 
   **// Branch: feature/010-presence-and-timer-integration**
 
