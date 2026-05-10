@@ -1280,3 +1280,502 @@ environment.useMockData === false
 تست فیلترها
 آماده بودن برای اتصال واقعی
 ```
+
+## 📝 گزارش پایان Branch 009
+
+**Branch:** `feature/009-tasks-mutation-and-smart-form`  
+**موضوع:** پیاده‌سازی Create / Edit / Delete تسک، ساخت Modal فرم، اتصال پروژه‌ها، سرویس‌ها و قراردادها  
+**وضعیت:** Completed with backend/mock persistence dependency  
+**تاریخ:** ۱۰ می ۲۰۲۶
+
+---
+
+## 1. هدف Branch
+
+هدف این Branch این بود که صفحه Tasks فقط یک صفحه read-only نباشد و بتواند عملیات اصلی روی task را انجام دهد:
+
+- ثبت تسک جدید
+- ویرایش تسک
+- حذف تسک
+- ساخت فرم هوشمند برای task
+- اتصال dropdown پروژه‌ها
+- اتصال dropdown سرویس‌ها و قراردادهای پروژه
+- ساخت payload مناسب API
+- مدیریت loading/error برای عملیات فرم
+- جدا کردن read state از mutation state
+
+در Branch قبلی لیست تسک‌ها، pagination و filterها آماده شده بودند. در این Branch تمرکز روی mutation بود.
+
+---
+
+## 2. مدل‌های اصلی مورد استفاده
+
+### Task Model
+
+مدل `TaskMutationPayload` مشخص می‌کند برای ثبت یا ویرایش task چه فیلدهایی باید به API فرستاده شود: `title`, `project`, `project_service`, `project_contract`, `location`, `date`, `start_time`, `end_time`, `duration`, و `description` اختیاری. همچنین `TaskListResponse` شامل `data` و `meta` است و برای لیست و pagination استفاده می‌شود. :contentReference[oaicite:0]{index=0}
+
+### Project Model
+
+برای dropdownهای فرم، مدل‌های `Project`, `ProjectService`, `ProjectContract` و `ProjectDetailsResponse` استفاده شدند. `ProjectDetailsResponse` شامل `services` و `contracts` است و بعد از انتخاب پروژه، dropdownهای دوم و سوم را پر می‌کند. :contentReference[oaicite:1]{index=1}
+
+---
+
+## 3. فایل‌های اصلی درگیر
+
+### `src/app/features/tasks/services/tasks.service.ts`
+
+در این Branch، `TasksService` کامل‌تر شد.
+
+متدهای اضافه‌شده یا تکمیل‌شده:
+
+```ts
+getProjects();
+getProjectDetails(projectId);
+createTask(payload);
+updateTask(taskId, payload);
+deleteTask(taskId);
+```
+
+کته مهم:
+
+deleteTask در نهایت به Observable<void> تبدیل شد، چون از response حذف استفاده‌ای در UI نداریم و فقط موفق یا ناموفق بودن عملیات مهم است. این باعث شد خطای TypeScript روی subscribe() حل شود.
+src/app/features/tasks/tasks.ts
+
+در این فایل منطق اصلی فرم و عملیات task اضافه شد.
+
+موارد انجام‌شده:
+
+اضافه کردن ReactiveFormsModule
+اضافه کردن FormBuilder
+ساخت taskForm
+ساخت mutationState
+ساخت isTaskModalOpen
+ساخت editingTask
+ساخت projectsState
+ساخت projectDetailsState
+ساخت deletingTaskId
+ساخت deleteError
+ساخت متدهای create/edit/delete
+ساخت متدهای loadProjects و loadProjectDetails
+ساخت mapper برای تبدیل فرم به payload API
+محاسبه duration از روی start/end time
+
+قبل از این Branch، TasksComponent فقط لیست را با tasksState, pagination و filter مدیریت می‌کرد. ساختار قبلی شامل tasksState, currentPage, activeRange, activeStatus, loadTasks, getterهای summary و filterها بود.
+
+src/app/features/tasks/tasks.html
+
+در این فایل UI مربوط به فرم اضافه شد.
+
+موارد انجام‌شده:
+
+اضافه کردن دکمه ثبت وظیفه جدید داخل خود صفحه Tasks
+ساخت modal برای create/edit
+اتصال modal به taskForm
+اتصال inputها با formControlName
+اتصال submit با (ngSubmit)="submitTaskForm()"
+نمایش error مربوط به mutationState
+داینامیک کردن dropdown پروژه‌ها
+داینامیک کردن dropdown سرویس‌ها و قراردادها
+اضافه کردن دکمه ویرایش برای هر task
+اضافه کردن دکمه حذف برای هر task
+نمایش حالت حذف... برای row در حال حذف 4. Stateهای مهم این Branch
+taskForm
+
+این فرم Reactive اصلی ماست.
+
+کارهایش:
+
+نگهداری مقدار inputها
+بررسی required بودن فیلدها
+بررسی valid / invalid بودن فرم
+آماده کردن مقدار خام فرم با getRawValue()
+
+اما taskForm مستقیماً به API ارسال نمی‌شود. اول باید با buildTaskPayload() تبدیل شود.
+
+mutationState
+
+این state برای وضعیت submit فرم است.
+
+یعنی برای create/update:
+
+آیا فرم در حال ذخیره است؟
+آیا submit خطا داده؟
+آیا دکمه submit باید disabled شود؟
+چه پیام خطایی داخل modal نمایش داده شود؟
+
+نمونه حالت loading:
+
+{
+data: null,
+loading: true,
+error: null
+}
+
+نمونه حالت error:
+
+{
+data: null,
+loading: false,
+error: 'خطا در ثبت وظیفه'
+}
+
+نکته مهم:
+
+mutationState برای فرم است، نه برای لیست و نه برای حذف row.
+
+tasksState
+
+این state برای گرفتن لیست taskهاست.
+
+یعنی وضعیت این API را مدیریت می‌کند:
+
+GET /api/v1/tasks/
+
+حالت‌ها:
+
+loading → نمایش skeleton
+success → نمایش task rows
+error → نمایش پیام خطا و retry
+empty → نمایش پیام نبودن task
+
+فرق اصلی:
+
+tasksState = وضعیت خواندن لیست
+mutationState = وضعیت ثبت/ویرایش فرم
+projectsState
+
+برای گرفتن لیست پروژه‌هاست:
+
+GET /api/v1/projects/get_all_projects/
+
+این state dropdown اول فرم را پر می‌کند.
+
+projectDetailsState
+
+برای گرفتن سرویس‌ها و قراردادهای پروژه انتخاب‌شده است:
+
+GET /api/v1/projects/project_details/?project=30
+
+وقتی کاربر پروژه را عوض می‌کند، این state دوباره load می‌شود.
+
+deletingTaskId
+
+برای حذف یک task خاص استفاده شد.
+
+چرا جدا از mutationState؟
+
+چون حذف مربوط به یک row است. اگر task شماره 259354 در حال حذف است، فقط دکمه همان row باید بشود حذف....
+
+5. Reactive Form
+
+فرم task شامل این فیلدها شد:
+
+title
+project
+project_service
+project_contract
+location
+date
+start_time
+end_time
+description
+
+فیلد duration را از کاربر نگرفتیم.
+
+دلیل:
+
+کاربر ساعت شروع و پایان را وارد می‌کند؛ پس duration باید توسط فرانت حساب شود:
+
+start_time = 09:00
+end_time = 09:30
+duration = 30
+
+این هم خطای انسانی را کم می‌کند، هم فرم را ساده‌تر می‌کند.
+
+6. Payload Mapping
+
+یکی از مهم‌ترین بخش‌های این Branch، تفاوت بین form value و API payload بود.
+
+فرم این را دارد:
+
+date: 1405-02-08
+start_time: 09:00
+end_time: 09:30
+
+ولی API این را می‌خواهد:
+
+start_time: 1405-02-08 09:00:00
+end_time: 1405-02-08 09:30:00
+duration: 30
+
+برای همین متد buildTaskPayload() ساخته شد.
+
+نکته آموزشی:
+
+نباید همیشه taskForm.getRawValue() را مستقیم به API بفرستیم.
+گاهی باید داده فرم را به shape مورد نیاز API تبدیل کنیم. 7. Create Flow
+
+جریان ثبت task جدید:
+
+openCreateTaskModal()
+→ فرم reset می‌شود
+→ editingTask = null
+→ projectDetailsState پاک می‌شود
+→ modal باز می‌شود
+→ کاربر فرم را پر می‌کند
+→ submitTaskForm()
+→ validation
+→ buildTaskPayload()
+→ createTask(payload)
+→ close modal
+→ loadTasks()
+
+نکته:
+
+بعد از create، ما optimistic update انجام ندادیم. یعنی task جدید را دستی به آرایه local اضافه نکردیم. روش انتخابی ما refetch after mutation بود.
+
+8. Edit Flow
+
+جریان ویرایش:
+
+openEditTaskModal(task)
+→ editingTask = task
+→ فرم با اطلاعات task پر می‌شود
+→ start_time/end_time از datetime جدا می‌شود
+→ projectDetails همان project load می‌شود
+→ modal باز می‌شود
+→ submitTaskForm()
+→ updateTask(task.id, payload)
+→ close modal
+→ loadTasks()
+
+چالش مهم:
+
+در response فعلی task list، مقدارهای project_service و project_contract وجود ندارند. بنابراین هنگام edit، خود dropdownها load می‌شوند ولی مقدار انتخاب‌شده آن‌ها نمی‌تواند کامل prefill شود، مگر backend این فیلدها را هم در response لیست یا task detail برگرداند.
+
+9. Delete Flow
+
+جریان حذف:
+
+کاربر روی حذف می‌زند
+→ window.confirm باز می‌شود
+→ اگر تایید کرد، deletingTaskId = task.id
+→ deleteTask(task.id)
+→ بعد از موفقیت deletingTaskId = null
+→ loadTasks()
+
+برای خطا:
+
+deleteError = 'خطا در حذف وظیفه'
+
+نکته آموزشی:
+
+برای delete از mutationState استفاده نکردیم چون delete مربوط به یک row خاص است، نه فرم modal.
+
+10. Project / Service / Contract Dropdown
+
+فرم task سه dropdown وابسته دارد:
+
+project
+project_service
+project_contract
+
+جریان کار:
+
+loadProjects()
+→ dropdown پروژه‌ها پر می‌شود
+→ کاربر project انتخاب می‌کند
+→ project_service و project_contract صفر می‌شوند
+→ loadProjectDetails(projectId)
+→ services/contracts همان پروژه لود می‌شوند
+
+این الگو اسمش Cascading Dropdown است.
+
+نکته مهم:
+
+وقتی project عوض می‌شود، باید service و contract قبلی reset شوند، چون ممکن است متعلق به پروژه قبلی باشند.
+
+11. API / Mock / Contract / CORS
+
+در طول Branch 009، تست عملی API هم انجام شد.
+
+چیزهایی که یاد گرفته شد:
+
+Contract endpoint = برای documentation/spec
+Mock API endpoint = route واقعی دارد و response مستقیم می‌دهد
+Real API = backend واقعی با persistence
+
+مشکل CORS هم تجربه شد.
+
+راه‌ها:
+
+راه درست: CORS سمت سرور فعال شود
+راه موقت dev: Angular proxy
+راه شخصی موقت: افزونه مرورگر
+
+همچنین فهمیدیم اگر endpoint فقط یک JSON ثابت return کند، create/update/delete از نظر request flow انجام می‌شوند، ولی در GET بعدی تغییر دیده نمی‌شود؛ چون سرور state واقعی ذخیره نکرده است.
+
+12. چرا بعد از create/update/delete دوباره loadTasks() می‌زنیم؟
+
+چون منبع اصلی داده backend است.
+
+جریان استاندارد:
+
+POST /tasks
+backend ذخیره می‌کند
+GET /tasks
+لیست جدید از backend گرفته می‌شود
+
+ما فقط local array را دستکاری نکردیم، چون backend ممکن است این فیلدها را خودش تعیین کند:
+
+id
+status
+project_title
+date formatting
+server-side validation
+
+این روش اسمش:
+
+refetch after mutation
+
+است.
+
+13. چرا الان task جدید در لیست دیده نمی‌شود؟
+
+چون API فعلی mock/static است.
+
+یعنی:
+
+POST موفق می‌شود
+ولی GET بعدی همان JSON ثابت قبلی را برمی‌گرداند
+
+این مشکل پیاده‌سازی فرم نیست. برای دیده شدن تغییر، mock server یا backend باید بعد از POST/PUT/DELETE، response لیست را هم واقعاً تغییر دهد.
+
+14. کارهایی که انجام شد
+
+- [x] Extend TasksService with createTask.
+- [x] Extend TasksService with updateTask.
+- [x] Extend TasksService with deleteTask.
+- [x] Extend TasksService with getProjects.
+- [x] Extend TasksService with getProjectDetails.
+- [x] Add Reactive Form to TasksComponent.
+- [x] Add task modal.
+- [x] Connect modal to taskForm.
+- [x] Add create mode.
+- [x] Add edit mode.
+- [x] Build TaskMutationPayload from form.
+- [x] Calculate duration from start_time/end_time.
+- [x] Validate end_time after start_time.
+- [x] Add mutation loading/error state.
+- [x] Connect submit to create/update.
+- [x] Refetch task list after mutation.
+- [x] Load projects for project dropdown.
+- [x] Load project details for service/contract dropdowns.
+- [x] Reset service/contract when project changes.
+- [x] Add delete flow.
+- [x] Add row-level deleting state.
+- [x] Add delete error state.
+- [x] Test CORS/proxy/contract API behavior.
+
+15. Remaining / Deferred
+
+مواردی که عمداً برای Branchهای بعدی ماندند:
+
+- [ ] Real backend persistence for create/update/delete.
+- [ ] Task detail endpoint for full edit prefill.
+- [ ] Prefill project_service and project_contract in edit mode.
+- [ ] Replace window.confirm with custom confirm modal.
+- [ ] Add field-level validation messages under inputs.
+- [ ] Add success toast after create/update/delete.
+- [ ] Add real AI task generation.
+- [ ] Add timer/presence integration.
+- [ ] Remove temporary contract API bridge before final merge if still present.
+- [ ] Finalize CORS with backend/mock server instead of relying on browser extension.
+
+16. Technical Notes
+
+قبل از commit نهایی، این‌ها را چک کن:
+
+اگر هنوز useContractApi برای تست روشن است، تصمیم بگیر:
+یا temporary نگه دار و commit نکن
+یا قبل از commit برگردان به حالت mock/real استاندارد.
+
+اگر فقط برای تست با لید بود:
+Contract bridge و تغییرات موقت CORS/proxy را commit نکن.
+
+پیشنهاد برای حالت امن commit:
+
+useMockData: true
+useContractApi: false
+
+یا اگر mock API نهایی آماده شد:
+
+useMockData: false
+useContractApi: false
+apiBaseUrl: 'http://192.168.130.44:1234/api/v1' 17. نکته‌های آموزشی مهم
+
+1. Read و Mutation فرق دارند
+
+Read:
+
+GET /tasks
+GET /projects
+GET /project_details
+
+Mutation:
+
+POST /tasks
+PUT /tasks/{id}
+DELETE /tasks/{id}
+
+برای همین state جدا لازم دارند.
+
+2. فرم با payload فرق دارد
+
+فرم برای UI است.
+Payload برای API است.
+
+پس همیشه این سؤال را بپرس:
+
+آیا شکل داده فرم دقیقاً همان چیزی است که API می‌خواهد؟
+
+اگر نه، mapper لازم داری.
+
+3. State را بر اساس مسئولیت جدا کن
+
+در این Branch stateها را بر اساس مسئولیت جدا کردیم:
+
+tasksState
+mutationState
+projectsState
+projectDetailsState
+deletingTaskId
+deleteError
+
+این باعث شد هر بخش UI مستقل‌تر و قابل فهم‌تر باشد.
+
+4. Refetch after mutation ساده‌تر و امن‌تر است
+
+بعد از create/update/delete، دوباره لیست را گرفتن، با backend هماهنگ‌تر است.
+
+Optimistic update سریع‌تر است، ولی پیچیده‌تر و پرریسک‌تر است.
+
+5. CORS مشکل کد Angular نیست
+
+اگر request از curl جواب می‌دهد ولی مرورگر بلاک می‌کند، احتمالاً CORS است.
+
+CORS یعنی مرورگر اجازه نمی‌دهد فرانت از یک origin دیگر response را بخواند.
+
+18. وضعیت نهایی Branch
+
+در پایان Branch 009:
+
+صفحه Tasks از read-only خارج شد.
+فرم ثبت/ویرایش task آماده شد.
+Create/Edit/Delete flow پیاده شد.
+Dropdownهای پروژه، سرویس و قرارداد داینامیک شدند.
+فرم payload مناسب API می‌سازد.
+حذف row-level state دارد.
+Refresh بعد از mutation انجام می‌شود.
+
+تنها محدودیت فعلی این است که mock API فعلی state واقعی ذخیره نمی‌کند؛ بنابراین تغییرات create/update/delete در GET بعدی دیده نمی‌شوند، مگر backend/mock server persistence داشته باشد.
