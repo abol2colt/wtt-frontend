@@ -1,0 +1,66 @@
+<div class="min-h-screen flex items-center justify-center bg-slate-950 px-4" dir="rtl">
+  <section
+    class="w-full max-w-md rounded-3xl border border-white/10 bg-white/10 p-6 shadow-2xl backdrop-blur"
+  >
+    <div class="mb-6 text-center">
+      <h1 class="text-2xl font-black text-white">ورود به WTT</h1>
+      <p class="mt-2 text-xs font-bold text-slate-300">
+        برای اتصال به API واقعی، وارد حساب WTT خودت شو.
+      </p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" class="flex flex-col gap-4">
+      <label class="flex flex-col gap-2">
+        <span class="text-xs font-black text-slate-300">نام کاربری</span>
+
+        <input
+          type="text"
+          formControlName="username"
+          autocomplete="username"
+          class="rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400"
+          placeholder="username"
+        />
+
+        @if (loginForm.controls.username.touched && loginForm.controls.username.invalid) {
+          <span class="text-[11px] font-bold text-red-400">نام کاربری الزامی است.</span>
+        }
+      </label>
+
+      <label class="flex flex-col gap-2">
+        <span class="text-xs font-black text-slate-300">رمز عبور</span>
+
+        <input
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+          class="rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400"
+          placeholder="password"
+        />
+
+        @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
+          <span class="text-[11px] font-bold text-red-400">رمز عبور الزامی است.</span>
+        }
+      </label>
+
+      @if (errorMessage()) {
+        <div class="rounded-2xl border border-red-500/30 bg-red-500/10 p-3">
+          <p class="text-xs font-black text-red-300">
+            {{ errorMessage() }}
+          </p>
+        </div>
+      }
+
+      <button
+        type="submit"
+        [disabled]="loginForm.invalid || loading()"
+        class="mt-2 rounded-2xl bg-cyan-500 px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        @if (loading()) {
+          در حال ورود...
+        } @else {
+          ورود
+        }
+      </button>
+    </form>
+  </section>
+</div>

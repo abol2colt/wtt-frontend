@@ -1,18 +1,12 @@
 export const environment = {
   production: false,
-  apiBaseUrl: 'http://192.168.130.44:1234/api/v1',
-  contractBaseUrl: 'http://192.168.130.44:1234',
-  temporaryUserId: 273,
-  useMockData: true,
-  useContractApi: true,
-};
 
-/* export const environment = {
-  production: false,
-  apiBaseUrl: '/mock-api/api/v1',
-  contractBaseUrl: '/mock-api',
+  // Local dev uses Angular proxy to call the real WTT v1 API without browser CORS issues.
+  apiBaseUrl: '/wtt-api/api/v1',
+
+  // Legacy flags stay temporarily until each feature service is migrated to real APIs.
+  contractBaseUrl: '',
   temporaryUserId: 273,
-  useMockData: true,
-  useContractApi: true,
+  useMockData: false,
+  useContractApi: false,
 };
- */

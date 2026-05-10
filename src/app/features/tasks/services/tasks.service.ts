@@ -5,6 +5,8 @@ import { environment } from '../../../../environments/environment';
 import { TaskItem, TaskListResponse, TaskMutationPayload } from '../../../shared/models/task.model';
 import { Project, ProjectDetailsResponse } from '../../../shared/models/project.model';
 
+// TEMP: Contract wrapper adapter.
+// Remove when backend provides direct GET /api/v1/tasks/ response.
 interface TasksContractResponse {
   tasks_list: {
     requested_ui_response: TaskListResponse;
@@ -18,50 +20,95 @@ export class TasksService {
   private readonly apiBaseUrl = environment.apiBaseUrl;
   private readonly useMock = environment.useMockData;
 
-  getTasks(userId: number, page: number, range: string) {
-    if (environment.useContractApi) {
-      console.log('Reading tasks from contract API');
+  private readonly mockPageSize = 3;
 
+  private mockTasks: TaskItem[] = [
+    {
+      id: 259354,
+      status: 'pending',
+      title: '[IDEAL-901]: رفع مشکل موقعیت اسکرول',
+      project_id: 30,
+      project_title: 'NeoBRK',
+      date: '1405-02-08',
+      duration: 30,
+      location: 'teleworking',
+      start_time: '1405-02-08 09:00:00',
+      end_time: '1405-02-08 09:30:00',
+    },
+    {
+      id: 259355,
+      status: 'approved',
+      title: '[WTT-112]: اتصال داشبورد به API',
+      project_id: 90,
+      project_title: 'WTT',
+      date: '1405-02-09',
+      duration: 120,
+      location: 'incompany_working',
+      start_time: '1405-02-09 10:00:00',
+      end_time: '1405-02-09 12:00:00',
+    },
+    {
+      id: 259356,
+      status: 'rejected',
+      title: '[NeoBRK-45]: بررسی خطای فرم ورود',
+      project_id: 30,
+      project_title: 'NeoBRK',
+      date: '1405-02-10',
+      duration: 75,
+      location: 'teleworking',
+      start_time: '1405-02-10 13:00:00',
+      end_time: '1405-02-10 14:15:00',
+    },
+  ];
+  private getPagedMockTasks(page: number): TaskListResponse {
+    const startIndex = (page - 1) * this.mockPageSize;
+    const endIndex = startIndex + this.mockPageSize;
+
+    return {
+      data: this.mockTasks.slice(startIndex, endIndex),
+      meta: {
+        page,
+        page_size: this.mockPageSize,
+        total: this.mockTasks.length,
+      },
+    };
+  }
+
+  private buildTaskFromPayload(
+    payload: TaskMutationPayload,
+    id = Date.now(),
+    status: TaskItem['status'] = 'pending',
+  ): TaskItem {
+    const projectTitleMap: Record<number, string> = {
+      30: 'NeoBRK',
+      90: 'WTT',
+      120: 'IDEAL',
+    };
+
+    return {
+      id,
+      status,
+      title: payload.title,
+      project_id: payload.project,
+      project_title: projectTitleMap[payload.project] ?? `پروژه #${payload.project}`,
+      date: payload.date,
+      duration: payload.duration,
+      location: payload.location,
+      start_time: payload.start_time,
+      end_time: payload.end_time,
+    };
+  }
+  getTasks(userId: number, page: number, range: string) {
+    if (this.useMock) {
+      return of(this.getPagedMockTasks(page)).pipe(delay(500));
+    }
+
+    if (environment.useContractApi) {
+      // TEMP: Contract wrapper adapter.
+      // Remove this block when backend provides direct GET /api/v1/tasks/ response.
       return this.http
         .get<TasksContractResponse>(`${environment.contractBaseUrl}/taskscontract/`)
         .pipe(map((response) => response.tasks_list.requested_ui_response));
-    }
-    if (this.useMock) {
-      const mockResponse: TaskListResponse = {
-        data: [
-          {
-            id: 259354,
-            status: 'pending',
-            title: `[Page ${page}] [IDEAL-901]: رفع مشکل موقعیت اسکرول`,
-            project_id: 30,
-            date: '1405-02-08',
-            duration: 30,
-          },
-          {
-            id: 259355,
-            status: 'approved',
-            title: '[WTT-112]: اتصال داشبورد به API',
-            project_id: 30,
-            date: '1405-02-09',
-            duration: 120,
-          },
-          {
-            id: 259356,
-            status: 'rejected',
-            title: '[NeoBRK-45]: بررسی خطای فرم ورود',
-            project_id: 90,
-            date: '1405-02-10',
-            duration: 75,
-          },
-        ],
-        meta: {
-          page,
-          page_size: 3,
-          total: 9,
-        },
-      };
-
-      return of(mockResponse).pipe(delay(700));
     }
 
     const params = new HttpParams().set('user', userId).set('page', page).set('range', range);
@@ -103,43 +150,34 @@ export class TasksService {
       params,
     });
   }
+
   createTask(payload: TaskMutationPayload) {
     if (this.useMock) {
-      const mockCreatedTask: TaskItem = {
-        id: Date.now(),
-        status: 'pending',
-        title: payload.title,
-        project_id: payload.project,
-        date: payload.date,
-        duration: payload.duration,
-        location: payload.location,
-        start_time: payload.start_time,
-        end_time: payload.end_time,
-      };
+      const createdTask = this.buildTaskFromPayload(payload);
 
-      return of(mockCreatedTask).pipe(delay(700));
+      this.mockTasks = [createdTask, ...this.mockTasks];
+
+      return of(createdTask).pipe(delay(500));
     }
+
     return this.http.post<TaskItem>(`${this.apiBaseUrl}/tasks/`, payload);
   }
+
   updateTask(taskId: number, payload: TaskMutationPayload) {
     if (this.useMock) {
-      const mockUpdatedTask: TaskItem = {
-        id: taskId,
-        status: 'edited',
-        title: payload.title,
-        project_id: payload.project,
-        date: payload.date,
-        duration: payload.duration,
-        location: payload.location,
-        start_time: payload.start_time,
-        end_time: payload.end_time,
-      };
-      return of(mockUpdatedTask).pipe(delay(700));
+      const updatedTask = this.buildTaskFromPayload(payload, taskId, 'edited');
+
+      this.mockTasks = this.mockTasks.map((task) => (task.id === taskId ? updatedTask : task));
+
+      return of(updatedTask).pipe(delay(500));
     }
+
     return this.http.put<TaskItem>(`${this.apiBaseUrl}/tasks/${taskId}/`, payload);
   }
   deleteTask(taskId: number): Observable<void> {
-    if (this.useMock || environment.useContractApi) {
+    if (this.useMock) {
+      this.mockTasks = this.mockTasks.filter((task) => task.id !== taskId);
+
       return of(void 0).pipe(delay(500));
     }
 

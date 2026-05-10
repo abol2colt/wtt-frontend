@@ -3,8 +3,8 @@ import { LayoutService } from '../../core/services/layout/layout.service';
 import { DashboardStats } from '../../shared/models/dashboard.model';
 import { ApiState } from '../../shared/models/api-state.model';
 import { DashboardService } from './services/dashboard.service';
-import { environment } from '../../../environments/environment';
 import { EChartsOption } from 'echarts';
+import { AuthService } from '../../core/services/auth/auth.service';
 import { NgxEchartsDirective } from 'ngx-echarts';
 
 @Component({
@@ -15,6 +15,7 @@ import { NgxEchartsDirective } from 'ngx-echarts';
 })
 export class DashboardComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
+  private readonly authService = inject(AuthService);
 
   layout = inject(LayoutService);
 
@@ -26,7 +27,6 @@ export class DashboardComponent implements OnInit {
 
   lineChartState = signal<ApiState<EChartsOption>>({ data: null, loading: true, error: null });
 
-  private readonly userId = environment.temporaryUserId;
   private readonly range = 'month_till_today';
 
   constructor() {
@@ -38,13 +38,25 @@ export class DashboardComponent implements OnInit {
     this.loadLineChart();
   }
   loadStats(): void {
+    const userId = this.authService.getCurrentUserId();
+
+    if (!userId) {
+      this.statsState.set({
+        data: null,
+        loading: false,
+        error: 'شناسه کاربر پیدا نشد. لطفاً دوباره وارد شوید.',
+      });
+
+      return;
+    }
+
     this.statsState.set({
       data: null,
       loading: true,
       error: null,
     });
 
-    this.dashboardService.getStats(this.userId, this.range).subscribe({
+    this.dashboardService.getStats(userId, this.range).subscribe({
       next: (response) => {
         this.statsState.set({
           data: response.data,
@@ -72,13 +84,24 @@ export class DashboardComponent implements OnInit {
 
   // line chart
   loadLineChart(): void {
+    const userId = this.authService.getCurrentUserId();
+
+    if (!userId) {
+      this.lineChartState.set({
+        data: null,
+        loading: false,
+        error: 'شناسه کاربر پیدا نشد. لطفاً دوباره وارد شوید.',
+      });
+
+      return;
+    }
     this.lineChartState.set({
       data: null,
       loading: true,
       error: null,
     });
 
-    this.dashboardService.getLineChart(this.userId, this.range).subscribe({
+    this.dashboardService.getLineChart(userId, this.range).subscribe({
       next: (response) => {
         if (!response.length) {
           this.lineChartState.set({

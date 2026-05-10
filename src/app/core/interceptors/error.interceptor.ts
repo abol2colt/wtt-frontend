@@ -2,26 +2,27 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
+import { AuthService } from '../services/auth/auth.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
+  const authService = inject(AuthService);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       if (error.status === 401) {
-        console.error('🔒 خطای ۴۰۱: توکن نامعتبر است یا منقضی شده. هدایت به صفحه لاگین...');
-        // TODO: بعداً اینجا کد پاک کردن Signal کاربر و هدایت به صفحه لاگین رو می‌زنیم
-        // router.navigate(['/auth/login']);
+        // A 401 means the token is missing, expired, or rejected by the backend.
+        authService.logout();
+        router.navigate(['/auth/login']);
       } else if (error.status === 403) {
-        console.error(
-          '⛔ خطای ۴۰۳: شما دسترسی لازم برای این عملیات را ندارید (RBAC/IDOR Blocked).',
-        );
+        // A 403 means the token is valid, but this user does not have permission.
+        console.error('Forbidden request: the current user has no access to this resource.');
       } else if (error.status === 503) {
-        console.error(
-          '🛡️ خطای ۵۰۳: سیستم فایروال (WAF) درخواست شما را به دلیل ترافیک غیرعادی مسدود کرد!',
-        );
+        // A 503 usually means the backend or gateway is temporarily unavailable.
+        console.error('Service unavailable: WTT backend is not available right now.');
       } else {
-        console.error(`❌ خطای ناشناخته رخ داد: ${error.message}`);
+        // Keep unexpected errors visible during development.
+        console.error(`Unexpected HTTP error: ${error.message}`);
       }
 
       return throwError(() => error);
