@@ -1,10 +1,10 @@
 {
-  "/mock-api": {
-    "target": "http://192.168.130.44:1234",
-    "secure": false,
+  "/wtt-api": {
+    "target": "https://wtt.sanayco.ir",
+    "secure": true,
     "changeOrigin": true,
     "pathRewrite": {
-      "^/mock-api": ""
+      "^/wtt-api": ""
     },
     "logLevel": "debug"
   }

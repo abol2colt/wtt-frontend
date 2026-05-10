@@ -3,8 +3,8 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { LayoutService } from '../../core/services/layout/layout.service';
 import { ApiState } from '../../shared/models/api-state.model';
 import { TaskItem, TaskListResponse, TaskMutationPayload } from '../../shared/models/task.model';
-import { environment } from '../../../environments/environment';
 import { TasksService } from './services/tasks.service';
+import { AuthService } from '../../core/services/auth/auth.service';
 import { Project, ProjectDetailsResponse } from '../../shared/models/project.model';
 
 type TaskRangeFilter = 'month_till_today' | 'today' | 'week_till_today';
@@ -18,6 +18,7 @@ type TaskStatusFilter = 'all' | 'pending' | 'rejected';
 export class TasksComponent implements OnInit {
   layout = inject(LayoutService);
   private readonly tasksService = inject(TasksService);
+  private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
 
   tasksState = signal<ApiState<TaskListResponse>>({
@@ -53,8 +54,6 @@ export class TasksComponent implements OnInit {
   deletingTaskId = signal<number | null>(null);
   deleteError = signal<string | null>(null);
 
-  private readonly userId = environment.temporaryUserId;
-
   taskForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
     project: [0, [Validators.required, Validators.min(1)]],
@@ -77,6 +76,18 @@ export class TasksComponent implements OnInit {
   }
 
   loadTasks(page = this.currentPage()): void {
+    const userId = this.authService.getCurrentUserId();
+
+    if (!userId) {
+      this.tasksState.set({
+        data: null,
+        loading: false,
+        error: 'شناسه کاربر پیدا نشد. لطفاً دوباره وارد شوید.',
+      });
+
+      return;
+    }
+
     this.currentPage.set(page);
 
     this.tasksState.set({
@@ -85,7 +96,7 @@ export class TasksComponent implements OnInit {
       error: null,
     });
 
-    this.tasksService.getTasks(this.userId, page, this.activeRange()).subscribe({
+    this.tasksService.getTasks(userId, page, this.activeRange()).subscribe({
       next: (response) => {
         this.tasksState.set({
           data: response,

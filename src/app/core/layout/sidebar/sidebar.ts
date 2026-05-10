@@ -1,5 +1,5 @@
-import { Component, inject, ViewEncapsulation } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
 
 @Component({
@@ -9,6 +9,12 @@ import { AuthService } from '../../services/auth/auth.service';
   templateUrl: './sidebar.html',
 })
 export class SidebarComponent {
-  authService = inject(AuthService);
+  private readonly router = inject(Router);
+  public readonly authService = inject(AuthService);
 
+  logout(): void {
+    // Clear local auth state and return the user to the login page.
+    this.authService.logout();
+    this.router.navigate(['/auth/login']);
+  }
 }

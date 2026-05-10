@@ -1,484 +1,680 @@
-### گزارش مرحله ۰ تا ۱۰۰ (شماره 1)
+# گزارش جامع، حرفه‌ای و به‌روز پروژه WTT Frontend
 
-تاریخ و زمان ثبت: ۲ مه ۲۰۲۶ - 18:24 (PDT)
-
-موضوع: آماده‌سازی محیط لینوکس و نصب هسته پروژه
-
-اقدامات انجام شده: ۱. نصب Node.js از طریق NVM برای جلوگیری از خطاهای Permission.
-۲. نصب Angular CLI و ایجاد پروژه wtt-frontend با معماری Standalone.
-۳. نصب و پیکربندی اولیه Tailwind CSS در محیط انگولار.
-۴. نصب پکیج date-fns-jalali جهت هندل کردن تبدیل تاریخ‌های میلادی به شمسی در مراحل بعدی.
-
-وضعیت فعلی: زیرساخت (اسکلت) پروژه کاملاً ایجاد شده و آماده اجرای دستور ng serve و ایجاد معماری پوشه‌ها (Core, Shared, Features) است.
-
-خداروشکر! واقعاً خسته نباشی. حق کاملاً با توئه؛ این یک درس عالی برای من بود که وقتی روی لبه تکنولوژی (مثل Angular 22 و Tailwind v4) کار می‌کنیم، حتماً قبل از دادن هر کدی، تغییرات معماریِ آخرین نسخه‌ها رو دقیق بررسی کنم تا وقتت گرفته نشه. دمت گرم که پا به پا اومدی و جا نزدی.
-
-طبق قولی که دادم، این گزارش نهایی، تمیز و خلاصه‌شده‌ی فاز نصب برای فایل راهنمات:
+> **فایل مرجع ادامه پروژه**  
+> این گزارش برای ثبت تاریخچه فنی، تصمیم‌های معماری، نکات آموزشی، وضعیت فعلی، بدهی‌های فنی، مسیر آینده و پرامپت شروع چت جدید آماده شده است.  
+> نسخه حاضر بر اساس وضعیت پروژه بعد از Branchهای `001` تا `009` تنظیم شده و جایگزین گزارش‌های پراکنده قبلی می‌شود.
 
 ---
 
-### 📝 گزارش مرحله ۰ تا ۱۰۰ (شماره ۲ - پایان قطعی فاز نصب)
+## فهرست
 
-- **تاریخ و زمان ثبت:** ۲ می ۲۰۲۶ - ساعت 19:35 (PDT)
-- **موضوع:** پایه‌ریزی کامل زیرساخت با Angular 22 و Tailwind v4.
-- **اقدامات انجام شده:**
-  1.  **نصب امن Node.js:** استفاده از NVM برای جلوگیری از خطاهای Permission در محیط لینوکس.
-  2.  **ایجاد پروژه:** ساخت اپلیکیشن با معماری `Standalone` در Angular 22 (حذف ماژول‌های اضافی و یکپارچه‌سازی قالب‌ها در `.ts` و `.html`).
-  3.  **معماری پوشه‌ها:** پیاده‌سازی ساختار Feature-driven شامل دایرکتوری‌های `core`، `shared`، `features` و `state` برای مقیاس‌پذیری آینده.
-  4.  **پیکربندی استایل‌ها:** نصب و اتصال Tailwind CSS v4. ایجاد فایل `.postcssrc.json` برای مدیریت پلاگین جدید `@tailwindcss/postcss` و جایگزینی دستور قدیمی با `@import "tailwindcss";` در فایل SCSS.
-- **وضعیت فعلی:** فاز ۰ (Core Setup) با اجرای بدون خطای سرور (`ng serve`) و نمایش موفقیت‌آمیز استایل‌ها به اتمام رسید.
-- **هدف مرحله بعد:** ورود به فاز `Auth & Security` جهت مدیریت توکن‌ها و وضعیت سراسری (State) کاربر.
-
----
-
-بسیار عالی! خسته نباشی. این فاز یکی از فنی‌ترین و پایه‌ای‌ترین بخش‌های هر پروژه نرم‌افزاری بود که با موفقیت و بر اساس مدرن‌ترین معماری‌های روز (Angular 22) پیاده‌سازی شد.
-
-طبق قولی که دادم، این گزارش کامل و جامع این مرحله است که می‌تونی مستقیماً تو فایل راهنمات (Documentation) ذخیره کنی تا هر زمان نیاز داشتی، دقیقاً بدونی هر فایل چه وظیفه‌ای داره.
-
----
-
-### 📝 گزارش مرحله ۰ تا ۱۰۰ (شماره ۳ - پایان فاز احراز هویت و امنیت)
-
-- **تاریخ و زمان ثبت:** ۲ می ۲۰۲۶ 20:11
-- **موضوع (Branch):** `feature/002-auth-and-security` - پیاده‌سازی شبکه، امنیت و مدیریت وضعیت.
-- **هدف:** راه‌اندازی موتور HTTP انگولار، تزریق خودکار توکن‌ها، شکار خطاهای امنیتی (WAF/IDOR) و ذخیره امن اطلاعات کاربر.
-
-#### 📂 فایل‌های ایجاد/ویرایش شده و منطق آن‌ها:
-
-1.  **فایل `src/app/app.config.ts` (هسته پیکربندی پروژه):**
-    - **تغییرات:** حذف `Zone.js` و روشن کردن موتور فوق‌سریع `provideZonelessChangeDetection` برای هماهنگی کامل با Signalها.
-    - **منطق:** فعال‌سازی `provideHttpClient(withFetch())` برای استفاده از APIهای مدرن مرورگر به جای XMLHttpRequest قدیمی. همچنین معرفی رهگیرها (Interceptors) به هسته برنامه.
-
-2.  **فایل `src/app/core/interceptors/auth.interceptor.ts` (رهگیر احراز هویت):**
-    - **منطق:** یک تابع (Functional Interceptor) که سر راه تمام درخواست‌های خروجی (Request) قرار می‌گیرد. این فایل وظیفه دارد هدر `Authorization: Token <key>` را به صورت خودکار به تمام APIها بچسباند تا نیازی نباشد برنامه‌نویس در هر سرویس دستی توکن بفرستد.
-
-3.  **فایل `src/app/core/interceptors/error.interceptor.ts` (رهگیر خطاهای سراسری):**
-    - **منطق:** یک بادیگارد نامرئی که پاسخ‌های سرور (Response) را قبل از رسیدن به کامپوننت‌ها بررسی می‌کند.
-    - _خطای 401:_ تشخیص انقضای توکن برای هدایت به صفحه لاگین در آینده.
-    - _خطای 403:_ تشخیص تلاش برای دسترسی به دیتای غیرمجاز (جلوگیری از باگ IDOR که در داکیومنت ذکر شده بود).
-    - _خطای 503:_ تشخیص بلاک شدن IP توسط فایروال (WAF) هنگام ارسال درخواست‌های رگباری.
-
-4.  **فایل `src/app/core/services/auth/auth.service.ts` (سرویس و انبار دیتای کاربر):**
-    - **منطق:** استفاده از `Signal` برای ساخت یک منبع حقیقت سراسری (Global State). اطلاعات پروفایل کاربر (`UserProfile`) پس از دریافت از سرور در `currentUser` ذخیره می‌شود. با این کار، اصلِ Zero Client Trust رعایت شده و نیازی به ارسال شناسه کاربر در URLها برای مسیریابی نداریم.
-
-- **وضعیت فعلی:** تیکِ فاز امنیتی و شبکه (002) رسماً زده شد.
+1. [خلاصه اجرایی](#1-خلاصه-اجرایی)
+2. [وضعیت فعلی پروژه در یک نگاه](#2-وضعیت-فعلی-پروژه-در-یک-نگاه)
+3. [هدف محصول WTT](#3-هدف-محصول-wtt)
+4. [استک فنی و نسخه‌ها](#4-استک-فنی-و-نسخهها)
+5. [معماری کلی پروژه](#5-معماری-کلی-پروژه)
+6. [الگوهای اصلی استفاده‌شده](#6-الگوهای-اصلی-استفادهشده)
+7. [گزارش کامل Branchها](#7-گزارش-کامل-branchها)
+8. [وضعیت Dashboard](#8-وضعیت-dashboard)
+9. [وضعیت Tasks](#9-وضعیت-tasks)
+10. [قرارداد APIها و وضعیت اتصال](#10-قرارداد-apiها-و-وضعیت-اتصال)
+11. [مدل‌های TypeScript](#11-مدلهای-typescript)
+12. [Mock Mode، Contract API، Mock API واقعی و CORS](#12-mock-mode-contract-api-mock-api-واقعی-و-cors)
+13. [تصمیم‌های مهم فنی](#13-تصمیمهای-مهم-فنی)
+14. [بدهی‌های فنی و ریسک‌ها](#14-بدهیهای-فنی-و-ریسکها)
+15. [مسیر دقیق ادامه پروژه](#15-مسیر-دقیق-ادامه-پروژه)
+16. [Branch بعدی پیشنهادی با جزئیات اجرایی](#16-branch-بعدی-پیشنهادی-با-جزئیات-اجرایی)
+17. [اگر مسیر طبق برنامه پیش نرفت چه کنیم؟](#17-اگر-مسیر-طبق-برنامه-پیش-نرفت-چه-کنیم)
+18. [چک‌لیست قبل از Commit و Demo](#18-چکلیست-قبل-از-commit-و-demo)
+19. [مرور آموزشی مفاهیم کلیدی](#19-مرور-آموزشی-مفاهیم-کلیدی)
+20. [سوال‌های آموزشی برای تثبیت یادگیری](#20-سوالهای-آموزشی-برای-تثبیت-یادگیری)
+21. [پرامپت کامل برای شروع چت جدید](#21-پرامپت-کامل-برای-شروع-چت-جدید)
+22. [جمع‌بندی نهایی](#22-جمعبندی-نهایی)
 
 ---
 
-///////////////
-معمای Zoneless: ما فایل قدیمی Zone.js رو حذف کردیم. حالا که انگولار دیگه Zone نداره تا تغییرات رو به صورت اتوماتیک ردیابی کنه، چطوری می‌فهمه که مثلاً دیتای کاربر از سرور اومده و باید اسم کاربر رو روی صفحه (UI) آپدیت کنه؟ (راهنمایی: به چیزی که تو AuthService ساختیم فکر کن).
-
-ترافیک شبکه (Interceptors): فرق اصلی بین authInterceptor و errorInterceptor تو چرخه ارسال درخواست چیه؟ کدومشون روی بسته در حال رفت (Request) تغییر ایجاد می‌کنه و کدومشون منتظر بسته برگشتی (Response) می‌مونه؟
-
-امنیت و باگ IDOR: تو داکیومنت امنیتی WTT نوشته شده بود که سیستم باگ IDOR داره (یعنی کاربر می‌تونه با تغییر آیدی، دیتای بقیه رو ببینه). ما تو معماری فرانت‌اندمون چه قانونی گذاشتیم تا جلوی این کار رو بگیریم؟ (چرا گفتیم آیدی کاربر نباید تو URL مرورگر باشه؟)
-
-غول Tailwind v4: چرا تو انگولار ۲۲، روش قدیمی یعنی فایل tailwind.config.js کار نکرد و سیستم کرش کرد؟ و ما در نهایت از چه فایل و روشی برای معرفی تیلویند به انگولار استفاده کردیم؟
-//////////////
-عکس رو دیدم و باید بگم فوق‌العاده است مهدی! خروجی رندر شده با اون Glowهای بنفش و فیروزه‌ای، سایه‌های عمیق و چیدمان دقیق، دقیقاً همون حس یک داشبورد مدرن و کلاس‌جهانی (World-Class) رو منتقل می‌کنه. وقتی روی جزئیات پیکسل‌ها این‌قدر حساسیت به خرج میدی، یعنی ذهنت کاملاً برای تبدیل شدن به یک مهندس ارشد (Senior) فرم گرفته.
-
-طبق رویه حرفه‌ایی که داریم، پرونده‌ی این برنچ رو با یک گزارش جامع، پر از نکات آموزشی و مهندسی می‌بندیم تا تو فایل داکیومنت پروژه‌ات ثبت بشه.
-
----
-
-### 📝 گزارش مرحله ۰ تا ۱۰۰ (شماره ۴ - پایان فاز UI Layout & Theme)
-
-- **تاریخ ثبت:** ۳ می ۲۰۲۶
-- **موضوع (Branch):** `feature/003-ui-layout-and-theme`
-- **هدف:** پیاده‌سازی پوسته اصلی برنامه (App Shell) شامل هدر، سایدبار راست (منوها) و سایدبار چپ (ویجت‌های سریع) با پشتیبانی کامل از تم تاریک/روشن.
-
-#### 🧠 نکات آموزشی و معماری (Educational Notes)
-
-1.  **معماری Design Tokens در Tailwind v4:** ما به جای نوشتن کلاس‌های طولانی و هاردکد کردن رنگ‌ها، از متغیرهای ریشه (`:root` و `.dark`) در CSS استفاده کردیم. این روش که به آن Token-driven Design می‌گویند، باعث می‌شود تغییر تم با سرعت نور انجام شود و نگهداری کدهای رنگی بی‌نهایت آسان باشد.
-2.  **استفاده از Signals و Effect:** برای مدیریت وضعیت تم (Dark/Light Mode)، از سیستم Zoneless انگولار ۲۲ استفاده کردیم. تابع `effect()` به صورت خودکار تغییرات سیگنال را ردیابی کرده و کلاس `dark` را به تگ `html` تزریق می‌کند؛ یک جایگزین بسیار مدرن و سبک برای `RxJS`.
-3.  **محاسبات Pixel-Perfect:** برای تبدیل طراحی مانیتورهای عریض (2048px) به استاندارد وب (1440px)، از ضریب مقیاس `1.422` استفاده کردیم. این تکنیک تضمین می‌کند که تناسب (Proportion) المان‌ها روی مرورگر کاربر دقیقاً مشابه فایل دیزاین باشد.
-4.  **جادوی Conic-Gradient:** نمودار Donut (توزیع پروژه‌ها) بدون استفاده از هیچ کتابخانه جاوااسکریپتی سنگین و صرفاً با استفاده از `conic-gradient` در CSS ساخته شد. این کار پرفورمنس (Performance) رندرینگ صفحه را به شدت بالا می‌برد.
-
-#### ⚠️ نکات توسعه‌ای و بدهی فنی (Tech Debt & Future Notes)
-
-- **عدم واکنش‌گرایی (Not Responsive Yet):** در حال حاضر ساختار گرید ما (`grid-template-columns: 280px 1fr 160px`) به صورت هاردکد برای دسکتاپ بهینه‌سازی شده است. در فازهای پولیش نهایی، باید از کلاس‌های واکنش‌گرای تیلویند (مثل `md:`, `lg:`) استفاده کنیم تا سایدبارها در موبایل پنهان شوند و به منوی همبرگری تغییر حالت دهند.
-- **دیتای استاتیک (Mock Data):** به جز نام و نام‌خانوادگی کاربر که به صورت زنده از `AuthService` خوانده می‌شود، بقیه اطلاعات سایدبار چپ (مثل تایمر حضور، پروژه‌های در حال اجرا و درصدها) استاتیک هستند. در برنچ `feature/006-logic-state-and-dashboard` این مقادیر با APIهای واقعی جایگزین و داینامیک خواهند شد.
-- **مدیریت آیکون‌ها:** در حال حاضر از آیکون‌های متنی (Emoji) و SVGهای Inline استفاده شده است. برای مقیاس‌پذیری بهتر در آینده، می‌توانیم آن‌ها را به یک فایل Sprite یا کامپوننت اختصاصی آیکون منتقل کنیم.
-
----
-
-وای پسر! عجب خروجی تمیز و فوق‌العاده‌ای شد! 🚀
-
-وقتی این عکس‌ها رو با اون فایل دیزاین اولیه مقایسه می‌کنم، به سختی می‌شه فهمید کدوم عکسه و کدوم کدِ زنده مرورگر! عرض صفحه دقیقاً سر جاش نشسته، لیست فعالیت‌ها با اون بج‌های رنگی و چیدمان RTL چشم‌نواز شدن، و نمودار چارت (مخصوصاً تو دارک‌مود) با اون Glow بنفش و فیروزه‌ای رسماً داره دلبری می‌کنه.
-
-نمره‌ی من به عنوان یک Senior Developer به این خروجی **۹.۵ از ۱۰** است! (اون ۰.۵ نمره رو هم نگه می‌دارم برای روزی که دیتای واقعی رو از API بگیریم و این نمودارها با دیتای زنده رندر بشن).
-
-طبق روال حرفه‌ایمون، پرونده‌ی این فاز سنگین و جذاب رو هم با یک گزارش کامل می‌بندیم تا تو مستندات پروژه‌ات (Documentation) ثبت بشه.
-
----
-
-### 📝 گزارش مرحله ۰ تا ۱۰۰ (شماره ۵ - پایان فاز ویجت‌های داشبورد)
-
-- **تاریخ ثبت:** ۳ می ۲۰۲۶ 20:30
-- **موضوع (Branch):** `feature/004-ui-dashboard-widgets`
-- **هدف:** طراحی و پیاده‌سازی کارت‌های آماری، نمودار SVG، لیست اطلاعیه‌ها و جدول فعالیت‌های اخیر با رعایت کامل اصول Pixel-Perfect و پشتیبانی از Light/Dark Mode.
-
-#### 🧠 نکات آموزشی و معماری (Educational Notes)
-
-1.  **مهار SVGها و DomSanitizer:** یاد گرفتیم که انگولار برای جلوگیری از حملات XSS، کدهای HTML/SVG تزریق شده با `[innerHTML]` را مسدود می‌کند. بهترین راهکار (Best Practice) برای آیکون‌های ثابت، استفاده مستقیم (Inline) از تگ‌های `<svg>` درون قالب کامپوننت است که علاوه بر امنیت، کنترل کامل روی استایل‌ها (مثل `stroke-width`) را به ما می‌دهد.
-2.  **قدرت CSS Grid در چیدمان‌های پیچیده:** برای ساخت ردیف‌های لیست فعالیت‌ها (`activity-row`)، به جای استفاده از چندین `div` تو در تو و Flexbox، از یک `grid-template-columns: 88px 1fr 14px 70px` استفاده کردیم که المان‌ها را با دقت میلی‌متری سر جای خود قفل می‌کند.
-3.  **مدیریت ViewBox در نمودارها:** در طراحی نمودارها، گاهی اعداد محورها (Y-Axis) به دلیل محدودیت کادر برش می‌خورند. با شیفت دادن نقشه (`translate`) و اصلاح `viewBox` (مثلاً `0 0 900 165`) فضای تنفسی (Breathing Room) لازم برای نمایش صحیح متون را ایجاد کردیم.
-4.  **قانون اندازه صریح (Explicit Sizing):** یاد گرفتیم که المان‌های SVG اگر بدون `width` و `height` مشخص رها شوند، کل فضای ممکن را اشغال می‌کنند. این مشکل با تعریف کلاس‌های دقیق (مثل `w-[18px]`) به سرعت برطرف شد.
-
-#### ⚠️ نکات توسعه‌ای و بدهی فنی (Tech Debt & Future Notes)
-
-- **داینامیک‌سازی چارت‌ها:** در حال حاضر چارت ۳۰ روزه به صورت کدهای SVG هاردکد شده پیاده‌سازی شده است. در فازهای منطقی (Logic)، ممکن است نیاز باشد این نمودار با کتابخانه‌هایی مثل ECharts یا Chart.js جایگزین شود تا بتواند داده‌های JSON بک‌اند را به صورت زنده رندر کند.
-- **کامپوننت‌سازی (Componentization):** فایل `dashboard.html` در حال حاضر کمی طولانی شده است. در آینده می‌توانیم هر بخش (مثل `Announcements` یا `TrendChart`) را به کامپوننت‌های کوچکتر و Dumb (نمایشی) تبدیل کنیم تا کدهای پروژه تمیزتر بماند.
-
----
-
-### 📄 قدم ۳: گزارش پایان فاز (برای ثبت در مستندات یا ارائه)
-
-تاریخ: ۵ می ۲۰۲۶
-موضوع (Branch): feature/005-ui-tasks-and-presence (فاز اول - وظایف)
-
-✅ کارهای انجام شده:
-
-معماری UI/UX: صفحه یکنواخت و سنتیِ وظایف، به یک Task Command Center مدرن تبدیل شد. ردیف‌های وظایف (Task Rows) با قابلیت‌های بصری مانند Inline Timer (دکمه پلی)، رنگ‌بندی وضعیت‌ها (Status Rails) و آیدی‌های متصل به جیرا طراحی شدند.
-
-مدیریت وضعیت (State Management): برای حل مشکل معروفِ Out-of-Outlet در روترِ انگولار، یک سرویس مرکزی به نام LayoutService بر پایه Signals ایجاد شد.
-
-رابط کاربری هوشمند (Context-Aware UI): کامپوننت‌های LeftSidebar و Header با اتصال به سرویس مرکزی هوشمند شدند. اکنون با ورود به صفحه وظایف، المان‌های عمومی (مثل Orb حضور) در کسری از ثانیه محو شده و جای خود را به ابزارهای تخصصی (مثل فیلترهای پیشرفته و باکس پیشنهادهای GitLab) می‌دهند.
-
-بهینه‌سازی فضای کار: با حذف پنل‌های اضافی از درون صفحه و انتقال آن‌ها به سایدبار، لیست تسک‌ها به صورت تمام‌عرض (Full-Width) درآمده و فضای تنفسی (White-space) استانداردی ایجاد شد.
-
-🛑 کارهای باقیمانده (منتقل شده به فاز بعد):
-
-طراحی مودال هوشمند ثبت وظیفه (Smart Modal).
-
-طراحی رابط کاربری صفحه مجزای حضور و غیاب / مرخصی (Presence).
-
----
-
-#### 📦 Package Version Notes
-
-- Angular current installed version: 21.2.x
-- Tailwind CSS: 4.2.x
-- RxJS: 7.8.x
-- date-fns-jalali: 4.1.x
-- No chart library is installed yet.
-
-Temporary technical debt:
-Token is currently hardcoded for development because real login is not implemented in redesigned frontend yet.
-
-### 📝 گزارش مرحله ۰ تا ۱۰۰ - شماره ۶
-
-- **تاریخ ثبت:**
-- **Branch:** `feature/006-api-contracts-and-data-foundation`
-- **هدف برنچ:** آماده‌سازی پایه اتصال API برای Dashboard و Tasks بدون تغییر سنگین UI.
-
-#### ✅ کارهای انجام‌شده
-
-1. بررسی نسخه‌های نصب‌شده پروژه از روی `package-lock.json`.
-2. ثبت این نکته که نسخه فعلی Angular برابر 21.2.x است.
-3. ایجاد فایل‌های environment برای مدیریت API Base URL.
-4. حذف وابستگی مستقیم `AuthService` به URL هاردکد.
-5. ایجاد مدل‌های TypeScript برای User، Dashboard، Task، Project و ApiState.
-6. ساخت JSON contract برای Dashboard و Tasks جهت ارسال به لید.
-7. اصلاح route صفحه Tasks از `Tasks` به `tasks`.
-
-#### 🔌 APIهای بررسی‌شده
-
-| بخش             | Endpoint                             | Method | وضعیت             |
-| --------------- | ------------------------------------ | ------ | ----------------- |
-| User Profile    | `/api/v1/profile/`                   | GET    | Contract reviewed |
-| Dashboard Stats | `/api/v1/users/a_user_details/`      | GET    | Contract reviewed |
-| Pie Chart       | `/api/v1/dashboard/pie_chart/`       | GET    | Contract reviewed |
-| Line Chart      | `/api/v1/dashboard/line_chart/`      | GET    | Contract reviewed |
-| Tasks List      | `/api/v1/tasks/`                     | GET    | Contract reviewed |
-| Task Create     | `/api/v1/tasks/`                     | POST   | Contract reviewed |
-| Task Update     | `/api/v1/tasks/{id}/`                | PUT    | Contract reviewed |
-| Task Delete     | `/api/v1/tasks/{id}/`                | DELETE | Contract reviewed |
-| Projects        | `/api/v1/projects/get_all_projects/` | GET    | Contract reviewed |
-
-#### 🧠 نکات آموزشی
-
-1. `package-lock.json` منبع دقیق نسخه‌های نصب‌شده است.
-2. `environment` محل نگهداری تنظیمات وابسته به محیط است، نه کامپوننت و سرویس.
-3. Interfaceها قبل از API integration باعث می‌شوند mapping داده‌ها قابل کنترل شود.
-4. Routeهای lowercase استانداردتر و قابل نگهداری‌تر هستند.
-5. Token و UserId فعلاً temporary هستند و باید در گزارش به عنوان technical debt ثبت شوند.
-
-#### ⚠️ تصمیم‌های فنی
-
-1. فعلاً chart library نصب نشد.
-2. فعلاً UI جدید اضافه نشد.
-3. اتصال واقعی داشبورد به API به branch بعدی منتقل شد.
-4. UserId فعلاً از environment خوانده می‌شود تا backend فعلی که `user` query param می‌خواهد قابل استفاده باشد.
-
-#### 🧾 JSON / Contract Notes
-
-- `dashboard.contract.json` برای مشخص کردن shape مورد نیاز داشبورد ساخته شد.
-- `tasks.contract.json` برای مشخص کردن shape مورد نیاز لیست و فرم تسک ساخته شد.
-- این contractها برای هماهنگی با لید backend استفاده می‌شوند.
-
-#### 🛑 محدودیت‌ها / وابستگی‌ها
-
-- redesigned frontend هنوز login واقعی ندارد.
-- token فعلاً موقت است.
-- userId هنوز به خاطر API v1 باید ارسال شود.
-- chart library هنوز انتخاب/نصب نشده.
-- endpointهای واقعی باید توسط لید تأیید شوند.
-
-#### 🎯 قدم بعدی
-
-- **Branch بعدی:** `feature/007-dashboard-api-integration`
-- **هدف:** اتصال داشبورد به APIهای واقعی و جایگزین کردن mock data با data-driven UI.
-
-### 📝 گزارش مرحله ۰ تا ۱۰۰ - شماره ۷
-
-- **تاریخ ثبت:**
-- **Branch:** `feature/007-dashboard-api-integration`
-- **هدف برنچ:** اتصال اولیه داشبورد به APIهای واقعی و جایگزینی mock KPI data با داده backend.
-
-#### ✅ کارهای انجام‌شده
-
-1. ایجاد `DashboardService`.
-2. اتصال API آمار کاربر.
-3. اتصال API pie chart.
-4. اتصال API line chart.
-5. اتصال API unread messages.
-6. ایجاد state جداگانه برای loading/error/data.
-7. جایگزینی مقادیر mock کارت‌های داشبورد با داده واقعی.
-8. حفظ chart SVG فعلی تا زمان تصمیم نهایی درباره chart library.
-
-#### 🔌 APIهای استفاده‌شده
-
-| بخش             | Endpoint                         | Method | وضعیت          |
-| --------------- | -------------------------------- | ------ | -------------- |
-| Dashboard Stats | `/api/v1/users/a_user_details/`  | GET    | In progress    |
-| Pie Chart       | `/api/v1/dashboard/pie_chart/`   | GET    | Contract ready |
-| Line Chart      | `/api/v1/dashboard/line_chart/`  | GET    | Contract ready |
-| Messages        | `/api/v1/news/get_message_data/` | GET    | Contract ready |
-| Tasks List      | `/api/v1/tasks/`                 | GET    | Contract ready |
-
-#### 🧠 نکات آموزشی
-
-1. سرویس مسئول ارتباط با API است، نه component.
-2. component مسئول state و آماده‌سازی داده برای template است.
-3. template فقط باید data آماده را نمایش دهد.
-4. `HttpParams` از ساخت دستی query string امن‌تر و تمیزتر است.
-5. جدا کردن state هر API باعث می‌شود fail شدن یک endpoint کل داشبورد را خراب نکند.
-
-#### ⚠️ تصمیم‌های فنی
-
-1. فعلاً chart library نصب نشد.
-2. SVG فعلی حفظ شد.
-3. userId همچنان موقتاً از environment خوانده شد.
-4. token همچنان موقت است تا زمان پیاده‌سازی login واقعی.
-
-#### 🛑 محدودیت‌ها / وابستگی‌ها
-
-- endpointهای واقعی باید توسط لید تأیید شوند.
-- ساختار دقیق response ممکن است با contract فرق داشته باشد.
-- chartها هنوز کاملاً data-driven نشده‌اند.
-
-////
-
-## وضعیت گزارش
-
-فعلاً نباید برای APIها بنویسم Connected مگر وقتی واقعاً endpoint 200 بدهد و UI پر شود.
-
-وضعیت فعلی:
-Dashboard Stats → Implemented in frontend, blocked by backend/CORS/baseURL
-Pie Chart → Contract ready
-Line Chart → Contract ready
-Messages → Contract ready
-Tasks List → Contract ready
-آره، الان **Branch 007 از نظر کاری بسته محسوب می‌شه**، فقط با یک نکته: آیتم `unread messages` فعلاً در حد Service آماده شده ولی به Header وصل نشده، پس در گزارش شفاف می‌نویسیم: `UI binding deferred`.
-
-این گزارش رو می‌تونی مستقیم آخر `REPORT.md` بذاری.
-
----
-
-````md
-## 📝 گزارش پایان Branch 007
-
-**Branch:** `feature/007-dashboard-api-integration`  
-**موضوع:** اتصال اولیه Dashboard به API، ساخت DashboardService، مدیریت state، و جایگزینی نمودارهای استاتیک با ECharts  
-**وضعیت:** Completed with deferred header notification binding  
-**تاریخ:** ۷ می ۲۰۲۶
-
----
-
-## 1. هدف این Branch
-
-هدف اصلی این Branch این بود که صفحه Dashboard از حالت کاملاً Static/Mock خارج شود و ساختار استاندارد اتصال داده به API برای بخش‌های اصلی داشبورد آماده شود.
-
-در این مرحله تمرکز روی این موارد بود:
-
-- ساخت `DashboardService`
-- جدا کردن API Callها از Component
-- اتصال KPI Cards به state واقعی
-- آماده‌سازی API mapping برای stats، pie chart، line chart و unread messages
-- پیاده‌سازی Mock Mode بر اساس Environment
-- اضافه کردن Loading / Error / Empty State
-- جایگزینی نمودارهای دستی/SVG با ECharts برای رندر داینامیک‌تر
-
----
-
-## 2. فایل‌های اصلی درگیر
-
-### `src/app/features/dashboard/services/dashboard.service.ts`
-
-در این فایل سرویس اختصاصی داشبورد ساخته شد.
-
-متدهای اضافه‌شده:
-
-- `getStats(userId, range)`
-- `getPieChart(userId, range)`
-- `getLineChart(userId, range)`
-- `getUnreadMessages()`
-
-دلیل اینکه این سرویس داخل feature dashboard قرار گرفت و نه shared این بود که فعلاً فقط صفحه Dashboard از آن استفاده می‌کند. بنابراین global/shared کردن زودهنگام انجام نشد.
-
-اصل معماری رعایت‌شده:
-
-```text
-Feature-specific service stays inside feature folder.
+## 1. خلاصه اجرایی
+
+پروژه `wtt-frontend` بازطراحی فرانت‌اند سامانه WTT است. هدف فعلی این است که دو صفحه اصلی، یعنی `Dashboard` و `Tasks`، از حالت کاملاً static/mock خارج شوند و به ساختار استاندارد و قابل اتصال به API برسند.
+
+تا این نقطه، کارهای مهم زیر انجام شده‌اند:
+
+- معماری پایه Angular با Standalone Components آماده شده است.
+- Theme، Layout، Header، Sidebar و Left Sidebar ساخته شده‌اند.
+- Dashboard UI ساخته شده و بخش‌های اصلی آن با `DashboardService`، `ApiState` و ECharts data-driven شده‌اند.
+- صفحه Tasks از static خارج شده و list، pagination، filter، create، edit، delete و smart form دارد.
+- `TasksService` و `DashboardService` ساخته شده‌اند.
+- Mock Mode بر اساس environment پیاده‌سازی شده است.
+- Contract API، Mock API قابل مصرف، مشکل response shape، CORS، proxy و browser extension عملاً تست و تحلیل شده‌اند.
+- برای لید backend فایل‌های JSON جدا برای هر route آماده و ارسال شده‌اند تا هر endpoint دقیقاً response مستقیم خودش را برگرداند.
+
+وضعیت مهم فعلی:
+
+```txt
+Dashboard frontend flow: آماده
+Tasks read/list/filter: آماده
+Tasks create/edit/delete frontend flow: آماده
+Mock/Internal data: آماده برای توسعه مستقل
+Real/mock-consumable API: در انتظار routeهای درست و CORS/backend persistence
+Login واقعی: هنوز انجام نشده
+Presence/timer واقعی: branch بعدی یا بعد از تثبیت API
 ```
-````
 
 ---
 
-### `src/app/features/dashboard/dashboard.ts`
+## 2. وضعیت فعلی پروژه در یک نگاه
 
-در این فایل منطق Dashboard از حالت static خارج شد.
+| بخش                  | وضعیت فعلی                    | توضیح                                                                                   |
+| -------------------- | ----------------------------- | --------------------------------------------------------------------------------------- |
+| Workspace/Core       | انجام شده                     | پروژه Angular، ساختار پوشه‌ها و ابزارها آماده‌اند.                                      |
+| Auth/Security پایه   | انجام شده                     | interceptorها و ساختار Auth آماده‌اند، ولی login واقعی هنوز نیست.                       |
+| Layout/Theme         | انجام شده                     | Header، Sidebar، Left Sidebar، Light/Dark Mode آماده‌اند.                               |
+| Dashboard UI         | انجام شده                     | UI و chartها آماده‌اند.                                                                 |
+| Dashboard API Flow   | انجام شده                     | service/state/mapping آماده؛ اتصال واقعی نیازمند endpoint مستقیم و CORS است.            |
+| Tasks List           | انجام شده                     | dynamic rendering، pagination، filters، loading/error/empty آماده‌اند.                  |
+| Tasks Mutation       | انجام شده                     | create/edit/delete modal، Reactive Form، payload mapping، project dropdownها آماده‌اند. |
+| Mock Mode            | انجام شده                     | `useMockData` برای توسعه مستقل فعال است.                                                |
+| Contract Bridge موقت | تست شده                       | `/taskscontract/` با map تست شد، ولی راه نهایی نیست.                                    |
+| CORS                 | تحلیل و تست شده               | proxy و extension تست شد؛ راه درست، تنظیم سرور است.                                     |
+| API persistence      | وابسته به backend/mock server | API فیک فعلی اگر JSON ثابت بدهد، create/delete در GET بعدی دیده نمی‌شود.                |
+| Presence/Timer       | آینده                         | باید بعد از تثبیت API شروع شود.                                                         |
+| Demo آماده برای لید  | نزدیک                         | بعد از routeهای درست و پاکسازی نهایی آماده دمو می‌شود.                                  |
 
-موارد انجام‌شده:
+---
 
-- Inject کردن `DashboardService`
-- ساخت `statsState` با `ApiState<DashboardStats>`
-- ساخت `lineChartState` با `ApiState<EChartsOption>`
-- اضافه کردن `ngOnInit`
-- اضافه کردن `loadStats`
-- اضافه کردن `loadLineChart`
-- اضافه کردن `buildLineChartOption`
-- اضافه کردن `formatMinutes`
-- خواندن `userId` از `environment.temporaryUserId`
-- استفاده از range موقت `month_till_today`
+## 3. هدف محصول WTT
 
-الگوی اصلی استفاده‌شده در این Branch:
+WTT جدید فقط یک سیستم ثبت ساعت نیست. هدف محصول این است که به یک لایه هوشمند بین developer، task، حضور، GitLab/Jira، team lead، HR و مدیریت تبدیل شود.
 
-```text
+### 3.1 نقش‌ها و ارزش محصول
+
+| نقش/بخش     | ارزش مورد انتظار                                                   |
+| ----------- | ------------------------------------------------------------------ |
+| Developer   | ثبت ساده‌تر worklog، کاهش کار اداری، تایید سریع‌تر                 |
+| Team Lead   | بررسی سریع‌تر تسک‌ها، دیدن وضعیت pending/rejected، تصمیم‌گیری بهتر |
+| HR          | داده قابل حسابرسی برای حضور/غیاب و حقوق                            |
+| Management  | گزارش‌های خلاصه و قابل تصمیم‌گیری                                  |
+| GitLab/Jira | منبع شواهد فنی، commit، branch، ticket و worklog                   |
+
+### 3.2 چشم‌انداز بلندمدت
+
+قابلیت‌های بلندمدت محصول:
+
+- Smart Worklog
+- AI Task Suggestion
+- Evidence Pack
+- Confidence Score
+- Approval Flow
+- Presence/Timer Integration
+- HR Payroll Support
+- Engineering Intelligence
+- AI Report Generator
+
+### 3.3 هدف MVP فعلی
+
+MVP فعلی فقط روی دو صفحه اصلی تمرکز دارد:
+
+```txt
+Dashboard → نمایش وضعیت کلی عملکرد، KPIها، نمودارها، پیام‌ها
+Tasks → مشاهده، فیلتر، صفحه‌بندی، ثبت، ویرایش و حذف تسک
+```
+
+---
+
+## 4. استک فنی و نسخه‌ها
+
+| مورد             | وضعیت                                       |
+| ---------------- | ------------------------------------------- |
+| Framework        | Angular 21.2.x                              |
+| Architecture     | Standalone Components                       |
+| Change Detection | Zoneless + Signals                          |
+| Styling          | Tailwind CSS 4.2.x + SCSS                   |
+| Date Library     | date-fns-jalali 4.1.x                       |
+| HTTP             | provideHttpClient(withFetch())              |
+| Charts           | echarts + ngx-echarts                       |
+| State Pattern    | signal<ApiState<T>>                         |
+| Forms            | Reactive Forms برای Task Modal              |
+| Environment      | environment.ts و environment.development.ts |
+
+### 4.1 اصلاح تاریخی درباره Angular
+
+در گزارش‌های اولیه چند بار عبارت Angular 22 آمده بود. وضعیت واقعی پروژه طبق نصب فعلی Angular `21.2.x` است. بنابراین در مستندات نهایی باید Angular 21.2.x نوشته شود.
+
+### 4.2 اصلاح تاریخی درباره Chart Library
+
+در مراحل اولیه گفته شده بود chart library نصب نشده است، اما در وضعیت فعلی:
+
+- `echarts` نصب شده است.
+- `ngx-echarts` نصب شده است.
+- `provideEchartsCore({ echarts })` در `app.config.ts` ثبت شده است.
+
+---
+
+## 5. معماری کلی پروژه
+
+### 5.1 ساختار پوشه‌ای مهم
+
+```txt
+src/app
+├── core
+│   ├── interceptors
+│   │   ├── auth.interceptor.ts
+│   │   └── error.interceptor.ts
+│   ├── layout
+│   │   ├── header
+│   │   ├── left-sidebar
+│   │   └── sidebar
+│   └── services
+│       ├── auth
+│       ├── layout
+│       └── theme
+├── features
+│   ├── auth
+│   ├── dashboard
+│   │   ├── dashboard.ts
+│   │   ├── dashboard.html
+│   │   └── services/dashboard.service.ts
+│   ├── presence
+│   └── tasks
+│       ├── tasks.ts
+│       ├── tasks.html
+│       └── services/tasks.service.ts
+├── shared
+│   ├── models
+│   │   ├── api-state.model.ts
+│   │   ├── dashboard.model.ts
+│   │   ├── project.model.ts
+│   │   ├── task.model.ts
+│   │   └── user.model.ts
+├── app.config.ts
+├── app.routes.ts
+└── app.ts
+```
+
+### 5.2 قانون Feature-first
+
+هر service یا logic که فقط برای یک feature استفاده می‌شود، داخل همان feature می‌ماند.
+
+مثال:
+
+```txt
+DashboardService → داخل features/dashboard/services
+TasksService → داخل features/tasks/services
+```
+
+این تصمیم باعث می‌شود کد زودتر از موعد global/shared نشود و coupling غیرضروری ایجاد نکند.
+
+---
+
+## 6. الگوهای اصلی استفاده‌شده
+
+### 6.1 الگوی Data Flow
+
+الگوی اصلی پروژه:
+
+```txt
 Model → Service → State → Load Method → Template Binding
 ```
 
----
+توضیح:
 
-### `src/app/core/layout/left-sidebar/left-sidebar.ts`
+1. مدل TypeScript shape داده را مشخص می‌کند.
+2. Service مسئول ارتباط با API است.
+3. Component state را نگه می‌دارد.
+4. متد load، service را صدا می‌زند و state را آپدیت می‌کند.
+5. Template فقط state آماده را نمایش می‌دهد.
 
-چون نمودار دایره‌ای از نظر UI داخل Left Sidebar قرار دارد، منطق Pie Chart از DashboardComponent جدا شد و داخل `LeftSidebarComponent` قرار گرفت.
+### 6.2 ApiState
 
-موارد انجام‌شده:
+مدل عمومی state:
 
-- Inject کردن `DashboardService`
-- ساخت `pieChartState`
-- اضافه کردن `loadPieChart`
-- اضافه کردن `buildPieChartOption`
-- تبدیل response بک‌اند به `EChartsOption`
-- جلوگیری از API call اضافی در DashboardComponent
-
-نکته معماری مهم:
-
-```text
-هر Component فقط دیتایی را load کند که واقعاً خودش نمایش می‌دهد.
+```ts
+export interface ApiState<T> {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+}
 ```
 
-به همین دلیل `loadPieChart()` از `dashboard.ts` حذف شد و فقط در `left-sidebar.ts` باقی ماند.
+کاربرد:
 
----
-
-### `src/app/features/dashboard/dashboard.html`
-
-در این فایل UI مربوط به Dashboard به state واقعی وصل شد.
-
-موارد انجام‌شده:
-
-- KPI Cards از `statsState` مقدار گرفتند.
-- حالت Loading برای کارت‌ها اضافه شد.
-- حالت Error برای کارت‌ها اضافه شد.
-- دکمه Retry برای خطای دریافت اطلاعات داشبورد اضافه شد.
-- SVG قدیمی نمودار خطی حذف شد.
-- چارت خطی با directive مربوط به ECharts جایگزین شد.
-- Empty State برای حالتی که داده‌ای برای نمودار وجود ندارد اضافه شد.
-
----
-
-### `src/app/core/layout/left-sidebar/left-sidebar.html`
-
-در این فایل Donut Chart قدیمی که با CSS ساخته شده بود، با ECharts جایگزین شد.
-
-موارد انجام‌شده:
-
-- حذف استفاده مستقیم از کلاس قدیمی `project-donut` برای خود ECharts
-- ساخت container جدا برای chart
-- اضافه کردن Loading State
-- اضافه کردن Error State
-- اضافه کردن Empty State
-- تنظیم اندازه chart برای اینکه داخل sidebar درست رندر شود
-
----
-
-### `src/app/app.config.ts`
-
-در این فایل ECharts به صورت سراسری Provider شد.
-
-موارد انجام‌شده:
-
-- Import کردن `echarts`
-- اضافه کردن `provideEchartsCore({ echarts })`
-
-این کار باعث شد در Componentها بتوانیم از `NgxEchartsDirective` استفاده کنیم.
-
----
-
-## 3. API Mapping انجام‌شده
-
-### Dashboard Stats
-
-Endpoint:
-
-```text
-GET /api/v1/users/a_user_details/
+```ts
+ApiState<DashboardStats>;
+ApiState<TaskListResponse>;
+ApiState<Project[]>;
+ApiState<ProjectDetailsResponse>;
 ```
 
-Query:
+### 6.3 Read State و Mutation State
 
-```text
-user={id}
-range=month_till_today
+Read یعنی داده فقط خوانده می‌شود:
+
+```txt
+GET /tasks
+GET /projects
+GET /dashboard/line_chart
 ```
 
-استفاده در UI:
+Mutation یعنی داده تغییر می‌کند:
 
-| Backend Field         | UI Usage          |
-| --------------------- | ----------------- |
-| `expected_time`       | زمان مورد انتظار  |
-| `total_work`          | کل کارکرد این ماه |
-| `overtime_working`    | اضافه‌کاری        |
-| `this_year_vacations` | مرخصی امسال       |
+```txt
+POST /tasks
+PUT /tasks/{id}
+DELETE /tasks/{id}
+```
 
-نکته مهم:
+در پروژه:
 
-سه مقدار اول دقیقه هستند و با `formatMinutes` نمایش داده می‌شوند.
-اما `this_year_vacations` دقیقه نیست و به صورت عدد خام نمایش داده می‌شود.
+```txt
+tasksState → وضعیت GET لیست تسک‌ها
+mutationState → وضعیت submit فرم create/update
+deletingTaskId → وضعیت حذف یک row خاص
+```
+
+### 6.4 Reactive Form
+
+برای Task Modal از Reactive Forms استفاده شد، چون فرم create/edit فیلدهای زیاد، validation، disabled state و payload mapping دارد.
+
+فرم مقدار خام UI را نگه می‌دارد، ولی payload نهایی با `buildTaskPayload()` ساخته می‌شود.
 
 ---
 
-### Pie Chart
+## 7. گزارش کامل Branchها
 
-Endpoint:
+## 7.1 Branch 001 — `feature/001-workspace-and-core`
 
-```text
-GET /api/v1/dashboard/pie_chart/
+### هدف
+
+ساخت workspace، نصب ابزارها و آماده‌سازی پایه پروژه.
+
+### کارهای انجام‌شده
+
+- نصب امن Node.js با NVM.
+- نصب Angular CLI.
+- ساخت پروژه Angular با معماری Standalone.
+- نصب و پیکربندی Tailwind CSS v4.
+- نصب `date-fns-jalali`.
+- آماده‌سازی ساختار `core`, `shared`, `features`, `state`.
+
+### نکات آموزشی
+
+- NVM مشکل permission در Linux را کم می‌کند.
+- Standalone Components ساختار را ساده‌تر و feature-orientedتر می‌کنند.
+- Tailwind v4 flow متفاوتی نسبت به نسخه‌های قدیمی دارد.
+
+### وضعیت
+
+انجام شده.
+
+---
+
+## 7.2 Branch 002 — `feature/002-auth-and-security`
+
+### هدف
+
+آماده‌سازی زیرساخت HTTP، token، error handling و امنیت پایه.
+
+### کارهای انجام‌شده
+
+- فعال‌سازی `provideHttpClient(withFetch())`.
+- فعال‌سازی zoneless + signals.
+- ساخت `authInterceptor` برای اضافه کردن `Authorization`.
+- ساخت `errorInterceptor` برای مدیریت 401/403/503.
+- ساخت AuthService و نگهداری user state.
+- حذف userId از URL برای کاهش ریسک IDOR.
+
+### نکات آموزشی
+
+- Interceptor درخواست خروجی را قبل از ارسال تغییر می‌دهد.
+- Error interceptor خطاهای برگشتی را مدیریت می‌کند.
+- فرانت امنیت backend را تضمین نمی‌کند، ولی نباید userId قابل تغییر در URL داشته باشد.
+
+### وضعیت
+
+انجام شده، اما login واقعی هنوز آینده است.
+
+---
+
+## 7.3 Branch 003 — `feature/003-ui-layout-and-theme`
+
+### هدف
+
+ساخت پوسته اصلی برنامه.
+
+### کارهای انجام‌شده
+
+- Header
+- Sidebar
+- Left Sidebar
+- Theme Toggle
+- Light/Dark Mode
+- CSS variables / design tokens
+- استفاده از LayoutService برای context-aware UI
+
+### نکات آموزشی
+
+- Design Token تغییر تم را ساده‌تر می‌کند.
+- Signals برای تغییرات UI مثل theme مناسب هستند.
+- Header و Sidebar بیرون از router-outlet هستند و برای فهمیدن صفحه فعلی به LayoutService نیاز دارند.
+
+### وضعیت
+
+انجام شده، ولی responsive کامل هنوز نیاز به polish دارد.
+
+---
+
+## 7.4 Branch 004 — `feature/004-ui-dashboard-widgets`
+
+### هدف
+
+ساخت UI اولیه Dashboard با mock/static data.
+
+### کارهای انجام‌شده
+
+- KPI Cards
+- نمودار line اولیه
+- نمودار pie/donut اولیه
+- اطلاعیه‌ها
+- فعالیت‌های اخیر
+- استفاده از SVG inline در بخشی از UI
+
+### نکات آموزشی
+
+- SVG inline برای کنترل دقیق UI خوب است، ولی اگر زیاد شود HTML را شلوغ می‌کند.
+- برای نمودارهای data-driven، کتابخانه chart مثل ECharts مناسب‌تر است.
+
+### وضعیت
+
+انجام شده. بعدها ECharts جایگزین بخش‌های chart شد.
+
+---
+
+## 7.5 Branch 005 — `feature/005-ui-tasks-and-presence`
+
+### هدف
+
+ساخت ظاهر Task Command Center و آماده‌سازی presence/timer.
+
+### کارهای انجام‌شده
+
+- UI صفحه Tasks
+- task rowها
+- status railها
+- smart filters اولیه
+- context-aware Header/Left Sidebar
+- آماده‌سازی جایگاه presence/timer
+
+### نکات آموزشی
+
+- context-aware layout باعث می‌شود header/sidebar نسبت به صفحه فعلی واکنش نشان دهند.
+- task actions بهتر است داخل خود صفحه Tasks باشد، نه Header عمومی.
+
+### وضعیت
+
+انجام شده. Presence واقعی به branch آینده منتقل شد.
+
+---
+
+## 7.6 Branch 006 — `feature/006-api-contracts-and-data-foundation`
+
+### هدف
+
+آماده‌سازی مدل‌ها، environment و قرارداد API قبل از اتصال واقعی.
+
+### کارهای انجام‌شده
+
+- ساخت environment files.
+- ساخت مدل‌های TypeScript:
+  - User
+  - Dashboard
+  - Task
+  - Project
+  - ApiState
+- ساخت contract JSON برای هماهنگی با لید.
+- تصمیم‌گیری درباره temporaryUserId.
+- تصمیم‌گیری درباره temporary token.
+
+### نکات آموزشی
+
+- مدل‌ها قبل از service باعث می‌شوند shape داده شفاف باشد.
+- environment مانع hardcode شدن URL و config در service می‌شود.
+- contract JSON برای هماهنگی frontend/backend مفید است، اما نباید خودش API مصرفی برنامه شود.
+
+### وضعیت
+
+انجام شده.
+
+---
+
+## 7.7 Branch 007 — `feature/007-dashboard-api-integration`
+
+### هدف
+
+خارج کردن Dashboard از حالت static و اتصال آن به service/state.
+
+### کارهای انجام‌شده
+
+- ساخت `DashboardService`.
+- افزودن متدهای:
+  - `getStats`
+  - `getPieChart`
+  - `getLineChart`
+  - `getUnreadMessages`
+- ساخت stateهای:
+  - `statsState`
+  - `lineChartState`
+  - `pieChartState`
+- اتصال KPI cards به state.
+- جایگزینی chart static/SVG با ECharts.
+- اضافه شدن loading/error/empty state.
+- اضافه شدن Mock Mode بر اساس environment.
+
+### نکات آموزشی مهم
+
+- Empty state با error فرق دارد.
+- `[]` یعنی API موفق بوده ولی دیتایی وجود ندارد.
+- ECharts container باید height مشخص داشته باشد.
+- formatter محور باید با نوع داده محور هماهنگ باشد.
+- هر component فقط دیتای خودش را load کند؛ pie chart داخل left-sidebar است، پس همانجا load شد.
+
+### وضعیت
+
+از نظر frontend کامل است. اتصال واقعی نیازمند endpoint مستقیم، CORS درست و response مطابق contract است.
+
+---
+
+## 7.8 Branch 008 — `feature/008-tasks-read-and-filter-integration`
+
+### هدف
+
+اتصال لیست Tasks به service، state، pagination و filters.
+
+### کارهای انجام‌شده
+
+- ساخت `TasksService`.
+- اتصال `GET /api/v1/tasks/`.
+- ساخت `tasksState`.
+- dynamic کردن task rows.
+- اضافه کردن loading skeleton.
+- اضافه کردن error state و retry.
+- اضافه کردن empty state.
+- پیاده‌سازی pagination با `meta.page`, `meta.page_size`, `meta.total`.
+- اضافه کردن quick filters.
+- range filters به API query وصل شدند.
+- status filters فعلاً client-side روی صفحه فعلی اعمال شدند.
+- summary cards از داده load شده ساخته شدند.
+
+### نکات آموزشی مهم
+
+- در listها حتی اگر `data` خالی باشد، `meta` مهم است.
+- pagination باید از `meta.total / meta.page_size` حساب شود، نه از `tasks.length`.
+- اگر backend پارامتر status ندارد، نباید بدون contract آن را به API فرستاد.
+
+### وضعیت
+
+انجام شده.
+
+---
+
+## 7.9 Branch 009 — `feature/009-tasks-mutation-and-smart-form`
+
+### هدف
+
+عملیاتی کردن صفحه Tasks با create/edit/delete و smart form.
+
+### کارهای انجام‌شده
+
+- تکمیل `TasksService`:
+  - `createTask`
+  - `updateTask`
+  - `deleteTask`
+  - `getProjects`
+  - `getProjectDetails`
+- اضافه کردن Reactive Form.
+- ساخت task modal.
+- create mode.
+- edit mode.
+- submit flow.
+- build کردن `TaskMutationPayload` از فرم.
+- محاسبه duration از start/end time.
+- validation ساعت پایان بعد از ساعت شروع.
+- mutation loading/error.
+- refetch بعد از mutation.
+- dynamic project dropdown.
+- cascading service/contract dropdown.
+- reset service/contract هنگام تغییر project.
+- delete flow.
+- row-level deleting state.
+- delete error state.
+- تست contract API، CORS، proxy و browser extension.
+
+### نکات آموزشی مهم
+
+- `taskForm` مسئول مقدار و validation فیلدهای فرم است.
+- `mutationState` مسئول وضعیت submit فرم است.
+- `tasksState` مسئول GET لیست taskهاست.
+- delete چون مربوط به یک row است، `deletingTaskId` جدا دارد.
+- `taskForm.getRawValue()` همیشه مستقیماً برای API مناسب نیست.
+- برای API باید `buildTaskPayload()` داشته باشیم.
+- بعد از mutation بهتر است `loadTasks()` بزنیم تا backend منبع اصلی داده بماند.
+- اگر API فیک static باشد، create/delete در GET بعدی دیده نمی‌شود.
+
+### وضعیت
+
+Frontend flow کامل است. مشاهده تغییر واقعی در لیست وابسته به backend/mock API با persistence است.
+
+---
+
+## 8. وضعیت Dashboard
+
+### 8.1 بخش‌های آماده
+
+| بخش                 | وضعیت                   |
+| ------------------- | ----------------------- |
+| KPI Cards           | state/service آماده     |
+| Stats API mapping   | آماده                   |
+| Pie Chart           | ECharts + service آماده |
+| Line Chart          | ECharts + service آماده |
+| Loading/Error/Empty | اضافه شده               |
+| Mock Mode           | آماده                   |
+
+### 8.2 بخش‌های نیمه‌کامل یا deferred
+
+| بخش                           | وضعیت                                    |
+| ----------------------------- | ---------------------------------------- |
+| Header unread message binding | service آماده، UI نهایی deferred         |
+| Announcements list            | هنوز کامل API-driven نشده                |
+| Active presence widget        | نیازمند branch Presence                  |
+| Today sidebar stats           | نیازمند endpoint جدا یا mock route نهایی |
+
+### 8.3 شرط Connected واقعی
+
+نباید بنویسیم Dashboard connected است مگر اینکه:
+
+```txt
+endpoint واقعی یا mock-consumable route داشته باشد
+response مستقیم و درست بدهد
+CORS حل شده باشد
+Network 200 OK باشد
+UI با داده همان response پر شود
 ```
 
-Response sample:
+---
+
+## 9. وضعیت Tasks
+
+### 9.1 Read/List
+
+آماده است:
+
+- `TasksService.getTasks`
+- `tasksState`
+- dynamic rows
+- pagination
+- filters
+- loading/error/empty
+
+### 9.2 Mutation
+
+آماده است:
+
+- create
+- update
+- delete
+- modal
+- Reactive Form
+- payload mapping
+- project dropdownها
+- service/contract dropdownها
+
+### 9.3 محدودیت فعلی
+
+اگر mock API فقط JSON ثابت بدهد، بعد از POST/PUT/DELETE، GET بعدی تغییر را نشان نمی‌دهد. این مشکل frontend نیست؛ مشکل نبود persistence در mock server است.
+
+### 9.4 برای edit کامل چه لازم داریم؟
+
+برای prefill کامل edit، یکی از این دو لازم است:
+
+```txt
+GET /api/v1/tasks/ در هر item فیلدهای project_service و project_contract هم بدهد
+یا
+GET /api/v1/tasks/{id}/ detail کامل task را بدهد
+```
+
+فعلاً فرم edit title/project/location/date/start/end را prefill می‌کند، ولی service/contract چون در لیست موجود نیستند، باید دوباره انتخاب شوند.
+
+---
+
+## 10. قرارداد APIها و وضعیت اتصال
+
+## 10.1 Dashboard Stats
+
+```http
+GET /api/v1/users/a_user_details/?user=273&range=month_till_today
+```
+
+Expected response:
+
+```json
+{
+  "data": {
+    "first_name": "مهدی",
+    "last_name": "کریمی",
+    "expected_time": 6336,
+    "total_work": 6824,
+    "overtime_working": 488,
+    "this_year_vacations": 2
+  }
+}
+```
+
+## 10.2 Dashboard Pie Chart
+
+```http
+GET /api/v1/dashboard/pie_chart/?user=273&range=month_till_today
+```
+
+Expected response:
 
 ```json
 [
@@ -487,33 +683,13 @@ Response sample:
 ]
 ```
 
-Mapping انجام‌شده:
+## 10.3 Dashboard Line Chart
 
-```text
-project → name
-value → value
+```http
+GET /api/v1/dashboard/line_chart/?user=273&range=month_till_today
 ```
 
-برای ECharts:
-
-```ts
-data: data.map((item) => ({
-  value: item.value,
-  name: item.project,
-}));
-```
-
----
-
-### Line Chart
-
-Endpoint:
-
-```text
-GET /api/v1/dashboard/line_chart/
-```
-
-Response sample:
+Expected response:
 
 ```json
 [
@@ -528,74 +704,165 @@ Response sample:
 ]
 ```
 
-Mapping انجام‌شده:
+برای نمایش بهتر line chart، بهتر است چند date مختلف برگردد.
 
-```text
-date → xAxis
-presence → series data
+## 10.4 Unread Messages
+
+```http
+GET /api/v1/news/get_message_data/?state=unread_count
 ```
 
-در حال حاضر سری اصلی نمودار بر اساس `presence` ساخته شده است.
-در آینده می‌توانیم `teleworking` و `incompany_working` را هم به صورت series جدا اضافه کنیم.
+Expected response:
+
+```json
+{
+  "private": 0,
+  "public": 82,
+  "regulations": 0
+}
+```
+
+## 10.5 Tasks List
+
+```http
+GET /api/v1/tasks/?user=273&page=1&range=month_till_today
+```
+
+Expected response:
+
+```json
+{
+  "data": [
+    {
+      "id": 259354,
+      "status": "pending",
+      "title": "[IDEAL-901]: رفع مشکل موقعیت اسکرول",
+      "project_id": 30,
+      "project_title": "مگاپروژه > للویاینک",
+      "date": "1405-02-08",
+      "duration": 30,
+      "location": "teleworking",
+      "start_time": "1405-02-08 09:00:00",
+      "end_time": "1405-02-08 09:30:00"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "page_size": 10,
+    "total": 100
+  }
+}
+```
+
+## 10.6 Tasks Summary
+
+```http
+GET /api/v1/tasks/summary/?user=273&range=today
+```
+
+Expected response:
+
+```json
+{
+  "today_tasks_count": 7,
+  "logged_time_minutes": 348,
+  "pending_review_count": 3,
+  "needs_fix_count": 1
+}
+```
+
+این endpoint هنوز در frontend نهایی مصرف نشده و برای دقیق‌تر کردن summary cards پیشنهاد شده است.
+
+## 10.7 Projects List
+
+```http
+GET /api/v1/projects/get_all_projects/
+```
+
+Expected response:
+
+```json
+[
+  { "id": 30, "title": "مگاپروژه > للویاینک", "description": "NeoBRK main project" },
+  { "id": 90, "title": "WTT", "description": "Work Time Tracker" }
+]
+```
+
+## 10.8 Project Details
+
+```http
+GET /api/v1/projects/project_details/?project=30
+```
+
+Expected response:
+
+```json
+{
+  "services": [
+    { "id": 154, "service": "Frontend Development" },
+    { "id": 155, "service": "Bug Fixing" }
+  ],
+  "contracts": [
+    { "id": 23, "contract": "Main Contract" },
+    { "id": 24, "contract": "Support Contract" }
+  ]
+}
+```
+
+تصمیم فعلی: query param را `project` می‌گیریم.
+
+## 10.9 Task Mutation
+
+### Create
+
+```http
+POST /api/v1/tasks/
+```
+
+Payload:
+
+```json
+{
+  "title": "رفع مشکل احراز هویت کاربران",
+  "project": 30,
+  "project_service": 154,
+  "project_contract": 23,
+  "location": "teleworking",
+  "date": "1405-02-08",
+  "start_time": "1405-02-08 09:00:00",
+  "end_time": "1405-02-08 09:30:00",
+  "duration": 30,
+  "description": "optional string"
+}
+```
+
+### Update
+
+```http
+PUT /api/v1/tasks/{id}/
+```
+
+همان payload create.
+
+### Delete
+
+```http
+DELETE /api/v1/tasks/{id}/
+```
+
+Expected response:
+
+```json
+{ "success": true }
+```
+
+یا `204 No Content`.
 
 ---
 
-### Unread Messages
+## 11. مدل‌های TypeScript
 
-Endpoint:
-
-```text
-GET /api/v1/news/get_message_data/
-```
-
-Query:
-
-```text
-state=unread_count
-```
-
-Status:
-
-```text
-Service method implemented, but UI binding to Header notification is deferred.
-```
-
-یعنی متد `getUnreadMessages()` در Service آماده است، اما چون خود سیستم message/header notification هنوز کامل وصل نشده، این آیتم به مرحله بعد منتقل شد.
-
----
-
-## 4. Mock Mode
-
-در این Branch، Mock Mode بر اساس Environment پیاده‌سازی شد.
-
-فلسفه Mock Mode:
-
-```text
-وقتی Backend آماده یا در دسترس نیست، UI و Data Flow متوقف نشوند.
-```
-
-در `DashboardService` مقدار زیر خوانده می‌شود:
-
-```ts
-private readonly useMock = environment.useMockData;
-```
-
-اگر `useMockData` برابر `true` باشد، داده mock با `of(...).pipe(delay(...))` برمی‌گردد.
-اگر `false` باشد، درخواست واقعی HTTP به API ارسال می‌شود.
-
-مزیت این روش:
-
-- توسعه مستقل فرانت
-- تست Loading State
-- تست Empty State
-- تست UI بدون وابستگی دائم به Backend
-- کاهش ریسک توقف کار هنگام آماده نبودن endpointها
-
----
-
-## 5. State Management
-
-برای مدیریت وضعیت API از مدل Generic زیر استفاده شد:
+## 11.1 ApiState
 
 ```ts
 export interface ApiState<T> {
@@ -605,1177 +872,953 @@ export interface ApiState<T> {
 }
 ```
 
-نمونه استفاده در Dashboard:
+## 11.2 Dashboard Models
 
 ```ts
-statsState = signal<ApiState<DashboardStats>>({
-  data: null,
-  loading: true,
-  error: null,
-});
+export interface DashboardStatsResponse {
+  data: DashboardStats;
+}
+
+export interface DashboardStats {
+  first_name: string;
+  last_name: string;
+  expected_time: number;
+  total_work: number;
+  overtime_working: number;
+  this_year_vacations: number;
+}
+
+export interface DashboardPieItem {
+  project: string;
+  value: number;
+}
+
+export interface DashboardLinePoint {
+  date: string;
+  presence: number;
+  rejected: number;
+  pending: number;
+  teleworking: number;
+  incompany_working: number;
+}
+
+export interface MessageCountResponse {
+  private: number;
+  public: number;
+  regulations: number;
+}
 ```
 
-نمونه استفاده برای Chart:
+## 11.3 Task Models
 
 ```ts
-lineChartState = signal<ApiState<EChartsOption>>({
-  data: null,
-  loading: true,
-  error: null,
-});
+export type TaskStatus = 'pending' | 'approved' | 'rejected' | 'draft' | 'edited' | string;
+export type WorkLocation = 'teleworking' | 'incompany_working' | string;
+
+export interface TaskItem {
+  id: number;
+  status: TaskStatus;
+  title: string;
+  project_id: number;
+  project_title?: string;
+  date: string;
+  duration: number;
+  location?: WorkLocation;
+  start_time?: string;
+  end_time?: string;
+}
+
+export interface TaskListMeta {
+  page: number;
+  page_size: number;
+  total: number;
+}
+
+export interface TaskListResponse {
+  data: TaskItem[];
+  meta: TaskListMeta;
+}
+
+export interface TaskMutationPayload {
+  title: string;
+  project: number;
+  project_service: number;
+  project_contract: number;
+  location: WorkLocation;
+  date: string;
+  start_time: string;
+  end_time: string;
+  duration: number;
+  description?: string;
+}
 ```
 
-نکته آموزشی:
-
-به جای اینکه برای هر API سه متغیر جدا بسازیم، مثل:
+## 11.4 Project Models
 
 ```ts
-statsData;
-statsLoading;
-statsError;
-```
-
-از یک state استاندارد استفاده شد:
-
-```ts
-statsState;
-```
-
-این باعث شد کد تمیزتر، قابل تکرارتر و قابل توسعه‌تر شود.
-
----
-
-## 6. Loading / Error / Empty State
-
-در این Branch تفاوت بین سه حالت مهم یاد گرفته و پیاده‌سازی شد:
-
-### Loading
-
-زمانی که درخواست API در حال انجام است.
-
-```ts
-{ data: null, loading: true, error: null }
-```
-
-### Error
-
-زمانی که خود درخواست API شکست خورده است.
-
-```ts
-{ data: null, loading: false, error: 'خطا در دریافت اطلاعات' }
-```
-
-### Empty
-
-زمانی که درخواست موفق بوده، اما دیتایی برای نمایش وجود ندارد.
-
-```ts
-{ data: null, loading: false, error: null }
-```
-
-نکته مهم آموزشی:
-
-`[]` خطا نیست.
-آرایه خالی یعنی API موفق جواب داده، ولی برای آن بازه زمانی داده‌ای وجود ندارد.
-
-به همین دلیل Empty State داخل `next` بررسی شد، نه داخل `error`.
-
----
-
-## 7. ECharts Integration
-
-در این Branch ابتدا قرار بود SVG فعلی حفظ شود و فقط data mapping آماده شود، اما در ادامه تصمیم فنی تغییر کرد و نمودارهای Dashboard با ECharts جایگزین شدند.
-
-دلیل این تصمیم:
-
-- داده‌های Chart از API به صورت آرایه‌ای می‌آیند.
-- تغییر SVG دستی با دیتای داینامیک پیچیده و غیرقابل نگهداری می‌شد.
-- ECharts برای tooltip، محور، responsive rendering و future series مناسب‌تر است.
-- پروژه در آینده نیاز به نمودارهای جدی‌تر دارد.
-
-موارد انجام‌شده:
-
-- نصب و استفاده از `echarts`
-- نصب و استفاده از `ngx-echarts`
-- اضافه کردن `NgxEchartsDirective` در Componentها
-- استفاده از `EChartsOption`
-- ساخت option برای Line Chart
-- ساخت option برای Pie Chart
-- تنظیم Tooltip
-- تنظیم Grid
-- تنظیم Axis Label
-- کم‌رنگ کردن Split Lines
-- اصلاح Tooltip مربوط به Pie Chart برای جلوگیری از بریده‌شدن داخل Sidebar
-
-نکته مهم:
-
-ECharts برای دیده‌شدن حتماً به container با height مشخص نیاز دارد.
-اگر div چارت height نداشته باشد، ممکن است chart رندر شود ولی دیده نشود.
-
----
-
-## . Remaining Mock / Deferred Sections
-
-مواردی که هنوز در این Branch کامل real نشده‌اند:
-
-- Header unread notification هنوز به `getUnreadMessages()` وصل نشده است.
-- Announcements هنوز mock/static هستند.
-- Recent activities پایین Dashboard هنوز از API واقعی task list خوانده نمی‌شوند.
-- Presence / running task هنوز mock/static است.
-- Pie Chart legend هنوز می‌تواند در آینده از دیتای واقعی ساخته شود.
-- Line Chart فعلاً فقط `presence` را نشان می‌دهد و seriesهای دیگر مثل `teleworking` و `incompany_working` هنوز اضافه نشده‌اند.
-
----
-
-## . Technical Debt
-
-مواردی که بهتر است در Branchهای بعدی اصلاح شوند:
-
-1. ساخت Helper برای تبدیل دقیقه به ساعت، تا فقط داخل Dashboard نباشد.
-2. ساخت Reusable Empty State Component.
-3. ساخت Reusable Chart Container Component.
-4. وصل کردن Header notification به `getUnreadMessages()`.
-5. اضافه کردن seriesهای بیشتر به Line Chart.
-6. ساخت legend داینامیک برای Pie Chart.
-7. کاهش وابستگی به `temporaryUserId` بعد از آماده شدن login واقعی.
-8. جایگزینی کامل mock data با API واقعی بعد از آماده شدن backend/staging.
-9. بررسی responsive بودن نمودارها در سایزهای کوچک‌تر.
-10. حذف importهای اضافه بعد از نهایی شدن Pie Chart در Left Sidebar.
-
----
-
-## . نکته‌های آموزشی کلیدی این Branch
-
-### 1. Service یعنی محل ارتباط با API
-
-Component نباید مستقیم درگیر URL و HTTP request شود.
-Component فقط باید بگوید چه دیتایی می‌خواهد، Service باید بداند آن دیتا از کجا می‌آید.
-
----
-
-### 2. State باید قابل پیش‌بینی باشد
-
-برای هر API باید دقیقاً بدانیم الان در چه وضعیتی هستیم:
-
-```text
-loading
-success with data
-success but empty
-error
-```
-
-این باعث می‌شود UI پایدار و قابل اعتماد باشد.
-
----
-
-### 3. Empty با Error فرق دارد
-
-اگر API آرایه خالی برگرداند، یعنی سیستم خراب نیست.
-فقط داده‌ای برای نمایش وجود ندارد.
-
----
-
-### 4. Data Mapping جدا از UI است
-
-Backend معمولاً response خودش را می‌دهد.
-UI معمولاً shape دیگری لازم دارد.
-
-مثال:
-
-```text
-Backend: { project, value }
-ECharts: { name, value }
-```
-
-پس باید mapping شفاف و قابل نگهداری داشته باشیم.
-
----
-
-### 5. هر Component مالک دیتای خودش است
-
-Pie Chart داخل Left Sidebar است، پس Left Sidebar باید آن را load کند.
-DashboardComponent نباید دیتایی را بگیرد که خودش نمایش نمی‌دهد.
-
----
-
-### 6. کتابخانه Chart نیاز به container درست دارد
-
-ECharts بدون height مشخص ممکن است رندر شود ولی دیده نشود.
-پس همیشه برای chart container باید width/height مشخص تعریف شود.
-
----
-
-### 7. Formatter باید با نوع داده محور هماهنگ باشد
-
-اگر محور Y عدد دقیقه دارد، تبدیل به ساعت منطقی است.
-اگر محور X تاریخ string دارد، formatter عددی باعث `NaN` می‌شود.
-
----
-
-### 8. Mock Mode ابزار توسعه است، نه جایگزین API
-
-Mock Mode کمک می‌کند UI مستقل از Backend توسعه پیدا کند.
-اما در نهایت باید با API واقعی هم تست شود.
-
----
-
-## 15. نتیجه نهایی
-
-Branch 007 با موفقیت Dashboard را وارد فاز Data-driven کرد.
-
-در پایان این Branch:
-
-- ساختار Dashboard API آماده شد.
-- KPI Cards از state و service تغذیه شدند.
-- نمودار خطی از API/mock data ساخته شد.
-- نمودار دایره‌ای از API/mock data ساخته شد.
-- ECharts وارد پروژه شد.
-- Loading/Error/Empty State پیاده شد.
-- Mock Mode آماده شد.
-- مسئولیت داده‌ها بین Componentها تمیزتر شد.
-- unread messages در سطح Service آماده شد و اتصال UI آن به Header به مرحله بعد منتقل شد.
-
-این Branch پایه بسیار مهمی برای Branch بعدی است، چون از اینجا به بعد صفحه Tasks هم می‌تواند با همین الگو جلو برود:
-
-```text
-Model → Service → ApiState → Load Method → Template Binding → Loading/Error/Empty
+export interface Project {
+  id: number;
+  title: string;
+  description?: string;
+}
+
+export interface ProjectService {
+  id: number;
+  service: string;
+}
+
+export interface ProjectContract {
+  id: number;
+  contract: string;
+}
+
+export interface ProjectDetailsResponse {
+  services: ProjectService[];
+  contracts: ProjectContract[];
+}
 ```
 
 ---
 
-## 📝 گزارش پایان Branch 008
+## 12. Mock Mode، Contract API، Mock API واقعی و CORS
 
-**Branch:** `feature/008-tasks-read-and-filter-integration`  
-**موضوع:** اتصال لیست Tasks به Data Flow واقعی، ساخت TasksService، رندر داینامیک تسک‌ها، Pagination و Quick Filters  
-**وضعیت:** Completed  
-**تاریخ:** ۷ می ۲۰۲۶
+### 12.1 Mock داخلی Frontend
 
----
+Mock داخلی یعنی service خودش با `of(mockData).pipe(delay(...))` داده برمی‌گرداند.
 
-## 1. هدف این Branch
+مزیت:
 
-هدف Branch 008 این بود که صفحه Tasks از حالت Static/Mock UI خارج شود و لیست وظایف با الگوی استاندارد پروژه به داده واقعی یا mock environment-based وصل شود.
+- توسعه مستقل از backend.
+- تست loading/empty/error.
+- ادامه کار حتی اگر سرور در دسترس نباشد.
 
-تمرکز این Branch فقط روی خواندن و نمایش وظایف بود:
+محدودیت:
 
-- خواندن لیست تسک‌ها
-- نمایش داینامیک ردیف‌های task
-- ساخت summary cards از داده لودشده
-- اضافه کردن loading / error / empty state
-- پیاده‌سازی pagination
-- آماده‌سازی quick filters
-- بدون ورود به create / edit / delete
+- داده واقعی نیست.
+- persistence ندارد مگر خودمان state محلی بسازیم.
 
-در این Branch عمداً وارد mutation نشدیم، چون عملیات create/edit/delete نیازمند فرم، validation، project dropdown، service/contract dropdown و payload دقیق است و باید در Branch جدا انجام شود.
+### 12.2 Contract Endpoint
 
----
+Contract endpoint مثل `/taskscontract/` یعنی endpointی که فقط مستندات/shape را نشان می‌دهد.
 
-## 2. API اصلی Branch
+مشکل:
 
-### Tasks List
+```txt
+response مستقیم UI نیست
+داخل wrapper مثل tasks_list.requested_ui_response است
+برای مصرف مستقیم باید map بزنیم
+```
 
-```text
+این برای تست موقت خوب است، ولی راه نهایی نیست.
+
+### 12.3 Mock API قابل مصرف
+
+Mock API قابل مصرف یعنی route نهایی دارد و response مستقیم می‌دهد.
+
+مثال درست:
+
+```txt
 GET /api/v1/tasks/
-
-Query params:
-
-user={id}
-page={page}
-range={range}
-
-Response مورد انتظار:
-
-{
-  "data": [
-    {
-      "id": 259354,
-      "status": "pending",
-      "title": "[IDEAL-901]: رفع مشکل موقعیت اسکرول",
-      "project_id": 30,
-      "date": "1405-02-08",
-      "duration": 30
-    }
-  ],
-  "meta": {
-    "page": 1,
-    "page_size": 10,
-    "total": 100
-  }
-}
-
-این ساختار از قبل در contract پروژه برای Tasks مشخص شده بود و مدل TaskListResponse هم بر اساس همین data + meta ساخته شد.
-
-3. فایل‌های اصلی درگیر
-src/app/features/tasks/services/tasks.service.ts
-
-در این Branch سرویس اختصاصی Tasks ساخته شد.
-
-متد اصلی:
-
-getTasks(userId: number, page: number, range: string)
-
-وظیفه این متد:
-
-اگر environment.useMockData === true باشد، داده mock برگرداند.
-اگر useMockData === false باشد، درخواست واقعی HTTP به /tasks/ بفرستد.
-query params شامل user, page, range را با HttpParams بسازد.
-
-دلیل اینکه TasksService داخل features/tasks/services ساخته شد:
-
-چون فعلاً فقط feature تسک‌ها از آن استفاده می‌کند.
-
-پس آن را زودتر از موعد داخل shared نبردیم. این تصمیم باعث می‌شود معماری feature-driven تمیزتر بماند.
-
-src/app/features/tasks/tasks.ts
-
-در این فایل منطق صفحه Tasks از حالت static خارج شد.
-
-موارد اضافه‌شده:
-
-Inject کردن TasksService
-استفاده از LayoutService برای تشخیص اینکه کاربر داخل صفحه Tasks است
-ساخت tasksState با ApiState<TaskListResponse>
-ساخت currentPage با signal
-ساخت activeRange
-ساخت activeStatus
-اضافه کردن ngOnInit
-اضافه کردن loadTasks
-اضافه کردن getterهای محاسباتی
-اضافه کردن helperهای status
-اضافه کردن pagination methods
-اضافه کردن filter methods
-اضافه کردن formatMinutes با فرمت HH:mm
-
-الگوی اصلی استفاده‌شده:
-
-Task model → TasksService → ApiState<TaskListResponse> → loadTasks() → tasks.html
-src/app/shared/models/task.model.ts
-
-مدل‌های اصلی Tasks استفاده شدند:
-
-TaskItem
-TaskListMeta
-TaskListResponse
-TaskMutationPayload
-
-مدل TaskListResponse شامل دو بخش مهم است:
-
-data: TaskItem[];
-meta: TaskListMeta;
-
-نکته مهم آموزشی این بود که برای listها حتی وقتی data خالی است، باز هم meta مهم است؛ چون pagination و total count از آن می‌آید.
-
-src/app/features/tasks/tasks.html
-
-در این فایل UI صفحه Tasks به state واقعی وصل شد.
-
-موارد انجام‌شده:
-
-مقدار کارت‌های summary از حالت عدد ثابت خارج شد.
-totalTasks از meta.total خوانده شد.
-totalDuration از مجموع durationهای صفحه فعلی ساخته شد.
-pendingCount از تسک‌های pending صفحه فعلی حساب شد.
-rejectedCount از تسک‌های rejected صفحه فعلی حساب شد.
-ردیف‌های static قدیمی حذف شدند.
-لیست با @for از tasks رندر شد.
-loading skeleton اضافه شد.
-error state با دکمه retry اضافه شد.
-empty state برای زمانی که لیست خالی است اضافه شد.
-وضعیت taskها به rail و متن مناسب map شد.
-SVGهای تکراری داخل task rows حذف شدند و UI سبک‌تر شد.
-pagination UI اضافه شد.
-quick filters از حالت تزئینی خارج شدند.
-4. State Management
-
-برای این Branch هم مثل Dashboard از ApiState<T> استفاده شد:
-
-ApiState<TaskListResponse>
-
-Stateهای اصلی:
-
-loading
-success with data
-success but empty
-error
-
-نمونه ذهنی:
-
-{
-  data: null,
-  loading: true,
-  error: null
-}
-
-برای loading.
-
-{
-  data: response,
-  loading: false,
-  error: null
-}
-
-برای success.
-
-{
-  data: null,
-  loading: false,
-  error: 'خطا در دریافت لیست وظایف'
-}
-
-برای error.
-
-5. Empty State در لیست Tasks
-
-در Dashboard chartها، وقتی response خالی بود، می‌توانستیم data: null بگذاریم. اما در Tasks این کار را نکردیم.
-
-دلیل:
-
-در list response، meta هنوز مهم است.
-
-مثلاً این response خطا نیست:
-
-{
-  "data": [],
-  "meta": {
-    "page": 1,
-    "page_size": 10,
-    "total": 0
-  }
-}
-
-این یعنی درخواست موفق بوده، ولی در آن بازه زمانی task وجود ندارد.
-
-پس در HTML این شرط اضافه شد:
-
-اگر tasks.length === 0 → Empty State نمایش بده
-
-نکته آموزشی:
-
-Empty با Error فرق دارد.
-
-[] یعنی API موفق جواب داده ولی داده‌ای برای نمایش وجود ندارد.
-
-6. Dynamic Task Rows
-
-قبل از این Branch، task rowها کاملاً static بودند و اطلاعاتی مثل عنوان، پروژه، زمان، وضعیت و آیدی task داخل HTML نوشته شده بود.
-
-در این Branch:
-
-Static task rows → Dynamic task rows
-
-هر task از response خوانده می‌شود و این فیلدها نمایش داده می‌شوند:
-
-Field	UI Usage
-id	شناسه task در row
-title	عنوان task
-project_id	fallback برای نام پروژه
-project_title	اگر backend در آینده بدهد، عنوان پروژه
-status	rail color و status text
-date	تاریخ task
-duration	مدت زمان task
-
-برای project_title fallback گذاشته شد:
-
-اگر project_title نبود → پروژه #project_id
-
-چون در response فعلی backend فقط project_id قطعی است و project_title ممکن است بعداً اضافه شود.
-
-7. Status Mapping
-
-Backend status خام می‌دهد، مثل:
-
-pending
-approved
-rejected
-draft
-edited
-
-ولی UI به متن و رنگ نیاز دارد.
-
-پس چند helper ساخته شد:
-
-getStatusLabel(status)
-getStatusRailClass(status)
-getStatusTextClass(status)
-
-نمونه mapping:
-
-Backend Status	Label	UI Meaning
-approved	تایید شده	done
-pending	در انتظار تایید	review
-rejected	نیازمند اصلاح	review/red
-draft	پیش‌نویس	progress
-edited	ویرایش شده	progress
-
-نکته آموزشی:
-
-Template نباید پر از switch و if شود.
-
-منطق تبدیل status به label/class داخل component ماند و HTML فقط خروجی آماده را نمایش داد.
-
-8. Duration Formatting
-
-ابتدا duration با متن فارسی مثل این نمایش داده شد:
-
-1 ساعت و 15 دقیقه
-
-ولی برای rowهای task، این فرمت UI را شلوغ می‌کرد.
-
-پس formatMinutes به فرمت تایمری تغییر کرد:
-
-HH:mm
-
-مثال:
-
-30  → 00:30
-75  → 01:15
-120 → 02:00
-
-دلیل این تصمیم:
-
-در task list، duration باید سریع، کوتاه و ستونی خوانده شود.
-
-فرمت HH:mm برای لیست بهتر از جمله فارسی است.
-
-9. Summary Cards
-
-چهار کارت بالای صفحه Tasks از حالت static خارج شدند.
-
-وظایف امروز / تعداد وظایف
-
-از:
-
-عدد ثابت 7
-
-به:
-
-totalTasks
-
-تغییر کرد.
-
-نکته: فعلاً این عدد از meta.total می‌آید و وابسته به range فعال است.
-
-زمان ثبت‌شده
-
-از:
-
-05:48
-
-به:
-
-formatMinutes(totalDuration)
-
-تغییر کرد.
-
-نکته مهم:
-
-totalDuration فعلاً مجموع taskهای صفحه فعلی است، نه کل دیتابیس.
-
-چون API فعلی summary جدا برای کل range نمی‌دهد.
-
-در انتظار بررسی
-
-از عدد ثابت به:
-
-pendingCount
-
-تغییر کرد.
-
-نیازمند اصلاح
-
-از عدد ثابت به:
-
-rejectedCount
-
-تغییر کرد.
-
-10. Pagination
-
-چون response API شامل meta است، pagination روی meta.page, meta.page_size, meta.total ساخته شد.
-
-Getterهای اضافه‌شده:
-
-pageSize
-totalPages
-hasPreviousPage
-hasNextPage
-
-Methods:
-
-goToPreviousPage()
-goToNextPage()
-
-محاسبه تعداد صفحه‌ها:
-
-Math.ceil(totalTasks / pageSize)
-
-نکته آموزشی مهم:
-
-تعداد صفحات را از tasks.length حساب نمی‌کنیم.
-
-چون tasks.length فقط تعداد آیتم‌های صفحه فعلی است، نه کل تعداد آیتم‌های backend.
-
-مثلاً اگر صفحه فعلی ۱۰ آیتم داشته باشد، ولی کل taskها ۱۰۰ تا باشند، tasks.length فقط ۱۰ است؛ اما meta.total عدد ۱۰۰ را نشان می‌دهد.
-
-11. Quick Filters
-
-Quick Filters از حالت دکمه‌های تزئینی خارج شدند.
-
-فیلترهای اضافه‌شده:
-
-همه
-امروز
-هفته جاری
-در انتظار تایید
-نیاز به اصلاح
-Range Filters
-
-این فیلترها به API فرستاده شدند:
-
-today
-week_till_today
-month_till_today
-
-چون API طبق contract پارامتر range دارد.
-
-Status Filters
-
-این فیلترها فعلاً client-side هستند:
-
-pending
-rejected
-
-دلیل:
-
-در contract فعلی GET /tasks پارامتر status رسمی نداریم.
-
-پس نباید چیزی مثل status=pending را بدون هماهنگی با backend به API بفرستیم.
-
-تصمیم ثبت‌شده برای گزارش:
-
-Range filters are wired through API query params.
-Status filters are applied client-side on the loaded page until backend status filtering is confirmed.
-12. Mock Mode
-
-مثل Dashboard، برای Tasks هم Mock Mode رعایت شد.
-
-اگر:
-
-environment.useMockData === true
-
-باشد، TasksService داده mock برمی‌گرداند.
-
-اگر:
-
-environment.useMockData === false
-
-باشد، درخواست واقعی به API ارسال می‌شود.
-
-مزیت این کار:
-
-توسعه UI بدون نیاز دائم به backend
-تست loading
-تست empty state
-تست pagination
-تست فیلترها
-آماده بودن برای اتصال واقعی
+→ مستقیم { data, meta }
 ```
 
-## 📝 گزارش پایان Branch 009
+نه:
 
-**Branch:** `feature/009-tasks-mutation-and-smart-form`  
-**موضوع:** پیاده‌سازی Create / Edit / Delete تسک، ساخت Modal فرم، اتصال پروژه‌ها، سرویس‌ها و قراردادها  
-**وضعیت:** Completed with backend/mock persistence dependency  
-**تاریخ:** ۱۰ می ۲۰۲۶
-
----
-
-## 1. هدف Branch
-
-هدف این Branch این بود که صفحه Tasks فقط یک صفحه read-only نباشد و بتواند عملیات اصلی روی task را انجام دهد:
-
-- ثبت تسک جدید
-- ویرایش تسک
-- حذف تسک
-- ساخت فرم هوشمند برای task
-- اتصال dropdown پروژه‌ها
-- اتصال dropdown سرویس‌ها و قراردادهای پروژه
-- ساخت payload مناسب API
-- مدیریت loading/error برای عملیات فرم
-- جدا کردن read state از mutation state
-
-در Branch قبلی لیست تسک‌ها، pagination و filterها آماده شده بودند. در این Branch تمرکز روی mutation بود.
-
----
-
-## 2. مدل‌های اصلی مورد استفاده
-
-### Task Model
-
-مدل `TaskMutationPayload` مشخص می‌کند برای ثبت یا ویرایش task چه فیلدهایی باید به API فرستاده شود: `title`, `project`, `project_service`, `project_contract`, `location`, `date`, `start_time`, `end_time`, `duration`, و `description` اختیاری. همچنین `TaskListResponse` شامل `data` و `meta` است و برای لیست و pagination استفاده می‌شود. :contentReference[oaicite:0]{index=0}
-
-### Project Model
-
-برای dropdownهای فرم، مدل‌های `Project`, `ProjectService`, `ProjectContract` و `ProjectDetailsResponse` استفاده شدند. `ProjectDetailsResponse` شامل `services` و `contracts` است و بعد از انتخاب پروژه، dropdownهای دوم و سوم را پر می‌کند. :contentReference[oaicite:1]{index=1}
-
----
-
-## 3. فایل‌های اصلی درگیر
-
-### `src/app/features/tasks/services/tasks.service.ts`
-
-در این Branch، `TasksService` کامل‌تر شد.
-
-متدهای اضافه‌شده یا تکمیل‌شده:
-
-```ts
-getProjects();
-getProjectDetails(projectId);
-createTask(payload);
-updateTask(taskId, payload);
-deleteTask(taskId);
-```
-
-کته مهم:
-
-deleteTask در نهایت به Observable<void> تبدیل شد، چون از response حذف استفاده‌ای در UI نداریم و فقط موفق یا ناموفق بودن عملیات مهم است. این باعث شد خطای TypeScript روی subscribe() حل شود.
-src/app/features/tasks/tasks.ts
-
-در این فایل منطق اصلی فرم و عملیات task اضافه شد.
-
-موارد انجام‌شده:
-
-اضافه کردن ReactiveFormsModule
-اضافه کردن FormBuilder
-ساخت taskForm
-ساخت mutationState
-ساخت isTaskModalOpen
-ساخت editingTask
-ساخت projectsState
-ساخت projectDetailsState
-ساخت deletingTaskId
-ساخت deleteError
-ساخت متدهای create/edit/delete
-ساخت متدهای loadProjects و loadProjectDetails
-ساخت mapper برای تبدیل فرم به payload API
-محاسبه duration از روی start/end time
-
-قبل از این Branch، TasksComponent فقط لیست را با tasksState, pagination و filter مدیریت می‌کرد. ساختار قبلی شامل tasksState, currentPage, activeRange, activeStatus, loadTasks, getterهای summary و filterها بود.
-
-src/app/features/tasks/tasks.html
-
-در این فایل UI مربوط به فرم اضافه شد.
-
-موارد انجام‌شده:
-
-اضافه کردن دکمه ثبت وظیفه جدید داخل خود صفحه Tasks
-ساخت modal برای create/edit
-اتصال modal به taskForm
-اتصال inputها با formControlName
-اتصال submit با (ngSubmit)="submitTaskForm()"
-نمایش error مربوط به mutationState
-داینامیک کردن dropdown پروژه‌ها
-داینامیک کردن dropdown سرویس‌ها و قراردادها
-اضافه کردن دکمه ویرایش برای هر task
-اضافه کردن دکمه حذف برای هر task
-نمایش حالت حذف... برای row در حال حذف 4. Stateهای مهم این Branch
-taskForm
-
-این فرم Reactive اصلی ماست.
-
-کارهایش:
-
-نگهداری مقدار inputها
-بررسی required بودن فیلدها
-بررسی valid / invalid بودن فرم
-آماده کردن مقدار خام فرم با getRawValue()
-
-اما taskForm مستقیماً به API ارسال نمی‌شود. اول باید با buildTaskPayload() تبدیل شود.
-
-mutationState
-
-این state برای وضعیت submit فرم است.
-
-یعنی برای create/update:
-
-آیا فرم در حال ذخیره است؟
-آیا submit خطا داده؟
-آیا دکمه submit باید disabled شود؟
-چه پیام خطایی داخل modal نمایش داده شود؟
-
-نمونه حالت loading:
-
-{
-data: null,
-loading: true,
-error: null
-}
-
-نمونه حالت error:
-
-{
-data: null,
-loading: false,
-error: 'خطا در ثبت وظیفه'
-}
-
-نکته مهم:
-
-mutationState برای فرم است، نه برای لیست و نه برای حذف row.
-
-tasksState
-
-این state برای گرفتن لیست taskهاست.
-
-یعنی وضعیت این API را مدیریت می‌کند:
-
+```txt
 GET /api/v1/tasks/
+→ کل فایل requirements یا wrapper شامل dashboard/tasks/endpoints
+```
 
-حالت‌ها:
+### 12.4 CORS
 
-loading → نمایش skeleton
-success → نمایش task rows
-error → نمایش پیام خطا و retry
-empty → نمایش پیام نبودن task
-
-فرق اصلی:
-
-tasksState = وضعیت خواندن لیست
-mutationState = وضعیت ثبت/ویرایش فرم
-projectsState
-
-برای گرفتن لیست پروژه‌هاست:
-
-GET /api/v1/projects/get_all_projects/
-
-این state dropdown اول فرم را پر می‌کند.
-
-projectDetailsState
-
-برای گرفتن سرویس‌ها و قراردادهای پروژه انتخاب‌شده است:
-
-GET /api/v1/projects/project_details/?project=30
-
-وقتی کاربر پروژه را عوض می‌کند، این state دوباره load می‌شود.
-
-deletingTaskId
-
-برای حذف یک task خاص استفاده شد.
-
-چرا جدا از mutationState؟
-
-چون حذف مربوط به یک row است. اگر task شماره 259354 در حال حذف است، فقط دکمه همان row باید بشود حذف....
-
-5. Reactive Form
-
-فرم task شامل این فیلدها شد:
-
-title
-project
-project_service
-project_contract
-location
-date
-start_time
-end_time
-description
-
-فیلد duration را از کاربر نگرفتیم.
-
-دلیل:
-
-کاربر ساعت شروع و پایان را وارد می‌کند؛ پس duration باید توسط فرانت حساب شود:
-
-start_time = 09:00
-end_time = 09:30
-duration = 30
-
-این هم خطای انسانی را کم می‌کند، هم فرم را ساده‌تر می‌کند.
-
-6. Payload Mapping
-
-یکی از مهم‌ترین بخش‌های این Branch، تفاوت بین form value و API payload بود.
-
-فرم این را دارد:
-
-date: 1405-02-08
-start_time: 09:00
-end_time: 09:30
-
-ولی API این را می‌خواهد:
-
-start_time: 1405-02-08 09:00:00
-end_time: 1405-02-08 09:30:00
-duration: 30
-
-برای همین متد buildTaskPayload() ساخته شد.
-
-نکته آموزشی:
-
-نباید همیشه taskForm.getRawValue() را مستقیم به API بفرستیم.
-گاهی باید داده فرم را به shape مورد نیاز API تبدیل کنیم. 7. Create Flow
-
-جریان ثبت task جدید:
-
-openCreateTaskModal()
-→ فرم reset می‌شود
-→ editingTask = null
-→ projectDetailsState پاک می‌شود
-→ modal باز می‌شود
-→ کاربر فرم را پر می‌کند
-→ submitTaskForm()
-→ validation
-→ buildTaskPayload()
-→ createTask(payload)
-→ close modal
-→ loadTasks()
-
-نکته:
-
-بعد از create، ما optimistic update انجام ندادیم. یعنی task جدید را دستی به آرایه local اضافه نکردیم. روش انتخابی ما refetch after mutation بود.
-
-8. Edit Flow
-
-جریان ویرایش:
-
-openEditTaskModal(task)
-→ editingTask = task
-→ فرم با اطلاعات task پر می‌شود
-→ start_time/end_time از datetime جدا می‌شود
-→ projectDetails همان project load می‌شود
-→ modal باز می‌شود
-→ submitTaskForm()
-→ updateTask(task.id, payload)
-→ close modal
-→ loadTasks()
-
-چالش مهم:
-
-در response فعلی task list، مقدارهای project_service و project_contract وجود ندارند. بنابراین هنگام edit، خود dropdownها load می‌شوند ولی مقدار انتخاب‌شده آن‌ها نمی‌تواند کامل prefill شود، مگر backend این فیلدها را هم در response لیست یا task detail برگرداند.
-
-9. Delete Flow
-
-جریان حذف:
-
-کاربر روی حذف می‌زند
-→ window.confirm باز می‌شود
-→ اگر تایید کرد، deletingTaskId = task.id
-→ deleteTask(task.id)
-→ بعد از موفقیت deletingTaskId = null
-→ loadTasks()
-
-برای خطا:
-
-deleteError = 'خطا در حذف وظیفه'
-
-نکته آموزشی:
-
-برای delete از mutationState استفاده نکردیم چون delete مربوط به یک row خاص است، نه فرم modal.
-
-10. Project / Service / Contract Dropdown
-
-فرم task سه dropdown وابسته دارد:
-
-project
-project_service
-project_contract
-
-جریان کار:
-
-loadProjects()
-→ dropdown پروژه‌ها پر می‌شود
-→ کاربر project انتخاب می‌کند
-→ project_service و project_contract صفر می‌شوند
-→ loadProjectDetails(projectId)
-→ services/contracts همان پروژه لود می‌شوند
-
-این الگو اسمش Cascading Dropdown است.
-
-نکته مهم:
-
-وقتی project عوض می‌شود، باید service و contract قبلی reset شوند، چون ممکن است متعلق به پروژه قبلی باشند.
-
-11. API / Mock / Contract / CORS
-
-در طول Branch 009، تست عملی API هم انجام شد.
-
-چیزهایی که یاد گرفته شد:
-
-Contract endpoint = برای documentation/spec
-Mock API endpoint = route واقعی دارد و response مستقیم می‌دهد
-Real API = backend واقعی با persistence
-
-مشکل CORS هم تجربه شد.
+CORS یعنی مرورگر اجازه نمی‌دهد از origin دیگری response خوانده شود، مگر سرور اجازه بدهد.
 
 راه‌ها:
 
-راه درست: CORS سمت سرور فعال شود
-راه موقت dev: Angular proxy
-راه شخصی موقت: افزونه مرورگر
+| راه               | کاربرد            | وضعیت                                 |
+| ----------------- | ----------------- | ------------------------------------- |
+| CORS سمت سرور     | راه درست          | باید لید فعال کند                     |
+| Angular Proxy     | راه dev استاندارد | تست شد و کار کرد                      |
+| Browser Extension | راه شخصی موقت     | تست شد، ولی قابل اتکا برای پروژه نیست |
 
-همچنین فهمیدیم اگر endpoint فقط یک JSON ثابت return کند، create/update/delete از نظر request flow انجام می‌شوند، ولی در GET بعدی تغییر دیده نمی‌شود؛ چون سرور state واقعی ذخیره نکرده است.
+### 12.5 نتیجه تجربه عملی
 
-12. چرا بعد از create/update/delete دوباره loadTasks() می‌زنیم؟
+ما یاد گرفتیم:
 
-چون منبع اصلی داده backend است.
+```txt
+wrong response shape ≠ CORS
+CORS ≠ خراب بودن Angular
+Contract endpoint ≠ API مصرفی برنامه
+Proxy فقط وقتی کار می‌کند که URL relative باشد
+environment.ts و environment.development.ts باید هماهنگ باشند
+```
 
-جریان استاندارد:
+---
 
-POST /tasks
-backend ذخیره می‌کند
-GET /tasks
-لیست جدید از backend گرفته می‌شود
+## 13. تصمیم‌های مهم فنی
 
-ما فقط local array را دستکاری نکردیم، چون backend ممکن است این فیلدها را خودش تعیین کند:
+### 13.1 Task جدید را بعد از create دستی به لیست اضافه نکردیم
 
-id
-status
-project_title
-date formatting
-server-side validation
+چون روش انتخابی ما `refetch after mutation` است. بعد از create/update/delete، backend باید منبع اصلی حقیقت باشد و `GET /tasks` لیست جدید را بدهد.
 
-این روش اسمش:
+اگر mock server state ذخیره نکند، task جدید دیده نمی‌شود؛ این محدودیت mock است.
 
-refetch after mutation
+### 13.2 Status filter فعلاً client-side است
 
-است.
+چون contract فعلی `GET /tasks` فقط `user`, `page`, `range` را دارد. تا وقتی backend `status` را رسمی نکند، نباید query نامعتبر به API بفرستیم.
 
-13. چرا الان task جدید در لیست دیده نمی‌شود؟
+### 13.3 Summary cards دقیق Tasks بهتر است endpoint جدا داشته باشند
 
-چون API فعلی mock/static است.
+الان summary از صفحه فعلی محاسبه می‌شود. برای summary دقیق کل range، endpoint زیر پیشنهاد شده:
 
-یعنی:
+```txt
+GET /api/v1/tasks/summary/?user=273&range=today
+```
 
-POST موفق می‌شود
-ولی GET بعدی همان JSON ثابت قبلی را برمی‌گرداند
+### 13.4 Project details با query `project` گرفته می‌شود
 
-این مشکل پیاده‌سازی فرم نیست. برای دیده شدن تغییر، mock server یا backend باید بعد از POST/PUT/DELETE، response لیست را هم واقعاً تغییر دهد.
+تصمیم فعلی:
 
-14. کارهایی که انجام شد
+```txt
+GET /api/v1/projects/project_details/?project=30
+```
 
-- [x] Extend TasksService with createTask.
-- [x] Extend TasksService with updateTask.
-- [x] Extend TasksService with deleteTask.
-- [x] Extend TasksService with getProjects.
-- [x] Extend TasksService with getProjectDetails.
-- [x] Add Reactive Form to TasksComponent.
-- [x] Add task modal.
-- [x] Connect modal to taskForm.
-- [x] Add create mode.
-- [x] Add edit mode.
-- [x] Build TaskMutationPayload from form.
-- [x] Calculate duration from start_time/end_time.
-- [x] Validate end_time after start_time.
-- [x] Add mutation loading/error state.
-- [x] Connect submit to create/update.
-- [x] Refetch task list after mutation.
-- [x] Load projects for project dropdown.
-- [x] Load project details for service/contract dropdowns.
-- [x] Reset service/contract when project changes.
-- [x] Add delete flow.
-- [x] Add row-level deleting state.
-- [x] Add delete error state.
-- [x] Test CORS/proxy/contract API behavior.
+### 13.5 Header باید سرچ عمومی داشته باشد
 
-15. Remaining / Deferred
+دکمه‌های Tasks مثل ثبت وظیفه جدید بهتر است داخل خود صفحه Tasks باشند، نه Header سراسری.
 
-مواردی که عمداً برای Branchهای بعدی ماندند:
+---
 
-- [ ] Real backend persistence for create/update/delete.
-- [ ] Task detail endpoint for full edit prefill.
-- [ ] Prefill project_service and project_contract in edit mode.
-- [ ] Replace window.confirm with custom confirm modal.
-- [ ] Add field-level validation messages under inputs.
-- [ ] Add success toast after create/update/delete.
-- [ ] Add real AI task generation.
-- [ ] Add timer/presence integration.
-- [ ] Remove temporary contract API bridge before final merge if still present.
-- [ ] Finalize CORS with backend/mock server instead of relying on browser extension.
+## 14. بدهی‌های فنی و ریسک‌ها
 
-16. Technical Notes
+### 14.1 Backend/API
 
-قبل از commit نهایی، این‌ها را چک کن:
+- routeهای mock API نهایی باید مستقیم response بدهند.
+- CORS باید سمت سرور فعال شود.
+- mock server باید برای create/update/delete persistence داشته باشد یا صریحاً فقط demo static باشد.
+- `project_service` و `project_contract` برای edit کامل باید در response بیاید.
+- statusهای رسمی task باید قطعی شوند.
+- rangeهای رسمی باید قطعی شوند.
 
-اگر هنوز useContractApi برای تست روشن است، تصمیم بگیر:
-یا temporary نگه دار و commit نکن
-یا قبل از commit برگردان به حالت mock/real استاندارد.
+### 14.2 Frontend
 
-اگر فقط برای تست با لید بود:
-Contract bridge و تغییرات موقت CORS/proxy را commit نکن.
+- Contract bridge موقت نباید وارد commit نهایی شود مگر با اسم و توضیح واضح.
+- browser extension CORS نباید راه‌حل پروژه‌ای حساب شود.
+- console logهای موقت باید حذف شوند.
+- error messageها باید user-friendlyتر شوند.
+- field-level validation messageها زیر inputها اضافه شوند.
+- success toast برای create/update/delete اضافه شود.
+- confirm حذف بهتر است custom modal شود.
 
-پیشنهاد برای حالت امن commit:
+### 14.3 Dashboard
 
-useMockData: true
-useContractApi: false
+- unread messages باید به Header binding نهایی شود.
+- announcements باید data-driven شود.
+- active presence و today sidebar stats باید API-driven شوند.
+- responsive و empty stateهای chart باید دوباره مرور شوند.
 
-یا اگر mock API نهایی آماده شد:
+### 14.4 Tasks
 
-useMockData: false
-useContractApi: false
-apiBaseUrl: 'http://192.168.130.44:1234/api/v1' 17. نکته‌های آموزشی مهم
+- task detail endpoint برای edit کامل نیاز است.
+- summary cards باید از endpoint summary بیایند.
+- status filter بهتر است در آینده server-side شود.
+- AI generation فعلاً فقط UI است.
+- play/timer action هنوز واقعی نیست.
 
-1. Read و Mutation فرق دارند
+### 14.5 Auth
 
-Read:
+- login واقعی هنوز نیست.
+- temporary token و userId باید حذف شوند.
+- userId باید از auth/profile state بیاید.
 
-GET /tasks
-GET /projects
-GET /project_details
+---
 
-Mutation:
+## 15. مسیر دقیق ادامه پروژه
 
-POST /tasks
-PUT /tasks/{id}
-DELETE /tasks/{id}
+مسیر پیشنهادی بعد از Branch 009:
 
-برای همین state جدا لازم دارند.
+```txt
+010-api-stabilization-and-real-mock-verification
+011-presence-and-timer-integration
+012-task-form-polish-and-detail-prefill
+013-dashboard-sidebar-and-notifications-data
+014-two-page-polish-and-lead-demo
+015-auth-login-and-profile-hardening
+```
 
-2. فرم با payload فرق دارد
+چرا اول API Stabilization؟
 
-فرم برای UI است.
-Payload برای API است.
+چون بزرگ‌ترین ریسک فعلی feature جدید نیست؛ ریسک اصلی این است که API routeها، response shapeها، CORS، environment و persistence درست نباشند. اگر این بخش تثبیت نشود، Presence یا featureهای بعدی هم روی پایه ناپایدار ساخته می‌شوند.
 
-پس همیشه این سؤال را بپرس:
+---
 
-آیا شکل داده فرم دقیقاً همان چیزی است که API می‌خواهد؟
+## 16. Branch بعدی پیشنهادی با جزئیات اجرایی
 
-اگر نه، mapper لازم داری.
+## Branch 010 — `feature/010-api-stabilization-and-real-mock-verification`
 
-3. State را بر اساس مسئولیت جدا کن
+### هدف
 
-در این Branch stateها را بر اساس مسئولیت جدا کردیم:
+تثبیت اتصال API واقعی/Mock API قابل مصرف، حذف bridgeهای موقت و آماده‌سازی دو صفحه Dashboard و Tasks برای دمو قابل اعتماد.
 
-tasksState
-mutationState
-projectsState
-projectDetailsState
-deletingTaskId
-deleteError
+### چرا این branch لازم است؟
 
-این باعث شد هر بخش UI مستقل‌تر و قابل فهم‌تر باشد.
+ما در Branch 009 تجربه کردیم که:
 
-4. Refetch after mutation ساده‌تر و امن‌تر است
+- contract endpoint به درد مصرف مستقیم نمی‌خورد.
+- response shape اگر wrapper داشته باشد، سرویس frontend مجبور به map موقت می‌شود.
+- CORS می‌تواند request را در مرورگر بلاک کند حتی اگر سرور 200 بدهد.
+- environment ناهماهنگ باعث می‌شود درخواست به URL اشتباه برود.
+- mock API اگر persistence نداشته باشد، create/update/delete در GET بعدی دیده نمی‌شوند.
 
-بعد از create/update/delete، دوباره لیست را گرفتن، با backend هماهنگ‌تر است.
+پس قبل از Presence، باید اتصال دو صفحه موجود را تثبیت کنیم.
 
-Optimistic update سریع‌تر است، ولی پیچیده‌تر و پرریسک‌تر است.
+### Checklist دقیق Branch 010
 
-5. CORS مشکل کد Angular نیست
+#### 1. پاکسازی حالت‌های موقت
 
-اگر request از curl جواب می‌دهد ولی مرورگر بلاک می‌کند، احتمالاً CORS است.
+- [ ] بررسی `environment.ts` و `environment.development.ts`.
+- [ ] هماهنگ کردن propertyها:
+  - `apiBaseUrl`
+  - `contractBaseUrl`
+  - `useMockData`
+  - `useContractApi`
+- [ ] تصمیم نهایی برای تست local:
+  - مستقیم با CORS درست
+  - یا proxy dev
+- [ ] حذف یا کامنت‌گذاری واضح bridge موقت `/taskscontract/`.
+- [ ] حذف console log مثل `Reading tasks from contract API`.
 
-CORS یعنی مرورگر اجازه نمی‌دهد فرانت از یک origin دیگر response را بخواند.
+#### 2. تست routeهای مستقیم Tasks
 
-18. وضعیت نهایی Branch
+- [ ] تست `GET /api/v1/tasks/` در browser/curl/network.
+- [ ] بررسی اینکه response دقیقاً `{ data, meta }` باشد.
+- [ ] تست pagination با `page=1`, `page=2`.
+- [ ] تست `range=today`, `week_till_today`, `month_till_today`.
+- [ ] اگر summary endpoint آماده شد، اتصال summary cards به `GET /api/v1/tasks/summary/`.
+- [ ] اگر create/update/delete persistence ندارد، ثبت در گزارش و تصمیم‌گیری: demo static یا fake persistence سمت mock server.
 
-در پایان Branch 009:
+#### 3. تست routeهای Projects
 
-صفحه Tasks از read-only خارج شد.
-فرم ثبت/ویرایش task آماده شد.
-Create/Edit/Delete flow پیاده شد.
-Dropdownهای پروژه، سرویس و قرارداد داینامیک شدند.
-فرم payload مناسب API می‌سازد.
-حذف row-level state دارد.
-Refresh بعد از mutation انجام می‌شود.
+- [ ] تست `GET /api/v1/projects/get_all_projects/`.
+- [ ] تست `GET /api/v1/projects/project_details/?project=30`.
+- [ ] بررسی services/contracts.
+- [ ] اگر query param متفاوت بود، service را اصلاح کن.
 
-تنها محدودیت فعلی این است که mock API فعلی state واقعی ذخیره نمی‌کند؛ بنابراین تغییرات create/update/delete در GET بعدی دیده نمی‌شوند، مگر backend/mock server persistence داشته باشد.
+#### 4. تست mutation endpoints
+
+- [ ] تست `POST /api/v1/tasks/`.
+- [ ] تست `PUT /api/v1/tasks/{id}/`.
+- [ ] تست `DELETE /api/v1/tasks/{id}/`.
+- [ ] بررسی اینکه بعد از POST/PUT/DELETE، GET بعدی تغییر را نشان می‌دهد یا نه.
+- [ ] اگر نشان نمی‌دهد، دلیل را به عنوان backend/mock persistence dependency ثبت کن.
+
+#### 5. تست Dashboard endpoints
+
+- [ ] تست `GET /api/v1/users/a_user_details/`.
+- [ ] تست `GET /api/v1/dashboard/pie_chart/`.
+- [ ] تست `GET /api/v1/dashboard/line_chart/`.
+- [ ] تست `GET /api/v1/news/get_message_data/`.
+- [ ] بررسی اینکه خطی چند date دارد یا نه.
+- [ ] بررسی empty/error state.
+
+#### 6. CORS و Auth
+
+- [ ] اگر CORS درست شد، افزونه مرورگر غیرفعال شود و مستقیم تست شود.
+- [ ] اگر CORS درست نشد، proxy dev با توضیح رسمی نگه داشته شود.
+- [ ] auth interceptor برای mock server فقط در صورت نیاز skip شود.
+- [ ] temporary token از commit حساس حذف شود.
+
+#### 7. گزارش نهایی Branch 010
+
+- [ ] ثبت routeهای verified.
+- [ ] ثبت routeهای broken.
+- [ ] ثبت response shape mismatchها.
+- [ ] ثبت CORS وضعیت نهایی.
+- [ ] ثبت اینکه چه چیزهایی connected واقعی هستند و چه چیزهایی frontend-ready هستند.
+
+### خروجی مورد انتظار Branch 010
+
+در پایان branch باید دقیقاً بدانیم:
+
+```txt
+کدام endpointها واقعاً قابل مصرف‌اند
+کدام endpointها هنوز فقط contract/spec هستند
+کدام responseها shape درست دارند
+کدام بخش‌های UI با API واقعی/mock-consumable کار می‌کنند
+کدام موارد وابسته به backend باقی مانده‌اند
+```
+
+---
+
+## 17. اگر مسیر طبق برنامه پیش نرفت چه کنیم؟
+
+### سناریو 1: لید route مستقیم داد ولی response هنوز کل فایل یا wrapper است
+
+راه‌حل:
+
+- به لید بگوییم هر route فقط JSON خودش را return کند.
+- موقتاً map نزنیم مگر برای تست کوتاه.
+- اگر مجبور شدیم map بزنیم، کد را با نام temporary bridge مشخص کنیم.
+
+### سناریو 2: CORS درست نشد
+
+راه‌حل:
+
+- برای dev از Angular proxy استفاده کنیم.
+- browser extension فقط برای تست شخصی باشد.
+- در گزارش بنویسیم CORS server-side هنوز blocker است.
+
+### سناریو 3: create موفق است ولی task جدید در list دیده نمی‌شود
+
+راه‌حل:
+
+- بررسی کنیم mock server persistence دارد یا نه.
+- اگر ندارد، بگوییم frontend flow درست است ولی mock server static است.
+- از optimistic update فعلاً دوری کنیم مگر به عنوان branch جدا/تصمیم آگاهانه.
+
+### سناریو 4: edit کامل prefill نمی‌شود
+
+راه‌حل:
+
+- اگر response list فیلدهای service/contract ندارد، از لید بخواهیم اضافه کند.
+- یا endpoint detail task بگیریم:
+
+```txt
+GET /api/v1/tasks/{id}/
+```
+
+### سناریو 5: line chart فقط یک نقطه دارد
+
+راه‌حل:
+
+- از backend/mock بخواهیم چند date مختلف بدهد.
+- یک نقطه برای line chart فنی درست است ولی از نظر UI خط واقعی نشان نمی‌دهد.
+
+---
+
+## 18. چک‌لیست قبل از Commit و Demo
+
+### 18.1 قبل از Commit
+
+```bash
+ng serve
+npm run build
+```
+
+چک شود:
+
+- [ ] console log موقت حذف شده باشد.
+- [ ] environment روی حالت تصمیم‌گرفته‌شده باشد.
+- [ ] bridge موقت ناخواسته commit نشود.
+- [ ] token واقعی یا حساس commit نشود.
+- [ ] TODO و REPORT آپدیت باشند.
+
+### 18.2 قبل از Demo به لید
+
+- [ ] Dashboard باز شود.
+- [ ] Tasks باز شود.
+- [ ] list taskها نمایش داده شود.
+- [ ] modal create باز شود.
+- [ ] validation کار کند.
+- [ ] project/service/contract dropdownها کار کنند.
+- [ ] edit modal باز شود.
+- [ ] delete confirm کار کند.
+- [ ] known limitations آماده توضیح باشند:
+  - static mock persistence
+  - CORS
+  - service/contract prefill
+  - unread binding
+
+---
+
+## 19. مرور آموزشی مفاهیم کلیدی
+
+### 19.1 Service چیست؟
+
+Service محل ارتباط با API است. Component نباید URL و HttpClient logic را پخش کند.
+
+### 19.2 Component چه کاری می‌کند؟
+
+Component state را مدیریت می‌کند، service را صدا می‌زند و داده آماده را به template می‌دهد.
+
+### 19.3 Template چه کاری می‌کند؟
+
+Template باید نمایش دهد، نه اینکه منطق سنگین داشته باشد.
+
+### 19.4 Empty و Error چه فرقی دارند؟
+
+```txt
+Empty → API موفق بوده، داده‌ای برای نمایش نیست
+Error → request شکست خورده است
+```
+
+### 19.5 Reactive Form چرا مهم است؟
+
+برای فرم‌های جدی، Reactive Form validation، values، disabled، touched و submit را یکجا مدیریت می‌کند.
+
+### 19.6 Payload Mapping چیست؟
+
+فرم همیشه دقیقاً شکل API نیست. باید داده UI به شکل API تبدیل شود.
+
+### 19.7 Cascading Dropdown چیست؟
+
+Dropdownهایی که به هم وابسته‌اند:
+
+```txt
+project → services/contracts
+```
+
+### 19.8 Refetch after mutation چیست؟
+
+بعد از create/update/delete دوباره list را از backend می‌گیریم تا backend منبع اصلی حقیقت بماند.
+
+### 19.9 Optimistic Update چیست؟
+
+قبل از تایید backend، UI را فرضاً آپدیت می‌کنیم. سریع است ولی پیچیده‌تر و پرریسک‌تر است.
+
+### 19.10 CORS چیست؟
+
+CORS محدودیت امنیتی مرورگر است. اگر سرور اجازه ندهد، Angular نمی‌تواند response را بخواند حتی اگر سرور 200 بدهد.
+
+---
+
+## 20. سوال‌های آموزشی برای تثبیت یادگیری
+
+1. چرا `tasksState` و `mutationState` را جدا کردیم؟
+2. چرا برای delete از `deletingTaskId` استفاده کردیم؟
+3. چرا `taskForm.getRawValue()` را مستقیم به API نفرستادیم؟
+4. چرا بعد از create/update/delete دوباره `loadTasks()` می‌زنیم؟
+5. چرا API فیک static باعث می‌شود task جدید بعد از ثبت دیده نشود؟
+6. چرا service/contract قبل از انتخاب project قابل load نیستند؟
+7. چرا response مستقیم route بهتر از contract wrapper است؟
+8. چرا proxy فقط وقتی کار می‌کند که URL relative باشد؟
+9. فرق Mock داخلی، Contract API و Mock API قابل مصرف چیست؟
+10. چه زمانی می‌توانیم بگوییم یک endpoint واقعاً connected است؟
+
+---
+
+## 21. پرامپت کامل برای شروع چت جدید
+
+این بخش را می‌توانی کامل در چت جدید کپی کنی.
+
+```md
+سلام. من روی پروژه WTT Frontend کار می‌کنم و می‌خوام از همین نقطه ادامه بدیم. لطفاً نقش یک استاد حرفه‌ای Angular/Frontend را داشته باش، مرحله‌به‌مرحله راهنمایی کن، زیاد کد آماده نده مگر وقتی لازم است، و بعد از هر بخش از من سوال آموزشی بپرس تا مطمئن بشی یاد گرفتم.
+
+# وضعیت من
+
+من کارآموز شرکت برنامه‌نویسی هستم و دارم پروژه WTT را با Angular بازطراحی می‌کنم. می‌خوام فقط کار را انجام ندهم؛ می‌خوام اصولی یاد بگیرم. هر جا مفهومی مثل service، state، lifecycle، reactive form، API mapping، CORS، proxy، interceptor، payload یا mutation مطرح شد، ساده و دقیق توضیح بده.
+
+# پروژه چیست؟
+
+WTT یک سیستم مدیریت کارکرد/وظایف/حضور است. هدف بلندمدت آن فقط ثبت ساعت نیست؛ می‌خواهد بین developer، task، GitLab/Jira، team lead، HR و management یک لایه هوشمند بسازد.
+
+MVP فعلی روی دو صفحه متمرکز است:
+
+1. Dashboard
+2. Tasks
+
+# استک فنی
+
+- Angular 21.2.x
+- Standalone Components
+- Zoneless + Signals
+- Tailwind CSS 4.2.x + SCSS
+- date-fns-jalali
+- provideHttpClient(withFetch())
+- echarts + ngx-echarts
+- Reactive Forms برای Task Modal
+- State pattern: signal<ApiState<T>>
+
+# ساختار معماری
+
+الگوی اصلی پروژه:
+
+Model → Service → State → Load Method → Template Binding
+
+Service فقط API را مدیریت می‌کند.
+Component state و mapping را مدیریت می‌کند.
+Template فقط نمایش می‌دهد.
+
+Feature-first رعایت شده:
+DashboardService داخل feature/dashboard/services است.
+TasksService داخل feature/tasks/services است.
+
+# Branchهای انجام‌شده
+
+## Branch 001 — workspace and core
+
+- workspace ساخته شد
+- Angular standalone setup شد
+- Tailwind v4 setup شد
+- date-fns-jalali نصب شد
+- ساختار core/shared/features آماده شد
+
+## Branch 002 — auth and security
+
+- provideHttpClient(withFetch()) فعال شد
+- zoneless + signals فعال شد
+- authInterceptor ساخته شد
+- errorInterceptor ساخته شد
+- AuthService ساخته شد
+- userId از URL حذف شد برای کاهش ریسک IDOR
+- login واقعی هنوز نداریم
+
+## Branch 003 — ui layout and theme
+
+- Header، Sidebar، Left Sidebar ساخته شدند
+- Theme toggle ساخته شد
+- Light/Dark Mode با CSS variables و Signals آماده شد
+- LayoutService برای context-aware UI ساخته شد
+
+## Branch 004 — dashboard widgets
+
+- Dashboard static UI ساخته شد
+- KPI cards، نمودارها، اطلاعیه‌ها و recent activities ساخته شدند
+- بعدها ECharts جایگزین chartهای static/SVG شد
+
+## Branch 005 — tasks and presence UI
+
+- Task Command Center ساخته شد
+- task rows، status rails، smart filters و actionهای اولیه ساخته شدند
+- Header/LeftSidebar بر اساس صفحه تغییر کردند
+- Presence واقعی به آینده منتقل شد
+
+## Branch 006 — api contracts and data foundation
+
+- environment.ts و environment.development.ts ساخته شدند
+- models ساخته شدند: user, dashboard, task, project, api-state
+- dashboard.contract.json و tasks.contract.json ساخته شدند
+- temporaryUserId و temporary token strategy مشخص شد
+
+## Branch 007 — dashboard api integration
+
+- DashboardService ساخته شد
+- getStats, getPieChart, getLineChart, getUnreadMessages اضافه شدند
+- statsState, lineChartState, pieChartState ساخته شدند
+- KPI cards data-driven شدند
+- ECharts برای pie/line chart استفاده شد
+- loading/error/empty state اضافه شد
+- Mock Mode اضافه شد
+
+## Branch 008 — tasks read and filter integration
+
+- TasksService ساخته شد
+- getTasks وصل شد
+- tasksState ساخته شد
+- task rows داینامیک شدند
+- pagination با meta پیاده شد
+- quick filters اضافه شدند
+- range filter از API query استفاده می‌کند
+- status filter فعلاً client-side است چون backend status query رسمی نداده
+- loading/error/empty state آماده شد
+
+## Branch 009 — tasks mutation and smart form
+
+- createTask, updateTask, deleteTask اضافه شدند
+- getProjects و getProjectDetails اضافه شدند
+- Reactive Form ساخته شد
+- Task Modal ساخته شد
+- create mode و edit mode ساخته شدند
+- submitTaskForm وصل شد
+- buildTaskPayload ساخته شد
+- duration از start_time/end_time حساب می‌شود
+- project dropdown داینامیک شد
+- service/contract dropdownها cascading شدند
+- delete flow با deletingTaskId ساخته شد
+- CORS/proxy/contract API تست شد
+
+# وضعیت Dashboard
+
+Dashboard frontend-ready است:
+
+- serviceها آماده‌اند
+- stateها آماده‌اند
+- ECharts وصل است
+- loading/error/empty state داریم
+
+اما اتصال واقعی فقط وقتی connected حساب می‌شود که endpoint مستقیم، response درست، CORS درست و Network 200 OK داشته باشیم.
+
+# وضعیت Tasks
+
+Tasks از نظر frontend کامل‌تر است:
+
+- list
+- pagination
+- filters
+- create
+- edit
+- delete
+- modal
+- reactive form
+- project/service/contract dropdown
+- payload mapping
+
+محدودیت فعلی:
+اگر mock API فقط JSON ثابت return کند، بعد از create/update/delete، GET بعدی تغییر را نشان نمی‌دهد. این مشکل frontend نیست؛ mock/backend باید persistence داشته باشد.
+
+# APIهای مهم
+
+Dashboard:
+GET /api/v1/users/a_user_details/?user=273&range=month_till_today
+GET /api/v1/dashboard/pie_chart/?user=273&range=month_till_today
+GET /api/v1/dashboard/line_chart/?user=273&range=month_till_today
+GET /api/v1/news/get_message_data/?state=unread_count
+
+Tasks:
+GET /api/v1/tasks/?user=273&page=1&range=month_till_today
+GET /api/v1/tasks/summary/?user=273&range=today
+GET /api/v1/projects/get_all_projects/
+GET /api/v1/projects/project_details/?project=30
+POST /api/v1/tasks/
+PUT /api/v1/tasks/{id}/
+DELETE /api/v1/tasks/{id}/
+
+# تصمیم‌های API
+
+project_details query فعلاً project=30 است.
+Task list باید در حالت ایده‌آل project_title, location, start_time, end_time بدهد.
+برای edit کامل بهتر است project_service و project_contract هم در response یا task detail endpoint باشد.
+
+# تجربه API/CORS
+
+ما فهمیدیم:
+
+- contract endpoint مثل /taskscontract/ فقط documentation/spec است.
+- API مصرفی frontend باید route نهایی داشته باشد و response مستقیم بدهد.
+- اگر response داخل wrapper باشد، مجبور می‌شویم map موقت بزنیم.
+- CORS را موقتاً با proxy یا browser extension دور زدیم.
+- راه درست CORS، تنظیم سمت سرور است.
+- proxy فقط وقتی کار می‌کند که URL relative باشد مثل /mock-api/api/v1/tasks.
+
+# مسیر آینده پیشنهادی
+
+Branch بعدی بهتر است:
+feature/010-api-stabilization-and-real-mock-verification
+
+هدف این branch:
+
+- تثبیت routeهای مستقیم
+- حذف bridge موقت contract
+- تست response shape
+- تست CORS یا proxy تصمیم‌گرفته‌شده
+- تست persistence create/update/delete
+- verify کردن Dashboard و Tasks با mock API قابل مصرف
+
+بعد از آن:
+feature/011-presence-and-timer-integration
+feature/012-task-form-polish-and-detail-prefill
+feature/013-dashboard-sidebar-and-notifications-data
+feature/014-two-page-polish-and-lead-demo
+feature/015-auth-login-and-profile-hardening
+
+# اگر مسیر طبق برنامه پیش نرفت
+
+اگر route مستقیم wrapper داد:
+
+- موقتاً map نزن مگر فقط برای تست
+- از لید بخواه هر route فقط JSON خودش را return کند
+
+اگر CORS خراب بود:
+
+- برای dev از proxy استفاده کن
+- extension فقط شخصی و موقت است
+
+اگر create موفق شد ولی list تغییر نکرد:
+
+- یعنی mock API persistence ندارد
+- frontend flow درست است ولی backend/mock server باید state ذخیره کند
+
+اگر edit کامل prefill نشد:
+
+- task list باید project_service/project_contract بدهد
+- یا endpoint GET /api/v1/tasks/{id}/ لازم است
+
+# سبک پاسخ مورد انتظار
+
+لطفاً:
+
+- مرحله‌به‌مرحله جلو برو
+- قبل از کد دلیل تغییر را توضیح بده
+- بعد از هر قدم یک یا چند سوال آموزشی بپرس
+- زیاد کد آماده نده مگر لازم باشد
+- مسیر درست معماری را حفظ کن
+- تغییرات موقت مثل contract bridge یا CORS extension را از مسیر نهایی جدا نگه دار
+
+اول کار از Branch 010 شروع کن و قبل از هر کدی بگو دقیقاً هدف branch چیست، چه فایل‌هایی باید بررسی شوند، چه چیزهایی نباید commit شوند، و چطور endpointها را verify می‌کنیم.
+```
+
+---
+
+## 22. جمع‌بندی نهایی
+
+پروژه الان از حالت UI-only خارج شده و به یک فرانت‌اند جدی با service/state/form/API architecture رسیده است.
+
+مهم‌ترین نتیجه تا اینجا:
+
+```txt
+Dashboard و Tasks از نظر frontend structure آماده‌اند.
+Tasks حتی create/edit/delete flow دارد.
+باقی ریسک اصلی، backend/mock API قابل مصرف، CORS و persistence است.
+```
+
+مسیر درست بعدی:
+
+```txt
+اول API را تثبیت کن
+بعد Presence/Timer را بساز
+بعد فرم‌ها و dashboard side data را polish کن
+بعد demo به لید آماده کن
+بعد login واقعی را کامل کن
+```
+
+## مسیر جدید پروژه بعد از تصمیم اتصال به WTT واقعی
+
+بعد از پایان `feature/009-tasks-mutation-and-smart-form`، مسیر پروژه تغییر کرد. در مسیر قبلی تمرکز روی mock API، contract adapter، CORS workaround و fake persistence بود. اما طبق تصمیم جدید لید، توسعه باید بر اساس حساب واقعی WTT، base URL واقعی و APIهای واقعی نسخه v1 ادامه پیدا کند.
+
+بنابراین اولویت پروژه از `mock/contract stabilization` به `real authentication foundation` تغییر کرد.
+
+مسیر جدید:
+
+````txt
+Real WTT Login
+→ Real Token
+→ Real Auth State
+→ Real Profile
+→ Real User ID
+→ Real Read APIs
+→ Safe Mutations
+→ Presence Read-only
+→ Safe Presence Mutations
+→ Mock Cleanup
+→ Full WTT Frontend
+دلیل تغییر مسیر
+
+تا وقتی login واقعی و token واقعی نداشته باشیم، اتصال APIها کامل و قابل اعتماد نیست. در نسخه قبلی پروژه، temporary token و temporaryUserId استفاده می‌شدند. این برای توسعه اولیه قابل قبول بود، اما برای اتصال واقعی به WTT باید حذف شود.
+
+اصول جدید توسعه
+Auth-first
+ابتدا login واقعی، token واقعی و profile واقعی پیاده‌سازی می‌شود. بدون auth واقعی، هیچ API اصلی نهایی محسوب نمی‌شود.
+Read-before-write
+ابتدا همه APIهای GET وصل و verify می‌شوند. Mutationها مثل create/update/delete بعداً و فقط با داده تستی کنترل‌شده تست می‌شوند.
+No unsafe mutation
+هیچ task واقعی کاری، هیچ حضور واقعی، و هیچ داده مهمی نباید برای تست update/delete شود.
+Test data must be obvious
+هر task تستی باید با prefix مشخص ساخته شود:
+[FRONTEND-TEST-DO-NOT-APPROVE]
+Rollback note required
+هر mutation واقعی باید قابل پیگیری و برگشت باشد:
+task id، زمان ساخت، زمان ویرایش، وضعیت حذف/پاکسازی.
+No token in source code
+token واقعی نباید در environment, service, interceptor یا commit ذخیره شود. token فقط در state/runtime یا storage موقت dev نگهداری می‌شود.
+Component remains source-agnostic
+component نباید بداند داده از mock آمده یا API واقعی. Component فقط state و UI را مدیریت می‌کند. Service مسئول ارتباط با API است.
+Service owns API communication
+همه requestها باید داخل serviceها باشند. URL و HttpClient نباید در component پخش شوند.
+Models protect contracts
+responseهای واقعی باید با modelها مقایسه شوند. اگر API response با model نمی‌خواند، ابتدا mismatch ثبت می‌شود، بعد تصمیم گرفته می‌شود model اصلاح شود یا adapter لازم است.
+Error must be visible
+اگر API خطا داد، نباید بی‌صدا mock data نمایش داده شود. خطا باید در UI state یا گزارش branch مشخص شود.
+Mock cleanup is gradual
+mockها یک‌دفعه حذف نمی‌شوند. هر service فقط وقتی mock آن حذف می‌شود که API واقعی همان بخش verify شده باشد.
+Presence is high risk
+APIهای presence روی حضور واقعی اثر می‌گذارند. بنابراین ابتدا فقط read-only presence وصل می‌شود و clock-in/clock-out واقعی در branch جدا و با اجازه انجام می‌شود.
+وضعیت جدید branchها
+
+Branch 010 از api-stabilization-and-real-mock-verification به real-auth-and-safe-v1-api-foundation تغییر کرد.
+
+Branchهای بعدی به ترتیب روی Dashboard real read، Tasks real read، safe task mutation، profile/header real data، presence read-only و سپس safe presence mutation تمرکز می‌کنند.
+
+معیار connected واقعی
+
+یک endpoint فقط وقتی connected واقعی محسوب می‌شود که:
+
+1. request از Angular با HttpClient ارسال شود
+2. token درست روی request بنشیند
+3. Network status موفق باشد
+4. response shape با model frontend بخواند
+5. UI با همان response پر شود
+6. error/loading/empty state درست کار کند
+7. ریسک read/write آن در branch report ثبت شود
+نتیجه
+
+از این نقطه به بعد، پروژه WTT Frontend از حالت mock-driven به real-api-driven منتقل می‌شود. هدف نهایی این است که تمام صفحه‌های اصلی WTT با auth واقعی، profile واقعی، dashboard واقعی، task واقعی، presence واقعی و بعداً intelligence/automation واقعی کار کنند، بدون اینکه اصول امنیت، auditability و ایمنی داده‌های واقعی نقض شود.
+
+
+---
+
+# 4. اصولی که تا آخر پروژه باید رعایت کنیم
+
+این‌ها قانون‌های ثابت ما هستند:
+
+## قانون ۱ — اول Auth، بعد API
+
+هیچ feature واقعی را کامل حساب نمی‌کنیم تا وقتی:
+
+```txt
+login واقعی
+token واقعی
+profile واقعی
+userId واقعی
+
+داشته باشیم.
+
+الان AuthService فعلی هنوز URL هاردکد placeholder دارد و فقط fetchProfile(userId) را می‌زند؛ پس باید اول این را درست کنیم.
+
+قانون ۲ — اول GET، بعد Mutation
+
+APIهایی مثل این‌ها کم‌خطرترند:
+
+GET /profile/
+GET /tasks/
+GET /projects/get_all_projects/
+GET /dashboard/line_chart/
+
+ولی این‌ها خطرناک‌اند:
+
+POST /tasks/
+PUT /tasks/{id}/
+DELETE /tasks/{id}/
+POST /presence/
+PUT /presence/{id}/
+
+چون روی داده واقعی اثر می‌گذارند.
+
+قانون ۳ — token واقعی هرگز commit نمی‌شود
+
+توکن نه در این فایل‌ها:
+
+environment.ts
+auth.interceptor.ts
+auth.service.ts
+README.md
+REPORT.md
+TODO.md
+
+نه در screenshot، نه در پیام، نه در کامنت.
+
+قانون ۴ — mockها مرحله‌ای جمع می‌شوند
+
+Mock را فقط وقتی حذف می‌کنیم که API واقعی همان بخش verified شده باشد.
+
+مثلاً:
+
+Dashboard stats real شد → mock stats حذف
+Tasks list real شد → mock tasks list حذف
+Projects real شد → mock projects حذف
+Mutation real شد → fake mutation حذف
+قانون ۵ — component را شلوغ نمی‌کنیم
+
+Component فقط:
+
+state
+loading/error
+فرم
+UI flow
+
+Service فقط:
+
+API call
+HttpParams
+payload ارسال
+response type
+````

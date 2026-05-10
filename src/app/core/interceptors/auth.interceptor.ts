@@ -1,20 +1,29 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { AuthService } from '../services/auth/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // for test develop= token > hardcore => auto rec+token
-  const token = 'YOUR_TEMPORARY_TOKEN_HERE';
-  if (req.url.startsWith('/mock-api') || req.url.includes('192.168.130.44:1234')) {
+  const authService = inject(AuthService);
+
+  // Login request must not include Authorization because we do not have a token yet.
+  const isLoginRequest = req.url.includes('/login/');
+
+  if (isLoginRequest) {
     return next(req);
   }
-  if (token) {
-    const clonedRequest = req.clone({
-      setHeaders: {
-        Authorization: `Token ${token}`,
-      },
-    });
-    //changed req => server
-    return next(clonedRequest);
+
+  const authHeaderValue = authService.getAuthHeaderValue();
+
+  if (!authHeaderValue) {
+    return next(req);
   }
 
-  return next(req);
+  // Attach the current WTT auth token to every protected API request.
+  const authenticatedRequest = req.clone({
+    setHeaders: {
+      Authorization: authHeaderValue,
+    },
+  });
+
+  return next(authenticatedRequest);
 };
