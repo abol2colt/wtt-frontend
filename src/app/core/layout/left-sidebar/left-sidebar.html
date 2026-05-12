@@ -13,11 +13,22 @@
   </div>
 
   @if (!layout.isTasksPage()) {
-    <section class="left-card attendance-card">
-      <div class="attendance-title">
-        <span>وضعیت حضور</span><span class="attendance-title-dot"></span>
-      </div>
-      <div class="status-orb">
+    <section
+      class="left-card attendance-card"
+      [class.attendance-card-active]="hasActivePresence()"
+      [class.attendance-card-inactive]="!hasActivePresence()"
+    >
+      <div
+        class="status-orb presence-orb-action"
+        role="button"
+        tabindex="0"
+        [attr.aria-label]="hasActivePresence() ? 'تست خروج از حضور' : 'تست ورود به حضور'"
+        [class.status-orb-active]="hasActivePresence()"
+        [class.status-orb-inactive]="!hasActivePresence()"
+        [class.presence-action-loading]="presenceActionLoading()"
+        (click)="togglePresenceAction()"
+        (keydown.enter)="togglePresenceAction()"
+      >
         <svg viewBox="0 0 64 64" fill="none">
           <path
             d="M10 34H22L27 22L34 46L40 30L44 34H54"
@@ -28,21 +39,106 @@
           />
         </svg>
       </div>
-      <div class="attendance-status-text">
-        <span>حاضر - آنلاین</span><span class="attendance-live-dot"></span>
-      </div>
-      <div class="attendance-time">08:26 · امروز</div>
-    </section>
+      @if (presenceCountState().loading || activePresenceState().loading) {
+        <div class="attendance-status-text">
+          <span>در حال بررسی حضور...</span>
+        </div>
 
+        <div class="attendance-time">...</div>
+      } @else if (presenceCountState().error || activePresenceState().error) {
+        <div class="attendance-status-text text-red-500">
+          <span>{{ presenceCountState().error || activePresenceState().error }}</span>
+        </div>
+
+        <div class="attendance-time">برای تلاش مجدد روی نشانگر بزن</div>
+      } @else if (hasActivePresence()) {
+        <div class="attendance-status-text">
+          <span>حاضر - آنلاین</span>
+          <span class="attendance-live-dot"></span>
+        </div>
+
+        <div class="attendance-time">
+          {{ formatPresenceTimer(currentPresenceSeconds()) }} · امروز
+        </div>
+
+        <div class="presence-orb-hint">
+          @if (presenceMutationDryRun()) {
+            تست خروج
+          } @else {
+            کلیک برای ثبت خروج
+          }
+        </div>
+      } @else {
+        <div class="attendance-status-text">
+          <span>غیرفعال - خارج از حضور</span>
+          <span class="attendance-live-dot inactive"></span>
+        </div>
+
+        <div class="attendance-time">00:00:00 · امروز</div>
+
+        <div class="presence-orb-hint">
+          @if (presenceMutationDryRun()) {
+            تست ورود با کلیک روی نشانگر
+          } @else {
+            کلیک برای ثبت ورود
+          }
+        </div>
+      }
+
+      @if (presenceActionError()) {
+        <p class="mt-2 text-[10px] font-black text-red-500 text-center">
+          {{ presenceActionError() }}
+        </p>
+      }
+    </section>
     <section class="left-card running-task-card">
-      <div class="running-task-header">
-        <span class="running-task-title">پروژه در حال اجرا</span>
-      </div>
-      <div class="running-task-project">IDEAL-9011</div>
-      <div class="running-task-desc">رفع مشکل احراز هویت کاربران</div>
-      <div class="running-task-timer text-cyan-500 drop-shadow-[0_0_8px_rgba(0,228,186,0.5)]">
-        02:15:40
-      </div>
+      @if (runningTaskState().loading) {
+        <div class="running-task-project">در حال دریافت...</div>
+        <div class="running-task-desc">آخرین تسک بررسی می‌شود</div>
+        <div class="running-task-timer text-cyan-500">00:00:00</div>
+      } @else if (runningTaskState().error) {
+        <div class="running-task-project text-red-500">خطا</div>
+        <div class="running-task-desc">{{ runningTaskState().error }}</div>
+        <button type="button" class="attendance-action-button" (click)="loadLatestIncompleteTask()">
+          تلاش مجدد
+        </button>
+      } @else if (runningTaskState().data; as task) {
+        <div class="running-task-project">
+          {{ task.project_title || 'بدون پروژه' }}
+        </div>
+
+        <div class="running-task-desc">
+          {{ task.title }}
+        </div>
+
+        <div class="running-task-control-row">
+          <div
+            class="running-task-timer running-task-live-timer"
+            [class.running]="runningTaskTimerActive()"
+          >
+            {{ formatPresenceTimer(runningTaskTimerSeconds()) }}
+          </div>
+
+          <button
+            type="button"
+            class="running-task-play-button"
+            [class.running]="runningTaskTimerActive()"
+            (click)="toggleRunningTaskTimer()"
+          >
+            @if (runningTaskTimerActive()) {
+              <span>Ⅱ</span>
+            } @else {
+              <span>▶</span>
+            }
+          </button>
+        </div>
+      } @else {
+        <div class="running-task-project">تسک ناقص پیدا نشد</div>
+        <div class="running-task-desc">
+          بعد از اتصال کامل Tasks، آخرین تسک ناقص اینجا نمایش داده می‌شود.
+        </div>
+        <div class="running-task-timer text-cyan-500">00:00:00</div>
+      }
     </section>
 
     <section class="left-card distribution-card">
@@ -71,14 +167,21 @@
         }
       </div>
       <div class="distribution-legend">
-        <div class="legend-item">
-          <span class="legend-dot legend-green"></span><span class="legend-name">NeoERP</span
-          ><span class="legend-percent" style="color: var(--left-green)">42%</span>
-        </div>
-        <div class="legend-item">
-          <span class="legend-dot legend-purple"></span><span class="legend-name">IDEAL</span
-          ><span class="legend-percent" style="color: var(--left-purple)">28%</span>
-        </div>
+        @if (projectDistributionItems().length === 0) {
+          <div class="legend-empty">بدون داده</div>
+        } @else {
+          @for (item of projectDistributionItems(); track item.project) {
+            <div class="legend-item">
+              <span class="legend-dot" [style.background]="item.color"></span>
+
+              <span class="legend-name" [title]="item.project">
+                {{ item.project }}
+              </span>
+
+              <span class="legend-percent" [style.color]="item.color"> {{ item.percent }}% </span>
+            </div>
+          }
+        }
       </div>
     </section>
   } @else {
@@ -144,7 +247,7 @@
   }
 
   <section class="left-card today-stats-card mt-auto">
-    <h3 class="today-stats-title">آمار امروز</h3>
+    <h3 class="today-stats-title">آمار ماه جاری</h3>
     <div class="today-stats-grid">
       <div class="today-mini-card">
         <svg class="today-mini-icon" viewBox="0 0 24 24" fill="none">
@@ -162,7 +265,13 @@
           />
         </svg>
         <div class="today-mini-label">کارکرد</div>
-        <strong class="today-mini-value">05:48</strong><span class="today-mini-unit">ساعت</span>
+        <strong class="today-mini-value">
+          @if (todayProfileState().loading) {
+            ...
+          } @else {
+            {{ formatShortMinutes(todayProfileState().data?.data?.presences_time) }}
+          }</strong
+        ><span class="today-mini-unit">ساعت</span>
       </div>
       <div class="today-mini-card">
         <svg class="today-mini-icon" viewBox="0 0 24 24" fill="none">
@@ -181,7 +290,13 @@
           />
         </svg>
         <div class="today-mini-label">تسک‌ها</div>
-        <strong class="today-mini-value">7</strong><span class="today-mini-unit">تسک</span>
+        <strong class="today-mini-value">
+          @if (todayTasksCountState().loading) {
+            ...
+          } @else {
+            {{ todayTasksCountState().data?.all ?? 0 }}
+          }</strong
+        ><span class="today-mini-unit">تسک</span>
       </div>
       <div class="today-mini-card">
         <svg class="today-mini-icon" viewBox="0 0 24 24" fill="none">
@@ -201,7 +316,13 @@
           />
         </svg>
         <div class="today-mini-label">بهره‌وری</div>
-        <strong class="today-mini-value">72%</strong><span class="today-mini-unit">نسبت مفید</span>
+        <strong class="today-mini-value">
+          @if (todayProfileState().loading) {
+            ...
+          } @else {
+            {{ todayProfileState().data?.data?.total_randeman ?? 0 }}%
+          }</strong
+        ><span class="today-mini-unit">نسبت مفید</span>
       </div>
     </div>
   </section>

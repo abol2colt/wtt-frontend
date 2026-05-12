@@ -1,4 +1,12 @@
-export type TaskStatus = 'pending' | 'approved' | 'rejected' | 'draft' | 'edited';
+export type TaskStatus =
+  | 'pending'
+  | 'approved'
+  | 'rejected'
+  | 'draft'
+  | 'edited'
+  | 'accept'
+  | 'reject'
+  | string;
 
 export type WorkLocation = 'teleworking' | 'incompany_working';
 
@@ -13,6 +21,16 @@ export interface TaskItem {
   location?: WorkLocation | string;
   start_time?: string;
   end_time?: string;
+  description?: string;
+  editable?: boolean;
+  project_contract?: {
+    id: number;
+    contract: string;
+  };
+  project_service?: {
+    id: number;
+    service: string;
+  };
 }
 
 export interface TaskListMeta {
@@ -37,4 +55,10 @@ export interface TaskMutationPayload {
   end_time: string;
   duration: number;
   description?: string;
+}
+export interface TasksCountResponse {
+  accept: number;
+  reject: number;
+  pending: number;
+  all: number;
 }

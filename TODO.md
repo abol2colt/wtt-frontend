@@ -209,103 +209,282 @@ Before final/demo branch, remove or disable contract bridge.
 
 # ✅ Updated Roadmap — Real WTT v1 API Direction
 
-## 🔜 Branch 010: `feature/010-real-auth-and-safe-v1-api-foundation`
+## 🔄 Branch 010: `feature/010-real-auth-and-safe-v1-api-foundation`
 
-**Goal:** Replace temporary token/user flow with real WTT login, real token handling, and a safe foundation for consuming v1 APIs.
+**Goal:** Real WTT login, token/session handling, authenticated user id, safe v1 API foundation, and early dashboard/sidebar real-read integration.
 
-### Checklist
+### Auth Foundation
 
 - [x] Capture real login endpoint from WTT Network tab.
 - [x] Document login request shape without exposing real credentials.
 - [x] Document login response shape without exposing real token.
-- [ ] Add login models:
-  - [ ] `LoginRequest`
-  - [ ] `LoginResponse`
-  - [ ] `AuthToken`
+
+- [x] Add auth models:
+  - [x] `LoginRequest`
+  - [x] `LoginResponse`
+  - [x] lightweight authenticated user/profile model
+
 - [x] Refactor `AuthService`:
-  - [ ] Use `environment.apiBaseUrl`
-  - [ ] Add `login(credentials)`
-  - [ ] Add `logout()`
-  - [ ] Add `token` state
-  - [ ] Add `currentUser` state
-  - [ ] Add `isAuthenticated`
-  - [ ] Add `fetchProfile(...)`
-- [ ] Decide temporary dev token storage:
-  - [ ] Prefer `sessionStorage` during internship/dev
-  - [ ] Never hardcode token in source
-- [ ] Refactor `authInterceptor`:
-  - [ ] Remove hardcoded temporary token
-  - [ ] Read token from `AuthService` or token storage
-  - [ ] Skip Authorization for login endpoint
-  - [ ] Attach correct `Authorization` header format based on real backend: `Token xxx` or `Bearer xxx`
-- [ ] Improve `errorInterceptor`:
-  - [ ] Handle 401 by clearing auth state
-  - [ ] Redirect to login when route guard exists
-  - [ ] Keep 403/503 user-safe logging
-- [ ] Add basic login route/page if needed:
-  - [ ] `/auth/login`
-  - [ ] Login form with loading/error state
-- [ ] Fetch real profile after login.
-- [ ] Replace `temporaryUserId` usage with authenticated user id.
-- [ ] Update `environment.ts` and `environment.development.ts`.
-- [ ] Keep mock flags only until each service is migrated.
-- [ ] Write branch report:
+  - [x] Use `environment.apiBaseUrl`
+  - [x] Add `login(credentials)`
+  - [x] Save token after successful login
+  - [x] Save authenticated `user_id`
+  - [x] Add `logout()`
+  - [x] Add `token` state
+  - [x] Add `currentUser` state
+  - [x] Add `isAuthenticated`
+  - [x] Add `getCurrentUserId()`
+  - [x] Add `getAuthHeaderValue()`
+  - [x] Add `fetchProfile()`
+  - [x] Remove placeholder hardcoded API URL
+  - [x] Avoid storing real token in source code
+
+- [x] Decide temporary dev token storage:
+  - [x] Use `sessionStorage` during internship/dev
+  - [x] Never hardcode token in source
+  - [x] Never commit real token/cookie/auth screenshots
+
+- [x] Refactor `authInterceptor`:
+  - [x] Remove hardcoded temporary token
+  - [x] Read token from auth/session storage flow
+  - [x] Skip Authorization for login endpoint
+  - [x] Attach `Authorization: Token <token>`
+
+- [x] Improve `errorInterceptor`:
+  - [x] Handle 401 by clearing auth state / redirecting toward login flow
+  - [x] Keep 403/503 user-safe logging
+
+- [x] Add login route/page:
+  - [x] `/auth/login`
+  - [x] Login form with loading/error state
+  - [x] Redirect to dashboard after successful login
+  - [x] Redirect already-authenticated user away from login page
+
+- [x] Fetch real profile after login.
+- [x] Replace `temporaryUserId` usage in connected areas with authenticated user id.
+- [x] Update environment files for real/proxy API direction.
+- [x] Keep mock flags only as temporary fallback until each service is migrated.
+
+### Real API Foundation / Verified Endpoints
+
+- [x] Verify real dashboard stats endpoint:
+  - [x] `GET /api/v1/dashboard/a_user_details`
+- [x] Verify real dashboard profile endpoint:
+  - [x] `GET /api/v1/dashboard/profile`
+- [x] Verify real dashboard line chart endpoint:
+  - [x] `GET /api/v1/dashboard/line_chart`
+- [x] Verify real dashboard pie chart endpoint:
+  - [x] `GET /api/v1/dashboard/pie_chart`
+- [x] Verify real public news endpoint:
+  - [x] `GET /api/v1/news/get_message_data/?type=public&state=all`
+- [x] Verify real private news endpoint:
+  - [x] `GET /api/v1/news/get_message_data/?type=private&state=all`
+- [x] Verify real unread message count endpoint:
+  - [x] `GET /api/v1/news/get_message_data/?state=unread_count`
+- [x] Verify real news count endpoint:
+  - [x] `GET /api/v1/news/messages_count/`
+- [x] Verify real presence count endpoint:
+  - [x] `GET /api/v1/presence/presence_count/`
+- [x] Verify real clock-in endpoint shape:
+  - [x] `POST /api/v1/presence/`
+- [x] Verify real tasks list shape:
+  - [x] `GET /api/v1/tasks/`
+- [x] Verify real tasks count shape:
+  - [x] `GET /api/v1/tasks/tasks_count/`
+- [x] Verify real projects endpoint:
+  - [x] `GET /api/v1/project/get_all_projects/`
+
+### Left Sidebar / Dashboard Work Done Inside Branch 010
+
+- [x] Replace `environment.temporaryUserId` in LeftSidebar with authenticated user id.
+- [x] Connect left sidebar pie chart to real authenticated user.
+- [x] Add dynamic project distribution legend from real pie chart response.
+- [x] Connect public announcements to real API.
+- [x] Prepare private announcements endpoint and empty state.
+- [x] Connect presence count read API.
+- [x] Connect active presence read API.
+- [x] Add animated active/inactive presence orb.
+- [x] Make presence orb clickable instead of adding a separate button.
+- [x] Keep presence mutation in dry-run mode.
+- [x] Prevent real presence mutation in this branch.
+- [x] Replace running task card with latest task fallback.
+- [x] Add local play/stop timer for latest task.
+- [x] Remove duplicate old play/stop buttons from latest task card.
+- [x] Connect today sidebar stats:
+  - [x] Work time from `/dashboard/profile`
+  - [x] Productivity from `/dashboard/profile`
+  - [x] Task count from `/tasks/tasks_count/`
+- [x] Replace remaining static today stats values.
+
+### API Documentation
+
+- [x] Update API reference with real login endpoint.
+- [x] Update dashboard endpoints to real paths.
+- [x] Update news endpoints.
+- [x] Update presence endpoints.
+- [x] Update task list/count endpoints.
+- [x] Update project endpoint from `projects` to singular `project`.
+- [x] Keep `WTT_API_Reference_clean.md` as source of truth.
+
+### Still Needed Before Closing Branch 010
+
+- [ ] Run final `npm run build`.
+- [ ] Verify Network tab after fresh login:
+  - [ ] `POST /login/`
+  - [ ] `GET /user/`
+  - [ ] `GET /dashboard/a_user_details`
+  - [ ] `GET /dashboard/profile`
+  - [ ] `GET /dashboard/line_chart`
+  - [ ] `GET /dashboard/pie_chart`
+  - [ ] `GET /news/get_message_data/`
+  - [ ] `GET /presence/presence_count/`
+  - [ ] `GET /tasks/`
+  - [ ] `GET /tasks/tasks_count/`
+- [ ] Confirm no real token/cookie is committed.
+- [ ] Write Branch 010 report:
   - [ ] Login endpoint
-  - [ ] Token format
+  - [ ] Token format: `Authorization: Token <token>`
   - [ ] Profile endpoint status
   - [ ] Auth storage decision
   - [ ] Security notes
+  - [ ] Real endpoints verified
+  - [ ] Dry-run presence note
+  - [ ] Remaining work moved to Branch 011
 
-**Safe Rule:** No real mutation in this branch.
+**Safe Rule:** No real mutation in this branch. Presence click remains dry-run unless explicitly approved.
 
----
+## ✅ Branch 011: `feature/011-dashboard-real-read-finalization`
 
-## 🔜 Branch 011: `feature/011-dashboard-real-read-integration`
+**Goal:** Finalize dashboard/sidebar read-only data and polish remaining dashboard UI.
 
-**Goal:** Connect Dashboard read-only APIs to real WTT v1 data.
+### Checklist
+
+- [x] Connect private announcements in Dashboard UI.
+- [x] Add private announcements empty state.
+- [x] Bind unread messages to Header notification badge.
+- [x] Replace recent activities static list with latest tasks fallback.
+- [x] Show real profile/name/avatar in Header/Sidebar where UI is ready.
+- [x] Make logout button real across layout.
+- [x] Verify `/dashboard/profile` with final selected range.
+- [x] Decide sidebar stats range:
+  - [x] Use `month_till_today` instead of `today`
+  - [x] Rename UI label from `آمار امروز` to `آمار ماه جاری` / `آمار بازه`
+- [x] Clean leftover CSS duplicates.
+- [x] Remove noisy console logs.
+- [x] Write Branch 011 report.
+
+### Verified Read APIs
+
+- [x] `GET /api/v1/dashboard/a_user_details?range=month_till_today&user=<id>&page=1`
+- [x] `GET /api/v1/dashboard/profile?range=month_till_today&user=<id>&page=1`
+- [x] `GET /api/v1/dashboard/line_chart?range=month_till_today&user=<id>`
+- [x] `GET /api/v1/dashboard/pie_chart?range=month_till_today&user=<id>`
+- [x] `GET /api/v1/news/get_message_data/?range=month_till_today&type=public&page=1&state=all`
+- [x] `GET /api/v1/news/get_message_data/?range=month_till_today&type=private&page=1&state=all`
+- [x] `GET /api/v1/news/get_message_data/?state=unread_count`
+- [x] `GET /api/v1/news/messages_count/?range=month_till_today&type=public`
+- [x] `GET /api/v1/news/messages_count/?range=month_till_today&type=private`
+- [x] `GET /api/v1/tasks/?range=month_till_today&page=1`
+- [x] `GET /api/v1/tasks/tasks_count/?range=month_till_today`
+
+### Important Decision
+
+`range=today` in `/dashboard/profile` can return zero for `presences_time` and `total_randeman`.
+The original WTT dashboard displays meaningful dashboard summary values from `range=month_till_today`.
+Therefore sidebar summary stats now use `month_till_today`.
+
+### Safety Notes
+
+- No real create/update/delete was added in this branch.
+- Presence mutation remains guarded/dry-run.
+- Dashboard branch stayed read-only.
+
+**Outcome:** Dashboard and sidebar real-read finalization is complete and ready for commit.
+
+### 🔜 Branch 012: `feature/012-tasks-real-read-integration`
+
+**Goal:** Connect Tasks read APIs to real WTT v1 data safely and remove old mock/contract read paths where verified.
 
 ### Checklist
 
-- [ ] Remove mock mode from verified Dashboard methods.
-- [ ] Connect `GET /api/v1/users/a_user_details/`.
-- [ ] Connect `GET /api/v1/dashboard/line_chart/`.
-- [ ] Connect `GET /api/v1/dashboard/pie_chart/`.
-- [ ] Connect `GET /api/v1/news/get_message_data/`.
-- [ ] Replace `environment.temporaryUserId` with authenticated user id.
-- [ ] Verify response shapes in Network tab.
-- [ ] Keep loading/error/empty states.
-- [ ] Bind unread messages to Header if UI is ready.
-- [ ] Remove noisy console logs.
-- [ ] Write branch report.
-
-**Safe Rule:** Dashboard branch is read-only.
-
----
-
-## 🔜 Branch 012: `feature/012-tasks-real-read-integration`
-
-**Goal:** Connect Tasks read APIs to real WTT v1 data safely.
-
-### Checklist
+#### Real Tasks List
 
 - [ ] Remove mock mode from verified Tasks read methods.
-- [ ] Connect `GET /api/v1/tasks/`.
-- [ ] Verify pagination response `{ data, meta }`.
-- [ ] Verify real status values.
-- [ ] Verify range filters:
-  - [ ] `today`
-  - [ ] `week_till_today`
-  - [ ] `month_till_today`
-- [ ] Connect `GET /api/v1/projects/get_all_projects/`.
-- [ ] Connect `GET /api/v1/projects/project_details/`.
-- [ ] Verify whether query param is `id` or `project`.
+- [ ] Remove/disable `useContractApi` path for tasks after verification.
+- [ ] Connect real `GET /api/v1/tasks/`.
+- [ ] Verify request params:
+  - [ ] `page`
+  - [ ] `range`
+  - [ ] optional `user` only if backend needs it
+- [ ] Verify real response shape.
+- [ ] Confirm whether response is:
+  - [ ] `{ count, next, previous, results }`
+  - [ ] or `{ data, meta }`
+- [ ] Keep adapter/mapping inside `TasksService`, not component.
+
+#### Pagination
+
+- [ ] Verify page 1.
+- [ ] Verify page 2.
+- [ ] Verify total count.
+- [ ] Verify next/previous behavior.
+- [ ] Make UI pagination work from real backend response.
+
+#### Range Filters
+
+- [ ] Verify `range=today`.
+- [ ] Verify `range=week_till_today`.
+- [ ] Verify `range=month_till_today`.
+- [ ] Keep active range state in component.
+- [ ] Refetch tasks when range changes.
+
+#### Status Handling
+
+- [ ] Verify real status values:
+  - [ ] `accept`
+  - [ ] `reject`
+  - [ ] `pending`
+  - [ ] others if present
+- [ ] Map backend statuses to UI labels:
+  - [ ] `accept` → `approved`
+  - [ ] `reject` → `rejected`
+  - [ ] `pending` → `pending`
 - [ ] Keep status filter client-side unless backend supports status query.
-- [ ] Remove contract adapter for tasks if real endpoint works.
-- [ ] Write branch report.
 
-**Safe Rule:** No create/update/delete in this branch.
+#### Projects
 
----
+- [ ] Connect real `GET /api/v1/project/get_all_projects/`.
+- [ ] Confirm response shape:
+  - [ ] `my_projects`
+  - [ ] `all_projects`
+  - [ ] `all_active_projects`
+- [ ] Use `all_active_projects` for create/edit dropdown if available.
+
+#### Project Details
+
+- [ ] Connect real `GET /api/v1/projects/project_details/`.
+- [ ] Verify query param:
+  - [ ] `id`
+  - [ ] `project`
+  - [ ] other real key from Network
+- [ ] Verify services response.
+- [ ] Verify contracts response.
+- [ ] Add mapping if backend response shape differs.
+
+#### UI / State
+
+- [ ] Keep loading state.
+- [ ] Keep error state.
+- [ ] Keep empty state.
+- [ ] Keep task modal disabled states safe.
+- [ ] Do not call create/update/delete in this branch.
+- [ ] Remove noisy console logs.
+- [ ] Write Branch 012 report.
+
+### Safe Rule
+
+No create/update/delete in this branch.
+This branch is read-only.
 
 ## 🔜 Branch 013: `feature/013-safe-task-mutation-verification`
 
