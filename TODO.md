@@ -401,90 +401,201 @@ Therefore sidebar summary stats now use `month_till_today`.
 
 **Outcome:** Dashboard and sidebar real-read finalization is complete and ready for commit.
 
-### 🔜 Branch 012: `feature/012-tasks-real-read-integration`
+## 🚀 Branch 012: `feature/012-smart-worklog-mvp-integration`
 
-**Goal:** Connect Tasks read APIs to real WTT v1 data safely and remove old mock/contract read paths where verified.
+**Goal:** Integrate the new Node.js Proxy server to fetch real GitLab commits and auto-fill the WTT time registration form (Proof of Concept for Management).
+
+### Checklist (Proxy Backend - wtt-proxy repo)
+
+- [x] Initialize `wtt-proxy` Node.js project.
+- [x] Install dependencies (`express`, `axios`, `cors`, `dotenv`).
+- [x] Create `.env` for GitLab local credentials and Project ID.
+- [x] Implement `GET /api/sync-gitlab` endpoint.
+- [x] Parse commits and calculate `suggestedDuration` and `description`.
+- [ ] Write `PROXY_LEARNING_REPORT.md` (0-to-100 backend concepts).
+
+### Checklist (Frontend - wtt-frontend repo)
+
+- [ ] Create `GitlabSyncService` in `features/tasks/services/` (or shared).
+- [ ] Add `Sync with GitLab` button to the Task creation/edit modal.
+- [ ] Implement loading state during proxy fetch.
+- [ ] Auto-fill the Angular `FormGroup` (description & duration) using `patchValue`.
+- [ ] Add success/error toast notifications for the sync process.
+- [ ] Update `REPORT.md` with integration results.
+
+### 🔄 Branch 012: `feature/012-tasks-real-read-integration`
+
+**Goal:** Connect Tasks read APIs to real WTT v1 data safely, remove old mock/contract read paths where verified, and align Tasks filters with real WTT v1 behavior.
 
 ### Checklist
 
 #### Real Tasks List
 
-- [ ] Remove mock mode from verified Tasks read methods.
-- [ ] Remove/disable `useContractApi` path for tasks after verification.
-- [ ] Connect real `GET /api/v1/tasks/`.
-- [ ] Verify request params:
-  - [ ] `page`
-  - [ ] `range`
-  - [ ] optional `user` only if backend needs it
-- [ ] Verify real response shape.
-- [ ] Confirm whether response is:
-  - [ ] `{ count, next, previous, results }`
-  - [ ] or `{ data, meta }`
-- [ ] Keep adapter/mapping inside `TasksService`, not component.
+- [x] Remove mock mode from verified Tasks read methods.
+- [x] Remove/disable `useContractApi` path for tasks after verification.
+- [x] Connect real `GET /api/v1/tasks/`.
+- [x] Verify request params:
+  - [x] `page`
+  - [x] `range`
+  - [x] no `user` param needed for Tasks list because backend infers user from token.
+- [x] Verify real response shape.
+- [x] Confirm real response shape is `{ count, next, previous, results }`.
+- [x] Keep adapter/mapping inside `TasksService`, not component.
+- [x] Map real WTT response to frontend `TaskListResponse { data, meta }`.
 
 #### Pagination
 
-- [ ] Verify page 1.
-- [ ] Verify page 2.
-- [ ] Verify total count.
-- [ ] Verify next/previous behavior.
-- [ ] Make UI pagination work from real backend response.
+- [x] Verify page 1.
+- [x] Verify page 2.
+- [x] Verify total count.
+- [x] Verify next/previous behavior.
+- [x] Make UI pagination work from real backend response.
+- [x] Use fixed real page size assumption instead of `results.length` to avoid wrong total pages on the last page.
 
 #### Range Filters
 
-- [ ] Verify `range=today`.
-- [ ] Verify `range=week_till_today`.
-- [ ] Verify `range=month_till_today`.
-- [ ] Keep active range state in component.
-- [ ] Refetch tasks when range changes.
+- [x] Verify `range=today`.
+- [x] Verify `range=yesterday`.
+- [x] Verify `range=week`.
+- [x] Verify `range=last_week`.
+- [x] Verify `range=month`.
+- [x] Verify `range=last_month`.
+- [x] Verify `range=month_till_today`.
+- [x] Verify `range=this_year`.
+- [x] Replace wrong/old `week_till_today` usage with real WTT `week`.
+- [x] Keep active range state in component.
+- [x] Refetch tasks when range changes.
+- [x] Refetch `tasks_count` when range changes.
+
+#### Custom Date Filters
+
+- [x] Verify `GET /api/v1/tasks/?start_date=<jalali>&end_date=<jalali>&page=1`.
+- [x] Add `start_date` and `end_date` to `TaskListQuery`.
+- [x] When manual date range is active, send `start_date/end_date` instead of `range`.
+- [ ] Polish date UI in the left sidebar so user can select/enter Jalali dates cleanly.
+
+#### Tasks Count
+
+- [x] Connect real `GET /api/v1/tasks/tasks_count/`.
+- [x] Verify `tasks_count` with range filters.
+- [x] Verify `tasks_count` with `project`.
+- [x] Verify `tasks_count` with `project_contract`.
+- [x] Verify `tasks_count` with `project_service`.
+- [x] Verify `tasks_count` with `teleworking=true`.
+- [x] Verify `tasks_count` with `favorite=true`.
+- [x] Replace summary card status counts with real `tasks_count` response.
+- [x] Keep list and summary counters synced through shared `TaskListQuery`.
 
 #### Status Handling
 
-- [ ] Verify real status values:
-  - [ ] `accept`
-  - [ ] `reject`
-  - [ ] `pending`
-  - [ ] others if present
-- [ ] Map backend statuses to UI labels:
-  - [ ] `accept` → `approved`
-  - [ ] `reject` → `rejected`
-  - [ ] `pending` → `pending`
-- [ ] Keep status filter client-side unless backend supports status query.
+- [x] Verify real status values:
+  - [x] `accept`
+  - [x] `reject`
+  - [x] `pending`
+- [x] Map backend statuses to UI labels:
+  - [x] `accept` → `approved`
+  - [x] `reject` → `rejected`
+  - [x] `pending` → `pending`
+- [x] Keep status filter client-side because WTT did not send a separate status query in Network.
+- [x] Use `tasks_count` object for real status counters: `accept`, `reject`, `pending`, `all`.
 
 #### Projects
 
-- [ ] Connect real `GET /api/v1/project/get_all_projects/`.
-- [ ] Confirm response shape:
-  - [ ] `my_projects`
-  - [ ] `all_projects`
-  - [ ] `all_active_projects`
-- [ ] Use `all_active_projects` for create/edit dropdown if available.
+- [x] Connect real `GET /api/v1/project/get_all_projects/`.
+- [x] Confirm response shape:
+  - [x] `my_projects`
+  - [x] `all_projects`
+  - [x] `all_active_projects`
+- [x] Use `all_active_projects` for dropdown if available.
+- [x] Map WTT projects response to frontend `Project[]` inside `TasksService`.
 
 #### Project Details
 
-- [ ] Connect real `GET /api/v1/projects/project_details/`.
-- [ ] Verify query param:
-  - [ ] `id`
-  - [ ] `project`
-  - [ ] other real key from Network
-- [ ] Verify services response.
-- [ ] Verify contracts response.
-- [ ] Add mapping if backend response shape differs.
+- [x] Verify real project details endpoint.
+- [x] Correct endpoint from old/unverified path to:
+  - [x] `GET /api/v1/project/project_details/?id=<projectId>`
+- [x] Verify query param:
+  - [x] `id`
+- [x] Verify services response.
+- [x] Verify contracts response.
+- [x] Connect services/contracts to project-dependent dropdowns.
+- [x] Reset service/contract when project changes.
+
+#### Advanced Filters
+
+- [x] Add `TaskRange` model.
+- [x] Add `TaskListQuery` model.
+- [x] Refactor `TasksService.getTasks()` to accept `TaskListQuery`.
+- [x] Refactor `TasksService.getTasksCount()` to accept `TaskListQuery`.
+- [x] Add shared `buildTaskQueryParams()` helper inside `TasksService`.
+- [x] Support verified query params:
+  - [x] `range`
+  - [x] `start_date`
+  - [x] `end_date`
+  - [x] `project`
+  - [x] `project_contract`
+  - [x] `project_service`
+  - [x] `teleworking=true`
+  - [x] `favorite=true`
+- [x] Do not send `teleworking=false` or `favorite=false`; remove params when disabled.
+- [x] Build current task query in component from active filters.
+- [x] Apply advanced filters to both tasks list and tasks count.
+- [x] Reset advanced filters safely.
+- [x] Move advanced filters from temporary Tasks page area to the Tasks left sidebar UI.
+- [x] Polish advanced filter layout visually inside left sidebar.
+- [x] Add clean Jalali date input/selection UX.
 
 #### UI / State
 
-- [ ] Keep loading state.
-- [ ] Keep error state.
-- [ ] Keep empty state.
-- [ ] Keep task modal disabled states safe.
-- [ ] Do not call create/update/delete in this branch.
-- [ ] Remove noisy console logs.
-- [ ] Write Branch 012 report.
+- [x] Keep loading state.
+- [x] Keep error state.
+- [x] Keep empty state.
+- [x] Keep task modal disabled states safe.
+- [x] Keep create/update/delete guarded in Branch 012.
+- [x] Do not call real create/update/delete in this branch.
+- [x] Migrate old `getTasks(userId, page, range)` consumers to new `getTasks(userId, query)`.
+- [x] Migrate old `getTasksCount(range)` consumers to new `getTasksCount(query)`.
+- [x] Remove noisy console logs.
+- [x] Run final `npm run build`.
+- [x] Verify Network after final UI move.
+- [x] Write Branch 012 report.
+
+### Verified APIs
+
+- [x] `GET /api/v1/tasks/?range=month_till_today&page=1`
+- [x] `GET /api/v1/tasks/?range=month_till_today&page=2`
+- [x] `GET /api/v1/tasks/?start_date=1405-02-02&end_date=1405-02-22&page=1`
+- [x] `GET /api/v1/tasks/tasks_count/?range=month_till_today`
+- [x] `GET /api/v1/tasks/tasks_count/?range=this_year`
+- [x] `GET /api/v1/tasks/tasks_count/?range=month`
+- [x] `GET /api/v1/tasks/tasks_count/?range=last_month`
+- [x] `GET /api/v1/tasks/tasks_count/?range=week`
+- [x] `GET /api/v1/tasks/tasks_count/?range=last_week`
+- [x] `GET /api/v1/tasks/tasks_count/?range=today`
+- [x] `GET /api/v1/tasks/tasks_count/?range=yesterday`
+- [x] `GET /api/v1/tasks/tasks_count/?range=month_till_today&project=<id>`
+- [x] `GET /api/v1/tasks/tasks_count/?range=month_till_today&project=<id>&project_contract=<id>`
+- [x] `GET /api/v1/tasks/tasks_count/?range=month_till_today&project=<id>&project_service=<id>`
+- [x] `GET /api/v1/tasks/tasks_count/?range=month_till_today&teleworking=true`
+- [x] `GET /api/v1/tasks/tasks_count/?range=month_till_today&favorite=true`
+- [x] `GET /api/v1/project/get_all_projects/`
+- [x] `GET /api/v1/project/project_details/?id=<projectId>`
 
 ### Safe Rule
 
 No create/update/delete in this branch.
 This branch is read-only.
+
+### Remaining Before Closing Branch
+
+- [x] Move advanced filters to left sidebar.
+- [x] Polish Jalali date selection/input UX.
+- [x] Run final `npm run build`.
+- [x] Verify no `/taskscontract/` request.
+- [x] Verify no mock read path.
+- [x] Verify no `POST /tasks/`, `PUT /tasks/{id}/`, or `DELETE /tasks/{id}/` call.
+- [x] Update `WTT_API_Reference_clean.md`.
+- [x] Finalize Branch 012 report.
 
 ## 🔜 Branch 013: `feature/013-safe-task-mutation-verification`
 

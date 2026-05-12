@@ -196,20 +196,276 @@
             stroke-linejoin="round"
           />
         </svg>
-        فیلترهای پیشرفته
+        فیلترهای وظایف
       </h3>
+
       <div class="flex flex-col gap-3">
-        <div
-          class="bg-slate-50 dark:bg-[var(--card-bg-soft)] border border-[var(--card-border)] rounded-lg p-2.5 flex justify-between items-center cursor-pointer"
-        >
-          <span class="text-xs font-bold text-[var(--text-soft)]">انتخاب پروژه...</span>
-          <span class="text-[var(--text-soft)]">▾</span>
+        <div>
+          <div class="text-[10px] font-black text-[var(--text-soft)] mb-2">بازه سریع</div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="
+                taskFilters.activeRange() === 'month_till_today' &&
+                !taskFilters.startDate() &&
+                !taskFilters.endDate()
+              "
+              (click)="taskFilters.setQuickRange('month_till_today')"
+            >
+              ماه جاری
+            </button>
+
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="
+                taskFilters.activeRange() === 'today' &&
+                !taskFilters.startDate() &&
+                !taskFilters.endDate()
+              "
+              (click)="taskFilters.setQuickRange('today')"
+            >
+              امروز
+            </button>
+
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="
+                taskFilters.activeRange() === 'yesterday' &&
+                !taskFilters.startDate() &&
+                !taskFilters.endDate()
+              "
+              (click)="taskFilters.setQuickRange('yesterday')"
+            >
+              دیروز
+            </button>
+
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="
+                taskFilters.activeRange() === 'week' &&
+                !taskFilters.startDate() &&
+                !taskFilters.endDate()
+              "
+              (click)="taskFilters.setQuickRange('week')"
+            >
+              هفته جاری
+            </button>
+
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="
+                taskFilters.activeRange() === 'last_week' &&
+                !taskFilters.startDate() &&
+                !taskFilters.endDate()
+              "
+              (click)="taskFilters.setQuickRange('last_week')"
+            >
+              هفته پیش
+            </button>
+
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="
+                taskFilters.activeRange() === 'this_year' &&
+                !taskFilters.startDate() &&
+                !taskFilters.endDate()
+              "
+              (click)="taskFilters.setQuickRange('this_year')"
+            >
+              سال جاری
+            </button>
+          </div>
         </div>
-        <div
-          class="bg-slate-50 dark:bg-[var(--card-bg-soft)] border border-[var(--card-border)] rounded-lg p-2.5 flex justify-between items-center cursor-pointer"
-        >
-          <span class="text-xs font-bold text-[var(--text-soft)]">نوع سرویس...</span>
-          <span class="text-[var(--text-soft)]">▾</span>
+
+        <div class="border-t border-[var(--card-border)] pt-3">
+          <div class="text-[10px] font-black text-[var(--text-soft)] mb-2">بازه دستی</div>
+
+          <div class="flex flex-col gap-2">
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="10"
+              placeholder="از تاریخ: 1405-02-02"
+              class="rounded-lg border border-[var(--card-border)] bg-slate-50 dark:bg-[var(--card-bg-soft)] px-3 py-2 text-xs font-bold text-[var(--text-main)] outline-none dir-ltr"
+              [value]="taskFilters.startDate()"
+              (input)="taskFilters.startDate.set($any($event.target).value)"
+            />
+
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="10"
+              placeholder="تا تاریخ: 1405-02-22"
+              class="rounded-lg border border-[var(--card-border)] bg-slate-50 dark:bg-[var(--card-bg-soft)] px-3 py-2 text-xs font-bold text-[var(--text-main)] outline-none dir-ltr"
+              [value]="taskFilters.endDate()"
+              (input)="taskFilters.endDate.set($any($event.target).value)"
+            />
+          </div>
+        </div>
+
+        <div class="border-t border-[var(--card-border)] pt-3">
+          <div class="text-[10px] font-black text-[var(--text-soft)] mb-2">پروژه و قرارداد</div>
+
+          <div class="flex flex-col gap-2">
+            <select
+              class="rounded-lg border border-[var(--card-border)] bg-slate-50 dark:bg-[var(--card-bg-soft)] px-3 py-2 text-xs font-bold text-[var(--text-main)] outline-none"
+              [value]="taskFilters.selectedProjectId() ?? 0"
+              (change)="onTaskFilterProjectChange($any($event.target).value)"
+            >
+              <option [value]="0">
+                @if (taskFilterProjectsState().loading) {
+                  در حال دریافت پروژه‌ها...
+                } @else {
+                  همه پروژه‌ها
+                }
+              </option>
+
+              @for (project of taskFilterProjectsState().data ?? []; track project.id) {
+                <option [value]="project.id">{{ project.title }}</option>
+              }
+            </select>
+
+            <select
+              class="rounded-lg border border-[var(--card-border)] bg-slate-50 dark:bg-[var(--card-bg-soft)] px-3 py-2 text-xs font-bold text-[var(--text-main)] outline-none disabled:opacity-50"
+              [disabled]="
+                !taskFilters.selectedProjectId() || taskFilterProjectDetailsState().loading
+              "
+              [value]="taskFilters.selectedServiceId() ?? 0"
+              (change)="
+                taskFilters.selectedServiceId.set(Number($any($event.target).value) || null)
+              "
+            >
+              <option [value]="0">
+                @if (taskFilterProjectDetailsState().loading) {
+                  در حال دریافت خدمات...
+                } @else {
+                  همه خدمات
+                }
+              </option>
+
+              @for (
+                service of taskFilterProjectDetailsState().data?.services ?? [];
+                track service.id
+              ) {
+                <option [value]="service.id">{{ service.service }}</option>
+              }
+            </select>
+
+            <select
+              class="rounded-lg border border-[var(--card-border)] bg-slate-50 dark:bg-[var(--card-bg-soft)] px-3 py-2 text-xs font-bold text-[var(--text-main)] outline-none disabled:opacity-50"
+              [disabled]="
+                !taskFilters.selectedProjectId() || taskFilterProjectDetailsState().loading
+              "
+              [value]="taskFilters.selectedContractId() ?? 0"
+              (change)="
+                taskFilters.selectedContractId.set(Number($any($event.target).value) || null)
+              "
+            >
+              <option [value]="0">
+                @if (taskFilterProjectDetailsState().loading) {
+                  در حال دریافت قراردادها...
+                } @else {
+                  همه قراردادها
+                }
+              </option>
+
+              @for (
+                contract of taskFilterProjectDetailsState().data?.contracts ?? [];
+                track contract.id
+              ) {
+                <option [value]="contract.id">{{ contract.contract }}</option>
+              }
+            </select>
+
+            @if (taskFilterProjectsState().error || taskFilterProjectDetailsState().error) {
+              <p class="text-[10px] font-black text-red-500">
+                {{ taskFilterProjectsState().error || taskFilterProjectDetailsState().error }}
+              </p>
+            }
+          </div>
+        </div>
+
+        <div class="border-t border-[var(--card-border)] pt-3">
+          <div class="text-[10px] font-black text-[var(--text-soft)] mb-2">وضعیت</div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="taskFilters.activeStatus() === 'all'"
+              (click)="taskFilters.activeStatus.set('all'); taskFilters.apply()"
+            >
+              همه
+            </button>
+
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="taskFilters.activeStatus() === 'approved'"
+              (click)="taskFilters.activeStatus.set('approved'); taskFilters.apply()"
+            >
+              تایید شده
+            </button>
+
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="taskFilters.activeStatus() === 'pending'"
+              (click)="taskFilters.activeStatus.set('pending'); taskFilters.apply()"
+            >
+              در انتظار
+            </button>
+
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="taskFilters.activeStatus() === 'rejected'"
+              (click)="taskFilters.activeStatus.set('rejected'); taskFilters.apply()"
+            >
+              نیاز اصلاح
+            </button>
+          </div>
+        </div>
+
+        <div class="border-t border-[var(--card-border)] pt-3 flex flex-col gap-2">
+          <label
+            class="flex items-center justify-between gap-3 rounded-lg border border-[var(--card-border)] bg-slate-50 dark:bg-[var(--card-bg-soft)] px-3 py-2"
+          >
+            <span class="text-xs font-bold text-[var(--text-soft)]">فقط دورکاری</span>
+            <input
+              type="checkbox"
+              [checked]="taskFilters.teleworkingOnly()"
+              (change)="taskFilters.teleworkingOnly.set($any($event.target).checked)"
+            />
+          </label>
+
+          <label
+            class="flex items-center justify-between gap-3 rounded-lg border border-[var(--card-border)] bg-slate-50 dark:bg-[var(--card-bg-soft)] px-3 py-2"
+          >
+            <span class="text-xs font-bold text-[var(--text-soft)]">فقط نشان‌شده‌ها</span>
+            <input
+              type="checkbox"
+              [checked]="taskFilters.favoriteOnly()"
+              (change)="taskFilters.favoriteOnly.set($any($event.target).checked)"
+            />
+          </label>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <button type="button" class="filter-chip active" (click)="applyTaskSidebarFilters()">
+            اعمال
+          </button>
+
+          <button type="button" class="filter-chip" (click)="resetTaskSidebarFilters()">
+            حذف فیلتر
+          </button>
         </div>
       </div>
     </section>

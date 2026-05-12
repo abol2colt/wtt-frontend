@@ -1,13 +1,27 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, signal, untracked } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { LayoutService } from '../../core/services/layout/layout.service';
 import { ApiState } from '../../shared/models/api-state.model';
-import { TaskItem, TaskListResponse, TaskMutationPayload } from '../../shared/models/task.model';
+import {
+  TaskItem,
+  TaskListQuery,
+  TaskListResponse,
+  TaskMutationPayload,
+  TasksCountResponse,
+  TaskRange,
+} from '../../shared/models/task.model';
 import { TasksService } from './services/tasks.service';
+import { TasksFiltersService } from './services/tasks-filters.service';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { Project, ProjectDetailsResponse } from '../../shared/models/project.model';
 
-type TaskRangeFilter = 'month_till_today' | 'today' | 'week_till_today';
+type TaskRangeFilter =
+  | 'month_till_today'
+  | 'today'
+  | 'yesterday'
+  | 'week'
+  | 'last_week'
+  | 'this_year';
 type TaskStatusFilter = 'all' | 'pending' | 'rejected';
 @Component({
   selector: 'app-tasks',
@@ -20,6 +34,10 @@ export class TasksComponent implements OnInit {
   private readonly tasksService = inject(TasksService);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+  readonly taskFilters = inject(TasksFiltersService);
+
+  private filtersEffectReady = false;
+  readonly Number = Number;
 
   tasksState = signal<ApiState<TaskListResponse>>({
     data: null,
@@ -45,6 +63,12 @@ export class TasksComponent implements OnInit {
     error: null,
   });
 
+  tasksCountState = signal<ApiState<TasksCountResponse>>({
+    data: null,
+    loading: false,
+    error: null,
+  });
+
   isTaskModalOpen = signal(false);
   editingTask = signal<TaskItem | null>(null);
 
@@ -53,7 +77,15 @@ export class TasksComponent implements OnInit {
   activeStatus = signal<TaskStatusFilter>('all');
   deletingTaskId = signal<number | null>(null);
   deleteError = signal<string | null>(null);
+  selectedProjectId = signal<number | null>(null);
+  selectedServiceId = signal<number | null>(null);
+  selectedContractId = signal<number | null>(null);
 
+  teleworkingOnly = signal(false);
+  favoriteOnly = signal(false);
+
+  startDate = signal('');
+  endDate = signal('');
   taskForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
     project: [0, [Validators.required, Validators.min(1)]],
@@ -68,11 +100,52 @@ export class TasksComponent implements OnInit {
 
   constructor() {
     this.layout.isTasksPage.set(true);
+
+    effect(() => {
+      this.taskFilters.reloadKey();
+
+      if (!this.filtersEffectReady) {
+        this.filtersEffectReady = true;
+        return;
+      }
+
+      untracked(() => {
+        this.currentPage.set(1);
+        this.loadTasks(1);
+        this.loadTasksCount();
+      });
+    });
   }
 
   ngOnInit(): void {
     this.loadTasks();
+    this.loadTasksCount();
     this.loadProjects();
+  }
+
+  loadTasksCount(): void {
+    this.tasksCountState.set({
+      data: null,
+      loading: true,
+      error: null,
+    });
+
+    this.tasksService.getTasksCount(this.buildCurrentTaskQuery()).subscribe({
+      next: (response) => {
+        this.tasksCountState.set({
+          data: response,
+          loading: false,
+          error: null,
+        });
+      },
+      error: () => {
+        this.tasksCountState.set({
+          data: null,
+          loading: false,
+          error: 'خطا در دریافت شمارنده وظایف',
+        });
+      },
+    });
   }
 
   loadTasks(page = this.currentPage()): void {
@@ -95,8 +168,7 @@ export class TasksComponent implements OnInit {
       loading: true,
       error: null,
     });
-
-    this.tasksService.getTasks(userId, page, this.activeRange()).subscribe({
+    this.tasksService.getTasks(userId, this.taskFilters.buildQuery(page)).subscribe({
       next: (response) => {
         this.tasksState.set({
           data: response,
@@ -130,7 +202,7 @@ export class TasksComponent implements OnInit {
   }
 
   get totalTasks(): number {
-    return this.tasksState().data?.meta.total ?? 0;
+    return this.listTotalTasks;
   }
 
   get totalDuration(): number {
@@ -138,11 +210,15 @@ export class TasksComponent implements OnInit {
   }
 
   get pendingCount(): number {
-    return this.tasks.filter((task) => task.status === 'pending').length;
+    return this.tasksCountState().data?.pending ?? 0;
   }
 
   get rejectedCount(): number {
-    return this.tasks.filter((task) => task.status === 'rejected').length;
+    return this.tasksCountState().data?.reject ?? 0;
+  }
+
+  get approvedCount(): number {
+    return this.tasksCountState().data?.accept ?? 0;
   }
 
   get pageSize(): number {
@@ -155,6 +231,14 @@ export class TasksComponent implements OnInit {
 
   get hasPreviousPage(): boolean {
     return this.currentPage() > 1;
+  }
+
+  get listTotalTasks(): number {
+    return this.tasksState().data?.meta.total ?? 0;
+  }
+
+  get acceptedCount(): number {
+    return this.tasksCountState().data?.accept ?? 0;
   }
 
   get hasNextPage(): boolean {
@@ -173,33 +257,28 @@ export class TasksComponent implements OnInit {
     this.loadTasks(this.currentPage() + 1);
   }
 
-  resetFilters(): void {
-    this.activeRange.set('month_till_today');
-    this.activeStatus.set('all');
-    this.loadTasks(1);
-  }
-
   setRangeFilter(range: TaskRangeFilter): void {
-    this.activeRange.set(range);
-    this.activeStatus.set('all');
-    this.loadTasks(1);
+    this.taskFilters.setQuickRange(range);
   }
 
-  setStatusFilter(status: TaskStatusFilter): void {
-    this.activeStatus.set(status);
-    this.loadTasks(1);
+  resetFilters(): void {
+    this.taskFilters.reset();
+  }
+
+  setStatusFilter(status: 'all' | 'approved' | 'pending' | 'rejected'): void {
+    this.taskFilters.activeStatus.set(status);
   }
 
   isAllFilterActive(): boolean {
     return this.activeRange() === 'month_till_today' && this.activeStatus() === 'all';
   }
 
-  isRangeFilterActive(range: TaskRangeFilter): boolean {
-    return this.activeRange() === range && this.activeStatus() === 'all';
+  isRangeFilterActive(range: TaskRange): boolean {
+    return this.taskFilters.activeRange() === range && this.taskFilters.activeStatus() === 'all';
   }
 
-  isStatusFilterActive(status: TaskStatusFilter): boolean {
-    return this.activeStatus() === status;
+  isStatusFilterActive(status: 'all' | 'approved' | 'pending' | 'rejected'): boolean {
+    return this.taskFilters.activeStatus() === status;
   }
 
   loadProjects(): void {
@@ -435,6 +514,7 @@ export class TasksComponent implements OnInit {
       description: formValue.description || undefined,
     };
   }
+
   deleteTask(task: TaskItem): void {
     const confirmed = window.confirm(`آیا از حذف این وظیفه مطمئنی؟\n${task.title}`);
 
@@ -512,5 +592,83 @@ export class TasksComponent implements OnInit {
         });
       },
     });
+  }
+  applyAdvancedFilters(): void {
+    this.activeStatus.set('all');
+    this.loadTasks(1);
+    this.loadTasksCount();
+  }
+
+  resetAdvancedFilters(): void {
+    this.selectedProjectId.set(null);
+    this.selectedServiceId.set(null);
+    this.selectedContractId.set(null);
+    this.teleworkingOnly.set(false);
+    this.favoriteOnly.set(false);
+    this.startDate.set('');
+    this.endDate.set('');
+
+    this.activeRange.set('month_till_today');
+    this.activeStatus.set('all');
+
+    this.projectDetailsState.set({
+      data: null,
+      loading: false,
+      error: null,
+    });
+
+    this.loadTasks(1);
+    this.loadTasksCount();
+  }
+  onFilterProjectChange(projectId: number | string): void {
+    const selectedProjectId = Number(projectId) || null;
+
+    this.selectedProjectId.set(selectedProjectId);
+    this.selectedServiceId.set(null);
+    this.selectedContractId.set(null);
+
+    if (selectedProjectId) {
+      this.loadProjectDetails(selectedProjectId);
+    } else {
+      this.projectDetailsState.set({
+        data: null,
+        loading: false,
+        error: null,
+      });
+    }
+  }
+  private buildCurrentTaskQuery(page = this.currentPage()): TaskListQuery {
+    const query: TaskListQuery = {
+      page,
+      range: this.activeRange(),
+    };
+
+    if (this.startDate() && this.endDate()) {
+      query.start_date = this.startDate();
+      query.end_date = this.endDate();
+      delete query.range;
+    }
+
+    if (this.selectedProjectId()) {
+      query.project = this.selectedProjectId()!;
+    }
+
+    if (this.selectedServiceId()) {
+      query.project_service = this.selectedServiceId()!;
+    }
+
+    if (this.selectedContractId()) {
+      query.project_contract = this.selectedContractId()!;
+    }
+
+    if (this.teleworkingOnly()) {
+      query.teleworking = true;
+    }
+
+    if (this.favoriteOnly()) {
+      query.favorite = true;
+    }
+
+    return query;
   }
 }

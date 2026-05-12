@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-[14px] pb-6">
   <section class="summary-stats-row">
     <article class="summary-stat-card tint-cyan">
-      <div class="summary-stat-label">وظایف امروز</div>
+      <div class="summary-stat-label">وظایف بازه</div>
       <div class="summary-stat-value text-right">
         @if (tasksState().loading) {
           <span>...</span>
@@ -127,10 +127,10 @@
       <button
         type="button"
         class="filter-chip"
-        [class.active]="isAllFilterActive()"
-        (click)="resetFilters()"
+        [class.active]="isRangeFilterActive('month_till_today')"
+        (click)="setRangeFilter('month_till_today')"
       >
-        همه
+        ماه جاری
       </button>
 
       <button
@@ -145,28 +145,10 @@
       <button
         type="button"
         class="filter-chip"
-        [class.active]="isRangeFilterActive('week_till_today')"
-        (click)="setRangeFilter('week_till_today')"
+        [class.active]="isRangeFilterActive('yesterday')"
+        (click)="setRangeFilter('yesterday')"
       >
-        هفته جاری
-      </button>
-
-      <button
-        type="button"
-        class="filter-chip text-orange-500 border-orange-500/30"
-        [class.active]="isStatusFilterActive('pending')"
-        (click)="setStatusFilter('pending')"
-      >
-        در انتظار تایید
-      </button>
-
-      <button
-        type="button"
-        class="filter-chip text-red-500 border-red-500/30"
-        [class.active]="isStatusFilterActive('rejected')"
-        (click)="setStatusFilter('rejected')"
-      >
-        نیاز به اصلاح
+        دیروز
       </button>
     </div>
     <div class="flex items-center gap-2">
@@ -324,12 +306,12 @@
           </div>
         }
       }
-      @if (!tasksState().loading && !tasksState().error && totalTasks > 0) {
+      @if (!tasksState().loading && !tasksState().error && listTotalTasks > 0) {
         <div class="flex items-center justify-between mt-4 px-1">
           <div class="text-[11px] font-bold text-[var(--text-soft)]">
             صفحه {{ currentPage() }} از {{ totalPages }}
             <span class="mx-1">·</span>
-            مجموع {{ totalTasks }} وظیفه
+            مجموع {{ listTotalTasks }} وظیفه
           </div>
 
           <div class="flex items-center gap-2">

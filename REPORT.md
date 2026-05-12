@@ -1973,3 +1973,354 @@ Safe Rule: رعایت شد
 Real Mutation: انجام نشد
 Next Branch: feature/012-tasks-real-read-integration
 ```
+
+## گزارش کامل Branch 012 برای REPORT.md
+
+## Branch 012 — `feature/012-tasks-real-read-integration`
+
+### هدف Branch
+
+هدف این branch اتصال کامل read-only صفحه Tasks به API واقعی WTT v1 بود. در این branch مسیرهای mock و contract مربوط به read flow حذف یا غیرفعال شدند، response واقعی WTT بررسی شد، mapping داخل `TasksService` انجام شد، pagination و range filters واقعی شدند، پروژه‌ها و جزئیات پروژه به API واقعی وصل شدند، و فیلترهای پیشرفته WTT اصلی تا حد ممکن با Network واقعی استخراج و در frontend آماده شدند.
+
+این branch فقط read-only است و هیچ create/update/delete واقعی نباید در آن اجرا شود.
+
+---
+
+### قوانین رعایت‌شده
+
+- هیچ task واقعی create/update/delete نشد.
+- mutationهای task با guard غیرفعال شدند.
+- token/cookie/password نباید در screenshot، report یا commit ثبت شود.
+- component همچنان URL و HttpParams نمی‌سازد.
+- ساخت query params و response mapping داخل `TasksService` نگه داشته شد.
+- status filter تا وقتی backend query رسمی نشان نداد، client-side باقی ماند.
+- mock/contract read paths برای بخش‌های verified حذف شدند.
+
+---
+
+### کارهای انجام‌شده
+
+#### 1. اتصال واقعی Tasks List
+
+Endpoint واقعی Tasks بررسی و متصل شد:
+
+```txt
+GET /api/v1/tasks/?range=month_till_today&page=1
+GET /api/v1/tasks/?range=month_till_today&page=2
+
+response واقعی WTT این shape را دارد:
+
+{
+  "count": 33,
+  "next": "http://wtt.sanayco.ir/api/v1/tasks/?page=2&range=month_till_today",
+  "previous": null,
+  "results": []
+}
+
+این response داخل TasksService به مدل داخلی frontend تبدیل شد:
+
+TaskListResponse {
+  data: TaskItem[];
+  meta: {
+    page: number;
+    page_size: number;
+    total: number;
+  };
+}
+
+تصمیم معماری:
+
+WTT response → TasksService adapter → TaskListResponse → Component state → Template
+2. حذف مسیرهای mock/contract read
+
+بعد از verify شدن API واقعی، مسیر contract برای tasks list حذف/غیرفعال شد. useContractApi دیگر در read flow اصلی Tasks استفاده نمی‌شود.
+
+Mock read path هم برای بخش‌های verified حذف شد تا صفحه Tasks واقعاً به WTT v1 وصل باشد.
+
+3. Pagination واقعی
+
+Pagination با response واقعی WTT بررسی شد:
+
+page 1
+page 2
+count
+next
+previous
+
+برای جلوگیری از محاسبه اشتباه total pages در صفحه آخر، page_size از results.length گرفته نشد و برای WTT list روی مقدار ثابت واقعی صفحه تنظیم شد.
+
+4. Range filters واقعی
+
+Rangeهای واقعی WTT از Network استخراج و تست شدند:
+
+today
+yesterday
+week
+last_week
+month
+last_month
+month_till_today
+this_year
+
+مقدار قبلی week_till_today با مقدار واقعی WTT یعنی week جایگزین شد.
+
+نتایج verify شده برای tasks_count:
+
+month_till_today → 33
+this_year        → 64
+month            → 33
+last_month       → 35
+week             → 6
+last_week        → 5
+today            → 0
+yesterday        → 1
+
+تصمیم UI:
+
+Quick filters بالای صفحه باید ساده بمانند:
+
+ماه جاری
+امروز
+دیروز
+
+فیلترهای کامل‌تر باید به left sidebar منتقل شوند.
+
+5. Custom Date Range
+
+در Network مشخص شد لیست Tasks از بازه دستی با این query پشتیبانی می‌کند:
+
+GET /api/v1/tasks/?start_date=1405-02-02&end_date=1405-02-22&page=1
+
+برای این حالت TaskListQuery توسعه داده شد تا start_date و end_date را نگه دارد.
+
+تصمیم معماری:
+
+اگر start_date و end_date فعال باشند، range ارسال نمی‌شود؛ چون WTT برای بازه دستی از start_date/end_date استفاده می‌کند.
+
+6. اتصال واقعی Tasks Count
+
+Endpoint واقعی count متصل شد:
+
+GET /api/v1/tasks/tasks_count/?range=month_till_today
+
+response:
+
+{
+  "accept": 33,
+  "reject": 0,
+  "pending": 0,
+  "all": 33
+}
+
+summary cards از این response واقعی تغذیه شدند تا به taskهای صفحه فعلی وابسته نباشند.
+
+7. Status mapping
+
+statusهای واقعی WTT:
+
+accept
+reject
+pending
+
+به statusهای UI mapping شدند:
+
+accept  → approved
+reject  → rejected
+pending → pending
+
+برای status filter، در Network query جداگانه‌ای دیده نشد. WTT اصلی برای شمارنده‌ها از همان object tasks_count استفاده می‌کند. بنابراین status filter فعلاً client-side باقی ماند.
+
+8. اتصال Projects واقعی
+
+Endpoint واقعی projects بررسی و متصل شد:
+
+GET /api/v1/project/get_all_projects/
+
+response واقعی object است:
+
+{
+  "my_projects": [],
+  "all_projects": [],
+  "all_active_projects": []
+}
+
+داخل TasksService این response به Project[] تبدیل شد. اگر all_active_projects موجود باشد، برای dropdown از آن استفاده می‌شود.
+
+9. اتصال Project Details واقعی
+
+مسیر قبلی/حدسی project details اصلاح شد. مسیر واقعی verified شده:
+
+GET /api/v1/project/project_details/?id=<projectId>
+
+response:
+
+{
+  "services": [
+    { "service": "DevOps", "id": 154 }
+  ],
+  "contracts": [
+    { "contract": "سانای", "id": 23 }
+  ]
+}
+
+نکته مهم:
+
+services وابسته به پروژه هستند و با تغییر project، service idها تغییر می‌کنند. بنابراین با تغییر project، project_service و project_contract reset می‌شوند و سپس details پروژه جدید load می‌شود.
+
+10. فیلترهای پیشرفته واقعی
+
+از WTT اصلی queryهای فیلتر پیشرفته استخراج شدند و در TaskListQuery و TasksService آماده شدند.
+
+فیلترهای verified:
+
+range
+start_date
+end_date
+project
+project_contract
+project_service
+teleworking=true
+favorite=true
+
+برای checkboxها تصمیم گرفته شد وقتی خاموش هستند، query param ارسال نشود:
+
+روشن  → favorite=true / teleworking=true
+خاموش → param حذف می‌شود
+
+این رفتار با WTT اصلی هماهنگ است.
+
+11. Refactor Service API
+
+امضای قدیمی:
+
+getTasks(userId, page, range)
+getTasksCount(range)
+
+به امضای جدید query-based تغییر کرد:
+
+getTasks(userId, query: TaskListQuery)
+getTasksCount(query: TaskListQuery)
+
+یک helper مشترک برای ساخت query params اضافه شد:
+
+buildTaskQueryParams(query)
+
+مزیت این تغییر:
+
+list و count همیشه با یک فیلتر مشترک sync می‌مانند.
+component HttpParams نمی‌سازد.
+اضافه کردن فیلترهای آینده ساده‌تر می‌شود.
+مسیر معماری Model → Service → State → Load Method → Template Binding حفظ می‌شود.
+12. Migration مصرف‌کننده‌های قدیمی
+
+بعد از تغییر امضای TasksService، مصرف‌کننده‌های قدیمی در Tasks page و LeftSidebar اصلاح شدند.
+
+نمونه migration:
+
+getTasks(userId, 1, 'month_till_today')
+
+به:
+
+getTasks(userId, { page: 1, range: 'month_till_today' })
+
+و:
+
+getTasksCount('month_till_today')
+
+به:
+
+getTasksCount({ range: 'month_till_today' })
+APIهای Verified در Branch 012
+GET /api/v1/tasks/?range=month_till_today&page=1
+GET /api/v1/tasks/?range=month_till_today&page=2
+GET /api/v1/tasks/?start_date=1405-02-02&end_date=1405-02-22&page=1
+
+GET /api/v1/tasks/tasks_count/?range=month_till_today
+GET /api/v1/tasks/tasks_count/?range=this_year
+GET /api/v1/tasks/tasks_count/?range=month
+GET /api/v1/tasks/tasks_count/?range=last_month
+GET /api/v1/tasks/tasks_count/?range=week
+GET /api/v1/tasks/tasks_count/?range=last_week
+GET /api/v1/tasks/tasks_count/?range=today
+GET /api/v1/tasks/tasks_count/?range=yesterday
+
+GET /api/v1/tasks/tasks_count/?range=month_till_today&project=<id>
+GET /api/v1/tasks/tasks_count/?range=month_till_today&project=<id>&project_contract=<id>
+GET /api/v1/tasks/tasks_count/?range=month_till_today&project=<id>&project_service=<id>
+GET /api/v1/tasks/tasks_count/?range=month_till_today&teleworking=true
+GET /api/v1/tasks/tasks_count/?range=month_till_today&favorite=true
+
+GET /api/v1/project/get_all_projects/
+GET /api/v1/project/project_details/?id=<projectId>
+تصمیم‌های مهم فنی
+تصمیم ۱ — week_till_today حذف شد
+
+WTT اصلی برای هفته جاری از range=week استفاده می‌کند. مقدار week_till_today باعث رفتار اشتباه در count/list می‌شد، بنابراین با week جایگزین شد.
+
+تصمیم ۲ — status filter فعلاً client-side است
+
+در Network برای statusها query جدا دیده نشد. بنابراین تا وقتی backend query رسمی ندهد، status filter سمت frontend اعمال می‌شود.
+
+تصمیم ۳ — all_active_projects برای dropdown ترجیح داده شد
+
+برای create/edit و فیلترهای پروژه، اگر all_active_projects وجود داشته باشد، از آن استفاده می‌شود تا پروژه‌های غیرفعال وارد انتخاب اصلی نشوند.
+
+تصمیم ۴ — favorite=false و teleworking=false ارسال نمی‌شود
+
+WTT اصلی هنگام خاموش کردن این فیلترها، param را حذف می‌کند. frontend هم همین رفتار را پیاده کرد.
+
+تصمیم ۵ — mutation واقعی guard شد
+
+با اینکه service متدهای create/update/delete دارد، در Branch 012 این متدها real mutation انجام نمی‌دهند و خطای کنترل‌شده برمی‌گردانند.
+
+وضعیت UI
+
+انجام شده:
+
+لیست real tasks
+pagination
+quick filters
+real counts
+advanced filters موقت روی Tasks page
+project/service/contract cascading filter
+favorite filter
+teleworking filter
+custom date query support
+
+باقی‌مانده قبل از بستن نهایی branch:
+
+انتقال advanced filters به left sidebar
+polish visual فیلترها در left sidebar
+بهتر کردن date UX برای انتخاب/ورود تاریخ جلالی
+اجرای final build
+پاکسازی console logهای اضافه
+Safety Notes
+هیچ POST/PUT/DELETE واقعی نباید در این branch دیده شود.
+هیچ task واقعی mutate نشد.
+token/cookie/password نباید در فایل‌ها یا screenshotهای commit شده باشد.
+mutation واقعی taskها به Branch 013 منتقل می‌شود.
+وضعیت فعلی Branch
+
+Status: Almost Done / Final UI polish remaining
+
+Completed:
+
+Real Tasks read integration
+Real pagination
+Real tasks count
+Real projects
+Real project details
+Real advanced filter query support
+Mock/contract read cleanup
+
+Remaining:
+
+Move advanced filters to left sidebar
+Polish Jalali date selection/input
+Run final npm run build
+Update API reference
+Final verification in Network
+
+Next Branch:
+feature/013-safe-task-mutation-verification
+```
