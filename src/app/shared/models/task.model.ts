@@ -62,3 +62,24 @@ export interface TasksCountResponse {
   pending: number;
   all: number;
 }
+export type TaskRange =
+  | 'today'
+  | 'yesterday'
+  | 'week'
+  | 'last_week'
+  | 'month'
+  | 'last_month'
+  | 'month_till_today'
+  | 'this_year';
+
+export interface TaskListQuery {
+  page?: number;
+  range?: TaskRange;
+  start_date?: string;
+  end_date?: string;
+  project?: number;
+  project_contract?: number;
+  project_service?: number;
+  teleworking?: boolean;
+  favorite?: boolean;
+}

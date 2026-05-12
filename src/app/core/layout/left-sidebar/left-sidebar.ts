@@ -1,4 +1,13 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { EChartsOption } from 'echarts';
 import { NgxEchartsDirective } from 'ngx-echarts';
 import { Subscription, interval, finalize } from 'rxjs';
@@ -9,6 +18,8 @@ import { AuthService } from '../../services/auth/auth.service';
 import { DashboardService } from '../../../features/dashboard/services/dashboard.service';
 import { PresenceService } from '../../../features/presence/services/presence.service';
 import { TasksService } from '../../../features/tasks/services/tasks.service';
+import { TasksFiltersService } from '../../../features/tasks/services/tasks-filters.service';
+import { Project, ProjectDetailsResponse } from '../../../shared/models/project.model';
 
 import { ApiState } from '../../../shared/models/api-state.model';
 import { DashboardPieItem } from '../../../shared/models/dashboard.model';
@@ -40,6 +51,21 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
   private readonly tasksService = inject(TasksService);
   readonly presenceMutationDryRun = signal(true);
   private readonly sidebarStatsRange = 'month_till_today';
+  readonly taskFilters = inject(TasksFiltersService);
+
+  taskFilterProjectsState = signal<ApiState<Project[]>>({
+    data: null,
+    loading: false,
+    error: null,
+  });
+
+  taskFilterProjectDetailsState = signal<ApiState<ProjectDetailsResponse>>({
+    data: null,
+    loading: false,
+    error: null,
+  });
+
+  private taskFilterProjectsLoaded = false;
 
   presenceActionLoading = signal(false);
   presenceActionError = signal<string | null>(null);
@@ -77,9 +103,23 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
 
   currentPresenceSeconds = signal(0);
 
+  readonly Number = Number;
+
   readonly pieColors = ['#3b82f6', '#a855f7', '#f59e0b', '#22c55e', '#ef4444'];
 
   pieChartItems = signal<DashboardPieItem[]>([]);
+
+  constructor() {
+    effect(() => {
+      const isTasksPage = this.layout.isTasksPage();
+
+      if (!isTasksPage) return;
+
+      untracked(() => {
+        this.loadTaskFilterProjects();
+      });
+    });
+  }
 
   projectDistributionItems = computed<ProjectDistributionItem[]>(() => {
     const items: DashboardPieItem[] = this.pieChartItems();
@@ -169,6 +209,93 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
           error: 'خطا در دریافت توزیع پروژه‌ها',
         });
       },
+    });
+  }
+  loadTaskFilterProjects(): void {
+    if (this.taskFilterProjectsLoaded) return;
+
+    this.taskFilterProjectsLoaded = true;
+
+    this.taskFilterProjectsState.set({
+      data: null,
+      loading: true,
+      error: null,
+    });
+
+    this.tasksService.getProjects().subscribe({
+      next: (projects) => {
+        this.taskFilterProjectsState.set({
+          data: projects,
+          loading: false,
+          error: null,
+        });
+      },
+      error: () => {
+        this.taskFilterProjectsState.set({
+          data: null,
+          loading: false,
+          error: 'خطا در دریافت پروژه‌ها',
+        });
+      },
+    });
+  }
+
+  onTaskFilterProjectChange(projectId: number | string): void {
+    const selectedProjectId = Number(projectId) || null;
+
+    this.taskFilters.selectedProjectId.set(selectedProjectId);
+    this.taskFilters.selectedServiceId.set(null);
+    this.taskFilters.selectedContractId.set(null);
+
+    if (!selectedProjectId) {
+      this.taskFilterProjectDetailsState.set({
+        data: null,
+        loading: false,
+        error: null,
+      });
+
+      return;
+    }
+
+    this.loadTaskFilterProjectDetails(selectedProjectId);
+  }
+
+  loadTaskFilterProjectDetails(projectId: number): void {
+    this.taskFilterProjectDetailsState.set({
+      data: null,
+      loading: true,
+      error: null,
+    });
+
+    this.tasksService.getProjectDetails(projectId).subscribe({
+      next: (details) => {
+        this.taskFilterProjectDetailsState.set({
+          data: details,
+          loading: false,
+          error: null,
+        });
+      },
+      error: () => {
+        this.taskFilterProjectDetailsState.set({
+          data: null,
+          loading: false,
+          error: 'خطا در دریافت خدمات و قراردادها',
+        });
+      },
+    });
+  }
+
+  applyTaskSidebarFilters(): void {
+    this.taskFilters.apply();
+  }
+
+  resetTaskSidebarFilters(): void {
+    this.taskFilters.reset();
+
+    this.taskFilterProjectDetailsState.set({
+      data: null,
+      loading: false,
+      error: null,
     });
   }
 
@@ -270,29 +397,34 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
       error: null,
     });
 
-    this.tasksService.getTasks(userId, 1, 'month_till_today').subscribe({
-      next: (response) => {
-        const tasks = this.extractTasksFromResponse(response);
-        const latestIncompleteTask = this.findLatestIncompleteTask(tasks);
+    this.tasksService
+      .getTasks(userId, {
+        page: 1,
+        range: 'month_till_today',
+      })
+      .subscribe({
+        next: (response) => {
+          const tasks = this.extractTasksFromResponse(response);
+          const latestIncompleteTask = this.findLatestIncompleteTask(tasks);
 
-        this.stopRunningTaskTimer();
-        this.runningTaskTimerSeconds.set(0);
+          this.stopRunningTaskTimer();
+          this.runningTaskTimerSeconds.set(0);
 
-        this.runningTaskState.set({
-          data: latestIncompleteTask,
-          loading: false,
-          error: null,
-        });
-      },
+          this.runningTaskState.set({
+            data: latestIncompleteTask,
+            loading: false,
+            error: null,
+          });
+        },
 
-      error: () => {
-        this.runningTaskState.set({
-          data: null,
-          loading: false,
-          error: 'خطا در دریافت آخرین تسک',
-        });
-      },
-    });
+        error: () => {
+          this.runningTaskState.set({
+            data: null,
+            loading: false,
+            error: 'خطا در دریافت آخرین تسک',
+          });
+        },
+      });
   }
 
   clockIn(): void {
@@ -617,23 +749,27 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
       },
     });
 
-    this.tasksService.getTasksCount(this.sidebarStatsRange).subscribe({
-      next: (response) => {
-        this.todayTasksCountState.set({
-          data: response,
-          loading: false,
-          error: null,
-        });
-      },
+    this.tasksService
+      .getTasksCount({
+        range: this.sidebarStatsRange,
+      })
+      .subscribe({
+        next: (response) => {
+          this.todayTasksCountState.set({
+            data: response,
+            loading: false,
+            error: null,
+          });
+        },
 
-      error: () => {
-        this.todayTasksCountState.set({
-          data: null,
-          loading: false,
-          error: 'خطا در دریافت تعداد تسک‌ها',
-        });
-      },
-    });
+        error: () => {
+          this.todayTasksCountState.set({
+            data: null,
+            loading: false,
+            error: 'خطا در دریافت تعداد تسک‌ها',
+          });
+        },
+      });
   }
   formatShortMinutes(minutes: number | null | undefined): string {
     if (minutes == null || minutes <= 0) {
