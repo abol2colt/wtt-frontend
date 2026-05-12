@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-@import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -545,4 +544,665 @@ body {
 .project-chart {
   width: 106px;
   height: 106px;
+}
+///
+/* -------------------------------------------------------
+   WTT left sidebar presence animation
+   TODO: Move to left-sidebar.scss during final cleanup.
+------------------------------------------------------- */
+
+.attendance-card {
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background 220ms ease;
+}
+
+.attendance-card-active {
+  border-color: rgba(16, 185, 129, 0.42) !important;
+  box-shadow:
+    0 0 28px rgba(16, 185, 129, 0.2),
+    inset 0 0 28px rgba(16, 185, 129, 0.05) !important;
+}
+
+.attendance-card-inactive {
+  border-color: rgba(239, 68, 68, 0.42) !important;
+  box-shadow:
+    0 0 24px rgba(239, 68, 68, 0.16),
+    inset 0 0 24px rgba(239, 68, 68, 0.045) !important;
+}
+
+/* Override the original green orb visuals. */
+.status-orb {
+  transition:
+    color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease,
+    filter 220ms ease,
+    transform 220ms ease;
+}
+
+.status-orb-inactive {
+  color: #ef4444 !important;
+  background:
+    radial-gradient(circle at center, rgba(239, 68, 68, 0.24), transparent 58%),
+    rgba(239, 68, 68, 0.075) !important;
+  box-shadow:
+    0 0 0 10px rgba(239, 68, 68, 0.06),
+    0 0 30px rgba(239, 68, 68, 0.38) !important;
+  opacity: 0.82;
+  animation: wttPresenceOrbInactive 2.8s ease-in-out infinite;
+}
+
+.status-orb-active svg,
+.status-orb-inactive svg {
+  color: currentColor !important;
+}
+
+.attendance-title-dot-active,
+.attendance-live-dot {
+  background: #10b981 !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.9) !important;
+  animation: wttPresenceDotActive 1.8s ease-in-out infinite;
+}
+
+.attendance-title-dot-inactive,
+.attendance-live-dot.inactive {
+  background: #ef4444 !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.72) !important;
+  animation: wttPresenceDotInactive 2.1s ease-in-out infinite;
+}
+
+
+.attendance-action-button:hover {
+  transform: translateY(-1px);
+}
+
+.attendance-action-button.danger {
+  color: #fff !important;
+  background: linear-gradient(135deg, #fb7185, #ef4444) !important;
+  border-color: rgba(239, 68, 68, 0.55) !important;
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.26) !important;
+}
+
+@keyframes wttPresenceOrbActive {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.5));
+    transform: scale(1);
+  }
+
+  50% {
+    filter: drop-shadow(0 0 24px rgba(16, 185, 129, 0.95));
+    transform: scale(1.035);
+  }
+}
+
+@keyframes wttPresenceOrbInactive {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.35));
+    transform: scale(1);
+  }
+
+  50% {
+    filter: drop-shadow(0 0 18px rgba(239, 68, 68, 0.72));
+    transform: scale(1.025);
+  }
+}
+
+@keyframes wttPresenceDotActive {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+}
+
+@keyframes wttPresenceDotInactive {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+/* -------------------------------------------------------
+   Strong presence status override
+   TODO: Move to left-sidebar.scss during final cleanup.
+------------------------------------------------------- */
+
+.left-sidebar .attendance-card .status-orb {
+  transition:
+    color 220ms ease,
+    background 220ms ease,
+    box-shadow 220ms ease,
+    filter 220ms ease,
+    transform 220ms ease;
+}
+
+.left-sidebar .attendance-card.attendance-card-active .status-orb,
+.left-sidebar .status-orb.status-orb-active {
+  color: #10b981 !important;
+  background:
+    radial-gradient(circle at center, rgba(16, 185, 129, 0.32), transparent 58%),
+    rgba(16, 185, 129, 0.1) !important;
+  box-shadow:
+    0 0 0 10px rgba(16, 185, 129, 0.08),
+    0 0 38px rgba(16, 185, 129, 0.6) !important;
+  animation: wttPresenceOrbActive 2.4s ease-in-out infinite;
+}
+
+.left-sidebar .attendance-card.attendance-card-inactive .status-orb,
+.left-sidebar .status-orb.status-orb-inactive {
+  color: #ef4444 !important;
+  background:
+    radial-gradient(circle at center, rgba(239, 68, 68, 0.32), transparent 58%),
+    rgba(239, 68, 68, 0.1) !important;
+  box-shadow:
+    0 0 0 10px rgba(239, 68, 68, 0.08),
+    0 0 34px rgba(239, 68, 68, 0.5) !important;
+  animation: wttPresenceOrbInactive 2.8s ease-in-out infinite;
+}
+
+.left-sidebar .attendance-card.attendance-card-active {
+  border-color: rgba(16, 185, 129, 0.42) !important;
+  box-shadow:
+    0 0 28px rgba(16, 185, 129, 0.18),
+    inset 0 0 28px rgba(16, 185, 129, 0.05) !important;
+}
+
+.left-sidebar .attendance-card.attendance-card-inactive {
+  border-color: rgba(239, 68, 68, 0.42) !important;
+  box-shadow:
+    0 0 24px rgba(239, 68, 68, 0.15),
+    inset 0 0 24px rgba(239, 68, 68, 0.045) !important;
+}
+
+.left-sidebar .attendance-title-dot-active,
+.left-sidebar .attendance-live-dot {
+  background: #10b981 !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.9) !important;
+  animation: wttPresenceDotActive 1.8s ease-in-out infinite;
+}
+
+.left-sidebar .attendance-title-dot-inactive,
+.left-sidebar .attendance-live-dot.inactive {
+  background: #ef4444 !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.75) !important;
+  animation: wttPresenceDotInactive 2.1s ease-in-out infinite;
+}
+
+.left-sidebar .attendance-action-button {
+  cursor: pointer;
+  margin-top: 10px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 900;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  color: var(--text-main);
+  background: rgba(148, 163, 184, 0.08);
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.left-sidebar .attendance-action-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.left-sidebar .attendance-action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.left-sidebar .attendance-action-button.success {
+  color: #022c22 !important;
+  background: linear-gradient(135deg, #34d399, #10b981) !important;
+  border-color: rgba(16, 185, 129, 0.55) !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3) !important;
+}
+
+.left-sidebar .attendance-action-button.danger {
+  color: #fff !important;
+  background: linear-gradient(135deg, #fb7185, #ef4444) !important;
+  border-color: rgba(239, 68, 68, 0.55) !important;
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.26) !important;
+}
+
+.left-sidebar .presence-action-toggle {
+  animation: wttPresenceButtonEnter 220ms ease-out;
+}
+
+@keyframes wttPresenceOrbActive {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.5));
+    transform: scale(1);
+  }
+
+  50% {
+    filter: drop-shadow(0 0 24px rgba(16, 185, 129, 0.95));
+    transform: scale(1.035);
+  }
+}
+
+@keyframes wttPresenceOrbInactive {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 7px rgba(239, 68, 68, 0.38));
+    transform: scale(1);
+  }
+
+  50% {
+    filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.75));
+    transform: scale(1.025);
+  }
+}
+
+@keyframes wttPresenceDotActive {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+}
+
+@keyframes wttPresenceDotInactive {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes wttPresenceButtonEnter {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+/* -------------------------------------------------------
+   Presence action button visibility fix
+   TODO: Move to left-sidebar.scss during final cleanup.
+------------------------------------------------------- */
+
+.left-sidebar .attendance-card {
+  height: 218px !important;
+  padding-bottom: 48px !important;
+  overflow: hidden !important;
+}
+
+.left-sidebar .attendance-time {
+  margin-bottom: 30px !important;
+}
+
+.left-sidebar .attendance-action-button.presence-action-toggle {
+  position: absolute !important;
+  left: 50% !important;
+  bottom: 12px !important;
+  z-index: 30 !important;
+  min-width: 96px;
+  pointer-events: auto !important;
+  transform: translateX(-50%);
+}
+
+.left-sidebar .attendance-action-button.presence-action-toggle:hover:not(:disabled) {
+  transform: translateX(-50%) translateY(-1px);
+}
+
+.left-sidebar .attendance-action-button.presence-action-toggle:active:not(:disabled) {
+  transform: translateX(-50%) scale(0.97);
+}
+/* -------------------------------------------------------
+   WTT left sidebar refined interactions
+   TODO: Move to left-sidebar.scss during final cleanup.
+------------------------------------------------------- */
+.left-sidebar .presence-orb-action {
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  position: relative;
+  transform-style: preserve-3d;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
+}
+
+
+.left-sidebar .presence-orb-action:hover {
+  transform: translateY(-2px) scale(1.035);
+  filter: brightness(1.02);
+}
+
+.left-sidebar .presence-orb-action::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 999px;
+  opacity: 0;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+.left-sidebar .presence-orb-action:hover::after,
+.left-sidebar .presence-orb-action:focus-visible::after {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+.left-sidebar .status-orb {
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.85), rgba(255,255,255,0) 36%),
+    linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02));
+  border-radius: 999px;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.left-sidebar .status-orb-active {
+  box-shadow:
+    inset 0 0 0 1px rgba(16, 185, 129, 0.18),
+    0 10px 24px rgba(16, 185, 129, 0.12);
+}
+
+.left-sidebar .status-orb-active.presence-orb-action::after {
+  border-color: rgba(16, 185, 129, 0.38);
+}
+
+.left-sidebar .status-orb-active::after {
+  box-shadow:
+    0 0 0 1px rgba(16, 185, 129, 0.15),
+    0 12px 30px rgba(16, 185, 129, 0.12);
+}
+
+.left-sidebar .status-orb-inactive.presence-orb-action::after {
+  border-color: rgba(239, 68, 68, 0.42);
+}
+.left-sidebar .status-orb-inactive::after {
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.14),
+    0 10px 24px rgba(239, 68, 68, 0.10);
+}
+
+.left-sidebar .presence-orb-action:active {
+  transform: translateY(0) scale(0.985);
+}
+
+.left-sidebar .presence-orb-action:hover .status-orb,
+.left-sidebar .presence-orb-action:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.25),
+    0 14px 28px rgba(15, 23, 42, 0.10);
+} 
+
+.left-sidebar .presence-action-loading {
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+.left-sidebar .presence-orb-hint {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--text-soft);
+  opacity: 0.85;
+}
+
+.left-sidebar .running-task-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.left-sidebar .running-task-play-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  background: rgba(34, 211, 238, 0.1);
+  color: #22d3ee;
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.16);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.left-sidebar .running-task-play-button:hover {
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
+}
+
+.left-sidebar .running-task-play-button:active {
+  transform: scale(0.95);
+}
+
+.left-sidebar .running-task-play-button.running {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.14);
+  color: #34d399;
+  animation: wttRunningTaskPlayPulse 1.8s ease-in-out infinite;
+}
+
+.left-sidebar .running-task-live-timer {
+  min-width: 86px;
+  text-align: center;
+  transition:
+    color 180ms ease,
+    text-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.left-sidebar .running-task-live-timer.running {
+  color: #34d399 !important;
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.55);
+  animation: wttRunningTaskTimerSoft 1s ease-in-out infinite;
+}
+
+@keyframes wttRunningTaskPlayPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.22);
+  }
+
+  50% {
+    box-shadow: 0 0 24px rgba(16, 185, 129, 0.46);
+  }
+}
+
+@keyframes wttRunningTaskTimerSoft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-1px);
+  }
+}
+.left-sidebar .running-task-card {
+  min-height: 170px;
+}
+
+.left-sidebar .running-task-project {
+  font-size: 1.05rem;
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.left-sidebar .running-task-desc {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  min-height: 44px;
+  opacity: 0.9;
+}
+
+.left-sidebar .running-task-timer {
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.left-sidebar .running-task-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.left-sidebar .project-distribution-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.left-sidebar .project-distribution-chart {
+  flex: 0 0 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.left-sidebar .project-distribution-legend {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.left-sidebar .project-distribution-legend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.left-sidebar .legend-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.left-sidebar .legend-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.left-sidebar .legend-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.left-sidebar .legend-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+}
+
+.left-sidebar .legend-percent {
+  opacity: 0.8;
+}
+.left-sidebar .distribution-card {
+  min-height: 160px;
+}
+
+.left-sidebar .distribution-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.left-sidebar .project-chart {
+  width: 115px;
+  height: 115px;
+}
+
+.left-sidebar .distribution-legend {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.left-sidebar .legend-item {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.left-sidebar .legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.left-sidebar .legend-name {
+  min-width: 0;
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.left-sidebar .legend-percent {
+  font-size: 10px;
+  font-weight: 1000;
+}
+
+.left-sidebar .legend-empty {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--text-soft);
 }

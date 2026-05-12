@@ -2,7 +2,12 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { delay, of, map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { TaskItem, TaskListResponse, TaskMutationPayload } from '../../../shared/models/task.model';
+import {
+  TaskItem,
+  TaskListResponse,
+  TaskMutationPayload,
+  TasksCountResponse,
+} from '../../../shared/models/task.model';
 import { Project, ProjectDetailsResponse } from '../../../shared/models/project.model';
 
 // TEMP: Contract wrapper adapter.
@@ -10,6 +15,37 @@ import { Project, ProjectDetailsResponse } from '../../../shared/models/project.
 interface TasksContractResponse {
   tasks_list: {
     requested_ui_response: TaskListResponse;
+  };
+}
+interface WttTaskListResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: WttTaskItem[];
+}
+
+interface WttTaskItem {
+  id: number;
+  status: string;
+  title: string;
+  project?: {
+    id: number;
+    title: string;
+  };
+  date: string;
+  start_time: string | null;
+  end_time: string | null;
+  duration: number;
+  description?: string;
+  location?: string;
+  editable?: boolean;
+  project_contract?: {
+    id: number;
+    contract: string;
+  };
+  project_service?: {
+    id: number;
+    service: string;
   };
 }
 @Injectable({
@@ -21,58 +57,6 @@ export class TasksService {
   private readonly useMock = environment.useMockData;
 
   private readonly mockPageSize = 3;
-
-  private mockTasks: TaskItem[] = [
-    {
-      id: 259354,
-      status: 'pending',
-      title: '[IDEAL-901]: رفع مشکل موقعیت اسکرول',
-      project_id: 30,
-      project_title: 'NeoBRK',
-      date: '1405-02-08',
-      duration: 30,
-      location: 'teleworking',
-      start_time: '1405-02-08 09:00:00',
-      end_time: '1405-02-08 09:30:00',
-    },
-    {
-      id: 259355,
-      status: 'approved',
-      title: '[WTT-112]: اتصال داشبورد به API',
-      project_id: 90,
-      project_title: 'WTT',
-      date: '1405-02-09',
-      duration: 120,
-      location: 'incompany_working',
-      start_time: '1405-02-09 10:00:00',
-      end_time: '1405-02-09 12:00:00',
-    },
-    {
-      id: 259356,
-      status: 'rejected',
-      title: '[NeoBRK-45]: بررسی خطای فرم ورود',
-      project_id: 30,
-      project_title: 'NeoBRK',
-      date: '1405-02-10',
-      duration: 75,
-      location: 'teleworking',
-      start_time: '1405-02-10 13:00:00',
-      end_time: '1405-02-10 14:15:00',
-    },
-  ];
-  private getPagedMockTasks(page: number): TaskListResponse {
-    const startIndex = (page - 1) * this.mockPageSize;
-    const endIndex = startIndex + this.mockPageSize;
-
-    return {
-      data: this.mockTasks.slice(startIndex, endIndex),
-      meta: {
-        page,
-        page_size: this.mockPageSize,
-        total: this.mockTasks.length,
-      },
-    };
-  }
 
   private buildTaskFromPayload(
     payload: TaskMutationPayload,
@@ -98,25 +82,44 @@ export class TasksService {
       end_time: payload.end_time,
     };
   }
-  getTasks(userId: number, page: number, range: string) {
-    if (this.useMock) {
-      return of(this.getPagedMockTasks(page)).pipe(delay(500));
-    }
-
+  getTasks(userId: number, page: number, range: string): Observable<TaskListResponse> {
     if (environment.useContractApi) {
-      // TEMP: Contract wrapper adapter.
-      // Remove this block when backend provides direct GET /api/v1/tasks/ response.
       return this.http
         .get<TasksContractResponse>(`${environment.contractBaseUrl}/taskscontract/`)
         .pipe(map((response) => response.tasks_list.requested_ui_response));
     }
 
-    const params = new HttpParams().set('user', userId).set('page', page).set('range', range);
+    if (this.useMock) {
+      const mockResponse: TaskListResponse = {
+        data: [
+          {
+            id: 259354,
+            status: 'pending',
+            title: `[Page ${page}] [IDEAL-901]: رفع مشکل موقعیت اسکرول`,
+            project_id: 30,
+            project_title: 'NeoBRK',
+            date: '1405-02-08',
+            duration: 30,
+          },
+        ],
+        meta: {
+          page,
+          page_size: 10,
+          total: 1,
+        },
+      };
 
-    return this.http.get<TaskListResponse>(`${this.apiBaseUrl}/tasks/`, {
-      params,
-    });
+      return of(mockResponse).pipe(delay(700));
+    }
+
+    const params = new HttpParams().set('page', page).set('range', range);
+
+    // Real WTT v1 infers the user from token. Keep userId in method signature for component compatibility.
+    return this.http
+      .get<WttTaskListResponse>(`${this.apiBaseUrl}/tasks/`, { params })
+      .pipe(map((response) => this.mapWttTaskListResponse(response, page)));
   }
+
   getProjects() {
     if (this.useMock) {
       const mockProjects: Project[] = [
@@ -155,8 +158,6 @@ export class TasksService {
     if (this.useMock) {
       const createdTask = this.buildTaskFromPayload(payload);
 
-      this.mockTasks = [createdTask, ...this.mockTasks];
-
       return of(createdTask).pipe(delay(500));
     }
 
@@ -167,8 +168,6 @@ export class TasksService {
     if (this.useMock) {
       const updatedTask = this.buildTaskFromPayload(payload, taskId, 'edited');
 
-      this.mockTasks = this.mockTasks.map((task) => (task.id === taskId ? updatedTask : task));
-
       return of(updatedTask).pipe(delay(500));
     }
 
@@ -176,11 +175,59 @@ export class TasksService {
   }
   deleteTask(taskId: number): Observable<void> {
     if (this.useMock) {
-      this.mockTasks = this.mockTasks.filter((task) => task.id !== taskId);
-
       return of(void 0).pipe(delay(500));
     }
 
     return this.http.delete<void>(`${this.apiBaseUrl}/tasks/${taskId}/`);
+  }
+  private mapWttTaskListResponse(response: WttTaskListResponse, page: number): TaskListResponse {
+    return {
+      data: response.results.map((task) => this.mapWttTaskItem(task)),
+      meta: {
+        page,
+        page_size: response.results.length || 10,
+        total: response.count,
+      },
+    };
+  }
+
+  private mapWttTaskItem(task: WttTaskItem): TaskItem {
+    return {
+      id: task.id,
+      status: this.mapWttTaskStatus(task.status),
+      title: task.title,
+      project_id: task.project?.id ?? 0,
+      project_title: task.project?.title ?? 'بدون پروژه',
+      date: task.date,
+      duration: task.duration,
+      location: task.location,
+      start_time: task.start_time ?? undefined,
+      end_time: task.end_time ?? undefined,
+      description: task.description,
+      editable: task.editable,
+      project_contract: task.project_contract,
+      project_service: task.project_service,
+    };
+  }
+
+  private mapWttTaskStatus(status: string): TaskItem['status'] {
+    switch (status) {
+      case 'accept':
+        return 'approved';
+
+      case 'reject':
+        return 'rejected';
+
+      default:
+        return status as TaskItem['status'];
+    }
+  }
+  getTasksCount(range: string) {
+    const params = new HttpParams().set('range', range);
+
+    // Real WTT v1 endpoint for task counters.
+    return this.http.get<TasksCountResponse>(`${this.apiBaseUrl}/tasks/tasks_count/`, {
+      params,
+    });
   }
 }

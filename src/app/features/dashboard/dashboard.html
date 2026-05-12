@@ -146,23 +146,33 @@
           <path d="M11 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
         </svg>
       </div>
-      <div class="announcement-list">
+      @if (publicNewsState().loading) {
         <div class="announcement-item">
-          <span class="announcement-dot" style="background: var(--purple)"></span>
-          <span>نسخه جدید سامانه منتشر شد 2.5</span>
-          <span class="announcement-arrow">‹</span>
+          <span>در حال دریافت اطلاعیه‌ها...</span>
         </div>
+      } @else if (publicNewsState().error) {
         <div class="announcement-item">
-          <span class="announcement-dot" style="background: var(--blue)"></span>
-          <span>تغییرات سرویس احراز هویت</span>
-          <span class="announcement-arrow">‹</span>
+          <span class="text-red-500">{{ publicNewsState().error }}</span>
+          <button type="button" (click)="loadPublicNews()">تلاش مجدد</button>
         </div>
+      } @else if ((publicNewsState().data?.results?.length ?? 0) === 0) {
         <div class="announcement-item">
-          <span class="announcement-dot" style="background: var(--orange)"></span>
-          <span>برنامه زمان‌بندی جلسات حضور</span>
-          <span class="announcement-arrow">‹</span>
+          <span>اطلاعیه‌ای برای نمایش وجود ندارد.</span>
         </div>
-      </div>
+      } @else {
+        @for (message of publicNewsState().data?.results?.slice(0, 4) ?? []; track message.id) {
+          <div class="announcement-item">
+            <span
+              class="announcement-dot"
+              [style.background]="message.seen ? 'var(--blue)' : 'var(--purple)'"
+            ></span>
+
+            <span>{{ message.title }}</span>
+
+            <span class="announcement-arrow">‹</span>
+          </div>
+        }
+      }
     </article>
 
     <article class="announcement-card">

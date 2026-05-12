@@ -6,6 +6,10 @@ import { DashboardService } from './services/dashboard.service';
 import { EChartsOption } from 'echarts';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { NgxEchartsDirective } from 'ngx-echarts';
+import {
+  NewsMessagesCountResponse,
+  NewsMessagesResponse,
+} from '../../shared/models/dashboard.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -18,6 +22,18 @@ export class DashboardComponent implements OnInit {
   private readonly authService = inject(AuthService);
 
   layout = inject(LayoutService);
+
+  publicNewsState = signal<ApiState<NewsMessagesResponse>>({
+    data: null,
+    loading: true,
+    error: null,
+  });
+
+  publicNewsCountState = signal<ApiState<NewsMessagesCountResponse>>({
+    data: null,
+    loading: true,
+    error: null,
+  });
 
   statsState = signal<ApiState<DashboardStats>>({
     data: null,
@@ -36,6 +52,8 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadStats();
     this.loadLineChart();
+    this.loadPublicNews();
+    this.loadPublicNewsCount();
   }
   loadStats(): void {
     const userId = this.authService.getCurrentUserId();
@@ -73,7 +91,57 @@ export class DashboardComponent implements OnInit {
       },
     });
   }
+  loadPublicNews(): void {
+    this.publicNewsState.set({
+      data: null,
+      loading: true,
+      error: null,
+    });
 
+    this.dashboardService.getNewsMessages('public', this.range).subscribe({
+      next: (response) => {
+        this.publicNewsState.set({
+          data: response,
+          loading: false,
+          error: null,
+        });
+      },
+
+      error: () => {
+        this.publicNewsState.set({
+          data: null,
+          loading: false,
+          error: 'خطا در دریافت اطلاعیه‌های عمومی',
+        });
+      },
+    });
+  }
+
+  loadPublicNewsCount(): void {
+    this.publicNewsCountState.set({
+      data: null,
+      loading: true,
+      error: null,
+    });
+
+    this.dashboardService.getNewsMessagesCount('public', this.range).subscribe({
+      next: (response) => {
+        this.publicNewsCountState.set({
+          data: response,
+          loading: false,
+          error: null,
+        });
+      },
+
+      error: () => {
+        this.publicNewsCountState.set({
+          data: null,
+          loading: false,
+          error: 'خطا در دریافت آمار اطلاعیه‌ها',
+        });
+      },
+    });
+  }
   formatMinutes(minutes: number | null | undefined): string {
     if (minutes == null || minutes === 0) return '۰ دقیقه';
     const hours = Math.floor(minutes / 60);

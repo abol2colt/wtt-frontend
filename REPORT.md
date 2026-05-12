@@ -1822,3 +1822,154 @@ HttpParams
 payload ارسال
 response type
 ````
+
+---
+
+## Branch 011 — `feature/011-dashboard-real-read-finalization`
+
+### هدف Branch
+
+هدف این branch نهایی‌سازی داده‌های read-only داشبورد و سایدبار بود؛ یعنی حذف مقدارهای static باقی‌مانده، اتصال dashboard widgets به APIهای واقعی WTT v1، و آماده‌سازی صفحه Dashboard برای ادامه مسیر real-api-driven.
+
+این branch هیچ mutation واقعی انجام نداد و فقط روی GET/read-only APIها تمرکز داشت.
+
+---
+
+### کارهای انجام‌شده
+
+#### 1. تکمیل اتصال Dashboard Read APIs
+
+APIهای اصلی dashboard به مسیرهای واقعی WTT v1 متصل و verify شدند:
+
+- `GET /api/v1/dashboard/a_user_details`
+- `GET /api/v1/dashboard/profile`
+- `GET /api/v1/dashboard/line_chart`
+- `GET /api/v1/dashboard/pie_chart`
+
+از این APIها برای KPI cards، profile summary، line chart و project distribution استفاده شد.
+
+---
+
+#### 2. اصلاح مسیر و range آمار سایدبار
+
+در ابتدا برای آمار سایدبار از `range=today` استفاده شد، اما با مقایسه Network در WTT اصلی مشخص شد که:
+
+- `profile?range=today` می‌تواند مقدارهایی مثل `presences_time: 0` و `total_randeman: 0` برگرداند.
+- WTT اصلی برای نمایش آمار معنادار dashboard از `range=month_till_today` استفاده می‌کند.
+
+بنابراین تصمیم نهایی:
+
+```txt
+Sidebar stats range = month_till_today
+
+و عنوان UI از «آمار امروز» به «آمار ماه جاری» یا «آمار بازه» تغییر کرد.
+
+3. تکمیل News / Announcements
+
+اطلاعیه‌های عمومی و شخصی به API واقعی وصل شدند:
+
+GET /api/v1/news/get_message_data/?range=month_till_today&type=public&page=1&state=all
+GET /api/v1/news/get_message_data/?range=month_till_today&type=private&page=1&state=all
+
+برای private announcements، empty state هم در نظر گرفته شد، چون response واقعی می‌تواند این شکل باشد:
+
+{
+  "count": 0,
+  "results": [],
+  "next": null,
+  "previous": null
+}
+
+همچنین notification badge از unread count قابل تغذیه شد:
+
+GET /api/v1/news/get_message_data/?state=unread_count
+4. تکمیل Project Distribution Sidebar
+
+نمودار توزیع پروژه‌ها در سایدبار از API واقعی استفاده می‌کند:
+
+GET /api/v1/dashboard/pie_chart?user=<id>&range=month_till_today
+
+برای جلوگیری از hardcode، raw pie chart response جدا از ECharts option نگهداری شد و legend به صورت dynamic ساخته شد.
+
+تصمیم معماری:
+
+raw API response → legend / percent calculation
+EChartsOption → فقط chart rendering
+
+این کار باعث شد رنگ chart و legend هم‌خوان بماند و UI وابسته به ساختار داخلی ECharts نشود.
+
+5. Recent Activities از حالت static خارج شد
+
+لیست فعالیت‌های اخیر دیگر نباید static باشد. تا زمانی که endpoint اختصاصی recent activities پیدا شود، از latest tasks fallback استفاده می‌شود:
+
+GET /api/v1/tasks/?range=month_till_today&page=1
+
+این تصمیم در API reference هم قابل دفاع است، چون برای Dashboard recent activities می‌توان موقتاً از latest tasks استفاده کرد تا endpoint اختصاصی پیدا شود.
+
+6. Header / Sidebar Profile Data
+
+Profile/name/avatar از داده واقعی auth/profile/dashboard profile وارد UI شد. هدف این بود که static placeholderهای کاربر کم‌کم حذف شوند و user data از AuthService یا Dashboard profile flow بیاید.
+
+7. Logout واقعی
+
+دکمه خروج layout به AuthService logout flow متصل شد:
+
+پاک کردن token/session state
+پاک کردن current user
+برگشت به login route
+8. پاکسازی CSS و UI Polish
+دکمه جداگانه حضور حذف شد و خود presence orb تعامل‌پذیر شد.
+hover حضور نرم‌تر و 3Dتر شد.
+کارت latest task ساده‌تر شد.
+دکمه‌های تکراری play/stop حذف شدند.
+legend توزیع پروژه‌ها dynamic شد.
+CSSهای تکراری تا حد ممکن پاکسازی شدند.
+console logهای اضافه حذف شدند یا برای حذف نهایی علامت‌گذاری شدند.
+APIهای Verify شده در این Branch
+GET /api/v1/dashboard/a_user_details
+GET /api/v1/dashboard/profile
+GET /api/v1/dashboard/line_chart
+GET /api/v1/dashboard/pie_chart
+GET /api/v1/news/get_message_data/?type=public
+GET /api/v1/news/get_message_data/?type=private
+GET /api/v1/news/get_message_data/?state=unread_count
+GET /api/v1/news/messages_count/
+GET /api/v1/tasks/
+GET /api/v1/tasks/tasks_count/
+تصمیم‌های مهم فنی
+تصمیم ۱ — Dashboard summary از month_till_today
+
+چون WTT اصلی مقدارهای dashboard summary را با month_till_today نمایش می‌دهد، sidebar stats هم همین range را استفاده می‌کند.
+
+تصمیم ۲ — Recent activities موقتاً از latest tasks
+
+تا وقتی endpoint اختصاصی recent activity پیدا نشده، latest task list به عنوان fallback استفاده می‌شود.
+
+تصمیم ۳ — No real mutation
+
+این branch کاملاً read-only ماند. هیچ create/update/delete واقعی اضافه یا تست نشد.
+
+تصمیم ۴ — Component همچنان source-agnostic
+
+Component نباید بداند داده از mock آمده یا API واقعی. Service مسئول API call است و component فقط state و UI flow را مدیریت می‌کند.
+
+ریسک‌ها و موارد منتقل‌شده به Branch بعدی
+
+موارد زیر عمداً به Branchهای بعدی منتقل شدند:
+
+تکمیل read integration کامل صفحه Tasks
+verify کامل GET /api/v1/project/get_all_projects/
+verify کامل GET /api/v1/projects/project_details/
+بررسی query param درست project details: id یا project
+حذف کامل contract adapter از TasksService بعد از real verification
+mutation واقعی taskها فقط در branch جدا و با test data مشخص
+clock-in / clock-out واقعی فقط بعد از اجازه و branch جدا
+نتیجه Branch
+
+Branch 011 داشبورد و سایدبار را از نظر read-only real API نهایی کرد. صفحه Dashboard حالا به داده‌های واقعی WTT v1 وصل است، مقدارهای static اصلی حذف شده‌اند، و مسیر پروژه برای ورود به Branch 012 یعنی real tasks read integration آماده است.
+
+Status: Done
+Safe Rule: رعایت شد
+Real Mutation: انجام نشد
+Next Branch: feature/012-tasks-real-read-integration
+```
