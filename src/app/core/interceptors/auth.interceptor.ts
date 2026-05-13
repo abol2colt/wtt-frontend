@@ -7,8 +7,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Login request must not include Authorization because we do not have a token yet.
   const isLoginRequest = req.url.includes('/login/');
-
-  if (isLoginRequest) {
+  const isSmartProxyRequest = req.url.startsWith('http://localhost:3000/api');
+  if (isLoginRequest || isSmartProxyRequest) {
     return next(req);
   }
 

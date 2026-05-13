@@ -1,7 +1,9 @@
 import { Component, OnInit, effect, inject, signal, untracked } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { LayoutService } from '../../core/services/layout/layout.service';
+import { GitlabSyncService, JiraTask } from './services/gitlab-sync.service';
 import { ApiState } from '../../shared/models/api-state.model';
+import { format } from 'date-fns-jalali';
 import {
   TaskItem,
   TaskListQuery,
@@ -14,6 +16,11 @@ import { TasksService } from './services/tasks.service';
 import { TasksFiltersService } from './services/tasks-filters.service';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { Project, ProjectDetailsResponse } from '../../shared/models/project.model';
+
+type ProjectDetailsPreselect = {
+  serviceId: number;
+  contractId: number;
+};
 
 type TaskRangeFilter =
   | 'month_till_today'
@@ -35,6 +42,9 @@ export class TasksComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   readonly taskFilters = inject(TasksFiltersService);
+  private getTodayJalaliDate(): string {
+    return format(new Date(), 'yyyy-MM-dd');
+  }
 
   private filtersEffectReady = false;
   readonly Number = Number;
@@ -70,6 +80,8 @@ export class TasksComponent implements OnInit {
   });
 
   isTaskModalOpen = signal(false);
+  private readonly gitlabSyncService = inject(GitlabSyncService);
+  isSyncing = signal(false);
   editingTask = signal<TaskItem | null>(null);
 
   currentPage = signal(1);
@@ -86,6 +98,11 @@ export class TasksComponent implements OnInit {
 
   startDate = signal('');
   endDate = signal('');
+
+  jiraTasks = signal<JiraTask[]>([]);
+  showJiraDropdown = signal(false);
+  selectedJiraTask = signal<JiraTask | null>(null);
+
   taskForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
     project: [0, [Validators.required, Validators.min(1)]],
@@ -306,59 +323,42 @@ export class TasksComponent implements OnInit {
       },
     });
   }
-  loadProjectDetails(projectId: number): void {
+
+  loadProjectDetails(projectId: number, preselect?: ProjectDetailsPreselect): void {
     if (!projectId || projectId <= 0) {
-      this.projectDetailsState.set({
-        data: null,
-        loading: false,
-        error: null,
-      });
-
-      this.taskForm.patchValue({
-        project_service: 0,
-        project_contract: 0,
-      });
-
+      this.projectDetailsState.set({ data: null, loading: false, error: null });
       return;
     }
 
-    this.projectDetailsState.set({
-      data: null,
-      loading: true,
-      error: null,
-    });
-
+    this.projectDetailsState.set({ data: null, loading: true, error: null });
     this.tasksService.getProjectDetails(projectId).subscribe({
       next: (details) => {
-        this.projectDetailsState.set({
-          data: details,
-          loading: false,
-          error: null,
-        });
-      },
+        this.projectDetailsState.set({ data: details, loading: false, error: null });
 
-      error: () => {
-        this.projectDetailsState.set({
-          data: null,
-          loading: false,
-          error: 'خطا در دریافت سرویس‌ها و قراردادهای پروژه',
+        if (!preselect) return;
+
+        const serviceId = details.services.some((s) => s.id === preselect.serviceId)
+          ? preselect.serviceId
+          : details.services[0]?.id || 0;
+
+        const contractId = details.contracts.some((c) => c.id === preselect.contractId)
+          ? preselect.contractId
+          : details.contracts[0]?.id || 0;
+
+        this.taskForm.patchValue({
+          project_service: serviceId,
+          project_contract: contractId,
         });
       },
-    });
-    this.taskForm.patchValue({
-      project_service: 0,
-      project_contract: 0,
+      error: () =>
+        this.projectDetailsState.set({ data: null, loading: false, error: 'خطا در دریافت جزئیات' }),
     });
   }
+
   onProjectChange(projectId: number | string): void {
-    const selectedProjectId = Number(projectId);
-
-    this.taskForm.patchValue({
-      project_service: 0,
-      project_contract: 0,
-    });
-
-    this.loadProjectDetails(selectedProjectId);
+    const id = Number(projectId);
+    this.taskForm.patchValue({ project_service: 0, project_contract: 0 });
+    this.loadProjectDetails(id);
   }
   formatMinutes(minutes: number | null | undefined): string {
     if (minutes == null || minutes <= 0) return '00:00';
@@ -449,6 +449,8 @@ export class TasksComponent implements OnInit {
   }
   openEditTaskModal(task: TaskItem): void {
     this.editingTask.set(task);
+    this.selectedJiraTask.set(null);
+    this.showJiraDropdown.set(false);
 
     this.taskForm.reset({
       title: task.title,
@@ -670,5 +672,120 @@ export class TasksComponent implements OnInit {
     }
 
     return query;
+  }
+  onSyncGitlab(): void {
+    const selectedTask = this.selectedJiraTask();
+
+    if (!selectedTask) {
+      this.mutationState.set({
+        data: null,
+        loading: false,
+        error: 'اول یک تسک Jira انتخاب کن تا commitهای مربوط به همان تسک دریافت شوند.',
+      });
+      return;
+    }
+
+    if (this.isSyncing()) return;
+
+    this.isSyncing.set(true);
+
+    this.gitlabSyncService.syncCommits(selectedTask).subscribe({
+      next: (response) => {
+        console.log('GitLab & Gemini Response:', response);
+
+        if (!response?.success) {
+          this.isSyncing.set(false);
+
+          this.mutationState.set({
+            data: null,
+            loading: false,
+            error:
+              response?.error || response?.description || 'کامیت مرتبطی برای این تسک پیدا نشد.',
+          });
+
+          return;
+        }
+
+        const durationMinutes = Number(response.durationMinutes || 0);
+
+        const now = new Date();
+
+        const endHour = String(now.getHours()).padStart(2, '0');
+        const endMinute = String(now.getMinutes()).padStart(2, '0');
+        const endTimeStr = `${endHour}:${endMinute}`;
+
+        const startTimeObj = new Date(now.getTime() - durationMinutes * 60000);
+        const startHour = String(startTimeObj.getHours()).padStart(2, '0');
+        const startMinute = String(startTimeObj.getMinutes()).padStart(2, '0');
+        const startTimeStr = `${startHour}:${startMinute}`;
+
+        this.taskForm.patchValue({
+          description: response.description,
+          date: this.taskForm.controls.date.value || this.getTodayJalaliDate(),
+          start_time: startTimeStr,
+          end_time: endTimeStr,
+        });
+
+        this.mutationState.set({
+          data: null,
+          loading: false,
+          error: null,
+        });
+
+        this.isSyncing.set(false);
+      },
+
+      error: (err) => {
+        console.error('GitLab sync failed:', err);
+
+        this.isSyncing.set(false);
+
+        this.mutationState.set({
+          data: null,
+          loading: false,
+          error:
+            err.error?.error ||
+            err.error?.debugMessage ||
+            'خطا در دریافت توضیحات از GitLab/AI proxy.',
+        });
+      },
+    });
+  }
+  loadJiraTasks(): void {
+    this.gitlabSyncService.getJiraTasks().subscribe({
+      next: (tasks) => {
+        this.jiraTasks.set(tasks);
+        this.showJiraDropdown.set(true);
+      },
+
+      error: (err) => {
+        console.error('Jira mock request failed:', err);
+
+        this.mutationState.set({
+          data: null,
+          loading: false,
+          error: 'خطا در دریافت تسک‌های Jira از proxy محلی.',
+        });
+      },
+    });
+  }
+  selectJiraTask(task: JiraTask, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    this.selectedJiraTask.set(task);
+    this.showJiraDropdown.set(false);
+
+    this.mutationState.set({ data: null, loading: false, error: null });
+
+    this.taskForm.patchValue({
+      title: `[${task.id}] ${task.title}`,
+      project: task.project_id,
+    });
+
+    this.loadProjectDetails(task.project_id, {
+      serviceId: task.service_id,
+      contractId: task.contract_id,
+    });
   }
 }
