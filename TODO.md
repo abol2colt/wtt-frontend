@@ -401,28 +401,6 @@ Therefore sidebar summary stats now use `month_till_today`.
 
 **Outcome:** Dashboard and sidebar real-read finalization is complete and ready for commit.
 
-## 🚀 Branch 012: `feature/012-smart-worklog-mvp-integration`
-
-**Goal:** Integrate the new Node.js Proxy server to fetch real GitLab commits and auto-fill the WTT time registration form (Proof of Concept for Management).
-
-### Checklist (Proxy Backend - wtt-proxy repo)
-
-- [x] Initialize `wtt-proxy` Node.js project.
-- [x] Install dependencies (`express`, `axios`, `cors`, `dotenv`).
-- [x] Create `.env` for GitLab local credentials and Project ID.
-- [x] Implement `GET /api/sync-gitlab` endpoint.
-- [x] Parse commits and calculate `suggestedDuration` and `description`.
-- [ ] Write `PROXY_LEARNING_REPORT.md` (0-to-100 backend concepts).
-
-### Checklist (Frontend - wtt-frontend repo)
-
-- [ ] Create `GitlabSyncService` in `features/tasks/services/` (or shared).
-- [ ] Add `Sync with GitLab` button to the Task creation/edit modal.
-- [ ] Implement loading state during proxy fetch.
-- [ ] Auto-fill the Angular `FormGroup` (description & duration) using `patchValue`.
-- [ ] Add success/error toast notifications for the sync process.
-- [ ] Update `REPORT.md` with integration results.
-
 ### 🔄 Branch 012: `feature/012-tasks-real-read-integration`
 
 **Goal:** Connect Tasks read APIs to real WTT v1 data safely, remove old mock/contract read paths where verified, and align Tasks filters with real WTT v1 behavior.
@@ -596,8 +574,85 @@ This branch is read-only.
 - [x] Verify no `POST /tasks/`, `PUT /tasks/{id}/`, or `DELETE /tasks/{id}/` call.
 - [x] Update `WTT_API_Reference_clean.md`.
 - [x] Finalize Branch 012 report.
+      //////////////
 
-## 🔜 Branch 013: `feature/013-safe-task-mutation-verification`
+---
+
+برای بک اند sync با gitlab
+
+## 🔄 Branch 013: `feature/013-smart-worklog-mvp-integration`
+
+**Goal:** Build a safe Smart Worklog MVP that fills the WTT task form from Jira-like tasks and GitLab commit evidence, without real WTT mutation.
+
+### Safety Rule
+
+No real WTT create/update/delete in this branch.
+This branch only prepares a draft inside the task modal.
+
+### Proxy / Backend
+
+- [x] Initialize `wtt-proxy` as a private/local git repository.
+- [x] Add `.gitignore` for `.env`, `node_modules`, and GitLab volume data.
+- [x] Add `.env.example` without real secrets.
+- [x] Keep real `GITLAB_TOKEN` and `GEMINI_API_KEY` only in local `.env`.
+- [x] Keep current GitLab + Gemini sync working.
+- [x] Rename routes conceptually:
+  - [x] `/api/jira/mock-tasks` → mock version of future Jira open issues endpoint
+  - [x] `/api/sync-gitlab` → current MVP version of future GitLab evidence endpoint
+- [x] Add comments in proxy code explaining what must change when real Jira access is available.
+
+### Jira Mock Integration
+
+- [x] Rename frontend model from `JiraTask` to a more real shape if needed.
+- [x] Keep mock Jira response close to real Jira concept:
+  - [x] `key`
+  - [x] `title`
+  - [x] `project_id`
+  - [x] `service_id`
+  - [x] `contract_id`
+  - [x] optional `branch_name`
+- [x] Make sure mock `project_id`, `service_id`, and `contract_id` match real WTT dropdown data.
+- [x] Add comments showing which fields will come from real Jira later.
+
+### Frontend Smart Form
+
+- [x] Keep `TasksService` only for WTT APIs.
+- [x] Do not put GitLab/Jira logic inside `TasksService`.
+- [x] Replace hardcoded proxy URL with an environment value later.
+- [x] Fix Jira task selection:
+  - [x] Set task title from selected Jira task.
+  - [x] Set WTT project.
+  - [x] Load project details.
+  - [x] Set service/contract only after project details response returns.
+  - [x] Remove `setTimeout`.
+  - [x] Do not call filter methods from form selection.
+- [x] Add selected Jira task state.
+- [x] Hide Jira dropdown after selection.
+- [x] Show user-friendly error if Jira mapping does not match WTT project/service/contract.
+
+### GitLab / AI Draft
+
+- [x] Keep current GitLab → Gemini → Persian description flow working.
+- [x] Add selected Jira task context to GitLab sync later:
+  - [x] task key
+  - [x] branch name
+  - [x] optional date range
+- [x] Fill description from AI response.
+- [x] Fill start/end time from calculated duration.
+- [x] Fill date if empty.
+- [x] Keep user as final reviewer before submit.
+
+### Build / Cleanup
+
+- [x] Remove noisy console logs or mark temporary debug logs clearly.
+- [x] Run `npm run build`.
+- [x] Write Branch 013 report:
+  - [x] What works now
+  - [x] What is still mock
+  - [x] What changes when real Jira is available
+  - [x] Why WTT mutation stayed disabled
+
+## 🔜 Branch 013-1: `feature/013-safe-task-mutation-verification`
 
 **Goal:** Test real task create/update/delete only with controlled test data.
 
