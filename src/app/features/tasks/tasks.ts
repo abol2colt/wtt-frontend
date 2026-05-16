@@ -2,7 +2,7 @@ import { Component, OnInit, effect, inject, signal, untracked } from '@angular/c
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { LayoutService } from '../../core/services/layout/layout.service';
 import { GitlabSyncService } from './services/gitlab-sync.service';
-import { ExternalTaskSource } from '../../shared/models/task.model';
+import { environment } from '../../../environments/environment';
 import { ApiState } from '../../shared/models/api-state.model';
 import { format } from 'date-fns-jalali';
 import {
@@ -36,6 +36,7 @@ export class TasksComponent implements OnInit {
   private readonly tasksService = inject(TasksService);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+  readonly testTaskPrefix = environment.taskMutationTestPrefix;
   readonly taskFilters = inject(TasksFiltersService);
   private getTodayJalaliDate(): string {
     return format(new Date(), 'yyyy-MM-dd');
@@ -549,14 +550,22 @@ ${adjustmentReason}`
   }
 
   deleteTask(task: TaskItem): void {
-    const confirmed = window.confirm(`آیا از حذف این وظیفه مطمئنی؟\n${task.title}`);
+    if (environment.enableRealTaskMutation && !task.title.startsWith(this.testTaskPrefix)) {
+      this.deleteError.set(
+        `حذف واقعی فقط برای تسک‌های تستی با prefix ${this.testTaskPrefix} مجاز است.`,
+      );
+      return;
+    }
+    const confirmed = window.confirm(
+      `این عملیات حذف واقعی WTT است و فقط برای تسک تستی مجاز است.\n\n${task.title}\n\nادامه می‌دهی؟`,
+    );
 
     if (!confirmed) return;
 
     this.deletingTaskId.set(task.id);
     this.deleteError.set(null);
 
-    this.tasksService.deleteTask(task.id).subscribe({
+    this.tasksService.deleteTask(task.id, task.title).subscribe({
       next: () => {
         this.deletingTaskId.set(null);
         this.loadTasks(this.currentPage());
@@ -588,6 +597,15 @@ ${adjustmentReason}`
         data: null,
         loading: false,
         error: 'ساعت پایان باید بعد از ساعت شروع باشد.',
+      });
+
+      return;
+    }
+    if (environment.enableRealTaskMutation && !payload.title.startsWith(this.testTaskPrefix)) {
+      this.mutationState.set({
+        data: null,
+        loading: false,
+        error: `برای تست mutation واقعی، عنوان باید با ${this.testTaskPrefix} شروع شود.`,
       });
 
       return;
@@ -627,11 +645,16 @@ ${adjustmentReason}`
         this.loadTasks(this.currentPage());
       },
 
-      error: () => {
+      error: (error) => {
+        const backendMessage =
+          error?.status === 403
+            ? 'دسترسی ثبت/ویرایش وظیفه برای این کاربر توسط WTT مجاز نیست. مسیر mutation تا backend تست شد و داده‌ای تغییر نکرد.'
+            : error?.message || (editingTask ? 'خطا در ویرایش وظیفه' : 'خطا در ثبت وظیفه');
+
         this.mutationState.set({
           data: null,
           loading: false,
-          error: editingTask ? 'خطا در ویرایش وظیفه' : 'خطا در ثبت وظیفه',
+          error: backendMessage,
         });
       },
     });

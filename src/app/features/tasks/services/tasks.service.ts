@@ -57,6 +57,22 @@ export class TasksService {
   private readonly apiBaseUrl = environment.apiBaseUrl;
   private readonly realPageSize = 10;
 
+  private readonly testTaskPrefix = environment.taskMutationTestPrefix;
+
+  private assertMutationEnabled(): void {
+    if (!environment.enableRealTaskMutation) {
+      throw new Error('Real task mutation is disabled by environment safety flag.');
+    }
+  }
+
+  private assertTestTaskTitle(title: string, action: string): void {
+    if (!title?.startsWith(this.testTaskPrefix)) {
+      throw new Error(
+        `${action} فقط برای تسک تستی مجاز است. عنوان باید با ${this.testTaskPrefix} شروع شود.`,
+      );
+    }
+  }
+
   getTasks(_userId: number, query: TaskListQuery): Observable<TaskListResponse> {
     const page = query.page ?? 1;
     const params = this.buildTaskQueryParams(query, true);
@@ -86,31 +102,22 @@ export class TasksService {
   }
 
   createTask(payload: TaskMutationPayload): Observable<TaskItem> {
-    if (!environment.enableRealTaskMutation) {
-      return throwError(
-        () => new Error('Real task mutation is disabled by environment safety flag.'),
-      );
-    }
+    this.assertMutationEnabled();
+    this.assertTestTaskTitle(payload.title, 'ثبت');
 
     return this.http.post<TaskItem>(`${this.apiBaseUrl}/tasks/`, payload);
   }
 
   updateTask(taskId: number, payload: TaskMutationPayload): Observable<TaskItem> {
-    if (!environment.enableRealTaskMutation) {
-      return throwError(
-        () => new Error('Real task mutation is disabled by environment safety flag.'),
-      );
-    }
+    this.assertMutationEnabled();
+    this.assertTestTaskTitle(payload.title, 'ویرایش');
 
     return this.http.put<TaskItem>(`${this.apiBaseUrl}/tasks/${taskId}/`, payload);
   }
 
-  deleteTask(taskId: number): Observable<void> {
-    if (!environment.enableRealTaskMutation) {
-      return throwError(
-        () => new Error('Real task deletion is disabled by environment safety flag.'),
-      );
-    }
+  deleteTask(taskId: number, title: string): Observable<void> {
+    this.assertMutationEnabled();
+    this.assertTestTaskTitle(title, 'حذف');
 
     return this.http.delete<void>(`${this.apiBaseUrl}/tasks/${taskId}/`);
   }
