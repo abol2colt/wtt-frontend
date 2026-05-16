@@ -6,6 +6,7 @@ import { DashboardService } from './services/dashboard.service';
 import { EChartsOption } from 'echarts';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { NgxEchartsDirective } from 'ngx-echarts';
+import { TaskRange } from '../../shared/models/task.model';
 import {
   NewsMessagesCountResponse,
   NewsMessagesResponse,
@@ -29,6 +30,12 @@ export class DashboardComponent implements OnInit {
     error: null,
   });
 
+  privateNewsState = signal<ApiState<NewsMessagesResponse>>({
+    data: null,
+    loading: true,
+    error: null,
+  });
+
   publicNewsCountState = signal<ApiState<NewsMessagesCountResponse>>({
     data: null,
     loading: true,
@@ -43,10 +50,21 @@ export class DashboardComponent implements OnInit {
 
   lineChartState = signal<ApiState<EChartsOption>>({ data: null, loading: true, error: null });
 
-  private readonly range = 'month_till_today';
+  readonly dashboardRanges: { key: TaskRange; label: string }[] = [
+    { key: 'month_till_today', label: 'ماه جاری تا امروز' },
+    { key: 'month', label: 'ماه مالی کامل' },
+    { key: 'last_month', label: 'ماه مالی گذشته' },
+    { key: 'today', label: 'امروز' },
+    { key: 'yesterday', label: 'دیروز' },
+    { key: 'week', label: 'هفته جاری' },
+    { key: 'this_year', label: 'سال جاری' },
+  ];
+
+  selectedRange = signal('month_till_today');
 
   constructor() {
     this.layout.isTasksPage.set(false);
+    this.layout.dashboardRange.set(this.selectedRange() as TaskRange);
   }
 
   ngOnInit(): void {
@@ -54,7 +72,29 @@ export class DashboardComponent implements OnInit {
     this.loadLineChart();
     this.loadPublicNews();
     this.loadPublicNewsCount();
+    this.loadPublicNews();
+    this.loadPublicNewsCount();
   }
+  setDashboardRange(range: TaskRange): void {
+    if (this.selectedRange() === range) return;
+
+    this.selectedRange.set(range);
+    this.layout.dashboardRange.set(range);
+    this.loadStats();
+    this.loadLineChart();
+    this.loadPublicNews();
+    this.loadPrivateNews();
+    this.loadPublicNewsCount();
+  }
+
+  isDashboardRangeActive(range: string): boolean {
+    return this.selectedRange() === range;
+  }
+
+  get selectedRangeLabel(): string {
+    return this.dashboardRanges.find((item) => item.key === this.selectedRange())?.label ?? 'بازه';
+  }
+
   loadStats(): void {
     const userId = this.authService.getCurrentUserId();
 
@@ -74,7 +114,7 @@ export class DashboardComponent implements OnInit {
       error: null,
     });
 
-    this.dashboardService.getStats(userId, this.range).subscribe({
+    this.dashboardService.getStats(userId, this.selectedRange()).subscribe({
       next: (response) => {
         this.statsState.set({
           data: response.data,
@@ -98,7 +138,7 @@ export class DashboardComponent implements OnInit {
       error: null,
     });
 
-    this.dashboardService.getNewsMessages('public', this.range).subscribe({
+    this.dashboardService.getNewsMessages('public', this.selectedRange()).subscribe({
       next: (response) => {
         this.publicNewsState.set({
           data: response,
@@ -117,6 +157,32 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  loadPrivateNews(): void {
+    this.privateNewsState.set({
+      data: null,
+      loading: true,
+      error: null,
+    });
+
+    this.dashboardService.getNewsMessages('private', this.selectedRange()).subscribe({
+      next: (response) => {
+        this.privateNewsState.set({
+          data: response,
+          loading: false,
+          error: null,
+        });
+      },
+
+      error: () => {
+        this.privateNewsState.set({
+          data: null,
+          loading: false,
+          error: 'خطا در دریافت اطلاعیه‌های شخصی',
+        });
+      },
+    });
+  }
+
   loadPublicNewsCount(): void {
     this.publicNewsCountState.set({
       data: null,
@@ -124,7 +190,7 @@ export class DashboardComponent implements OnInit {
       error: null,
     });
 
-    this.dashboardService.getNewsMessagesCount('public', this.range).subscribe({
+    this.dashboardService.getNewsMessagesCount('public', this.selectedRange()).subscribe({
       next: (response) => {
         this.publicNewsCountState.set({
           data: response,
@@ -169,7 +235,7 @@ export class DashboardComponent implements OnInit {
       error: null,
     });
 
-    this.dashboardService.getLineChart(userId, this.range).subscribe({
+    this.dashboardService.getLineChart(userId, this.selectedRange()).subscribe({
       next: (response) => {
         if (!response.length) {
           this.lineChartState.set({

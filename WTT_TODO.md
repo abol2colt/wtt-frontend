@@ -349,7 +349,7 @@ No real work item should be created, updated, or deleted during demo except a cl
 
 # FORCE Plan Before Tomorrow Demo
 
-## 🔥 Branch 014 — `feature/014-force-secrets-config-and-demo-safety`
+## 🔥✅ Branch 014 — `feature/014-force-secrets-config-and-demo-safety`
 
 **Timebox:** 13:00–13:45  
 **Priority:** P0 / FORCE  
@@ -390,7 +390,7 @@ No real work item should be created, updated, or deleted during demo except a cl
 
 ---
 
-## 🔥 Branch 015 — `feature/015-force-integration-provider-contracts`
+## 🔥✅ Branch 015 — `feature/015-force-integration-provider-contracts`
 
 **Timebox:** 13:45–15:00  
 **Priority:** P0 / FORCE  
@@ -458,7 +458,7 @@ No real work item should be created, updated, or deleted during demo except a cl
 
 ---
 
-## 🔥 Branch 016 — `feature/016-force-smart-worklog-time-confidence`
+## 🔥✅ Branch 016 — `feature/016-force-smart-worklog-time-confidence`
 
 **Timebox:** 15:00–16:15  
 **Priority:** P0 / FORCE  
@@ -523,7 +523,7 @@ No real work item should be created, updated, or deleted during demo except a cl
 
 ---
 
-## 🔥 Branch 017 — `feature/017-force-dashboard-demo-polish`
+## 🔥✅ Branch 017 — `feature/017-force-dashboard-demo-polish`
 
 **Timebox:** 16:15–17:10  
 **Priority:** P1 / FORCE  
