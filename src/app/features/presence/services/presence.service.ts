@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
   ActivePresenceResponse,
@@ -35,11 +36,23 @@ export class PresenceService {
   }
 
   clockIn(payload: ClockInPayload) {
+    if (!environment.enableRealPresenceMutation) {
+      return throwError(
+        () => new Error('Real presence mutation is disabled by environment safety flag.'),
+      );
+    }
+
     // Real attendance mutation. Must be guarded by UI before calling.
     return this.http.post<ActivePresenceResponse>(`${this.apiBaseUrl}/presence/`, payload);
   }
 
   clockOut(presenceId: number, payload: ClockOutPayload) {
+    if (!environment.enableRealPresenceMutation) {
+      return throwError(
+        () => new Error('Real presence mutation is disabled by environment safety flag.'),
+      );
+    }
+
     // Real attendance mutation. Must target the active presence id only.
     return this.http.put<ActivePresenceResponse>(
       `${this.apiBaseUrl}/presence/${presenceId}/`,
