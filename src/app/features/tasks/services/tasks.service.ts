@@ -85,19 +85,34 @@ export class TasksService {
     });
   }
 
-  createTask(payload: TaskMutationPayload) {
-    // return this.http.post<TaskItem>(`${this.apiBaseUrl}/tasks/`, payload);
-    return throwError(() => new Error('Task mutation is disabled in Branch 012.'));
+  createTask(payload: TaskMutationPayload): Observable<TaskItem> {
+    if (!environment.enableRealTaskMutation) {
+      return throwError(
+        () => new Error('Real task mutation is disabled by environment safety flag.'),
+      );
+    }
+
+    return this.http.post<TaskItem>(`${this.apiBaseUrl}/tasks/`, payload);
   }
 
-  updateTask(taskId: number, payload: TaskMutationPayload) {
-    //  return this.http.put<TaskItem>(`${this.apiBaseUrl}/tasks/${taskId}/`, payload);
-    return throwError(() => new Error('Task mutation is disabled in Branch 012.'));
+  updateTask(taskId: number, payload: TaskMutationPayload): Observable<TaskItem> {
+    if (!environment.enableRealTaskMutation) {
+      return throwError(
+        () => new Error('Real task mutation is disabled by environment safety flag.'),
+      );
+    }
+
+    return this.http.put<TaskItem>(`${this.apiBaseUrl}/tasks/${taskId}/`, payload);
   }
 
   deleteTask(taskId: number): Observable<void> {
-    //  return this.http.delete<void>(`${this.apiBaseUrl}/tasks/${taskId}/`);
-    return throwError(() => new Error('Task deletion is disabled in Branch 012.'));
+    if (!environment.enableRealTaskMutation) {
+      return throwError(
+        () => new Error('Real task deletion is disabled by environment safety flag.'),
+      );
+    }
+
+    return this.http.delete<void>(`${this.apiBaseUrl}/tasks/${taskId}/`);
   }
 
   private mapWttTaskListResponse(response: WttTaskListResponse, page: number): TaskListResponse {
