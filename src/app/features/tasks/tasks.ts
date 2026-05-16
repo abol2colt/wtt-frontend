@@ -83,8 +83,12 @@ export class TasksComponent implements OnInit {
 
   isTaskModalOpen = signal(false);
   private readonly gitlabSyncService = inject(GitlabSyncService);
+
   isSyncing = signal(false);
   editingTask = signal<TaskItem | null>(null);
+
+  readonly maxAllowedAdjustmentMinutes = 30;
+  suggestedWorklogDurationMinutes = signal<number | null>(null);
 
   currentPage = signal(1);
   activeRange = signal<TaskRangeFilter>('month_till_today');
@@ -115,6 +119,7 @@ export class TasksComponent implements OnInit {
     start_time: ['', Validators.required],
     end_time: ['', Validators.required],
     description: [''],
+    adjustment_reason: [''],
   });
 
   constructor() {
@@ -428,6 +433,7 @@ export class TasksComponent implements OnInit {
   }
   openCreateTaskModal(): void {
     this.editingTask.set(null);
+    this.suggestedWorklogDurationMinutes.set(null);
 
     this.taskForm.reset({
       title: '',
@@ -439,6 +445,7 @@ export class TasksComponent implements OnInit {
       start_time: '',
       end_time: '',
       description: '',
+      adjustment_reason: '',
     });
 
     this.mutationState.set({
@@ -451,6 +458,7 @@ export class TasksComponent implements OnInit {
   }
   openEditTaskModal(task: TaskItem): void {
     this.editingTask.set(task);
+    this.suggestedWorklogDurationMinutes.set(null);
     this.selectedJiraTask.set(null);
     this.showJiraDropdown.set(false);
 
@@ -464,6 +472,7 @@ export class TasksComponent implements OnInit {
       start_time: this.extractTime(task.start_time),
       end_time: this.extractTime(task.end_time),
       description: '',
+      adjustment_reason: '',
     });
     this.loadProjectDetails(task.project_id);
     this.mutationState.set({
@@ -499,11 +508,38 @@ export class TasksComponent implements OnInit {
 
     return Math.max(0, endTotal - startTotal);
   }
+  getManualAdjustmentMinutes(): number {
+    const suggestedDuration = this.suggestedWorklogDurationMinutes();
+
+    if (!suggestedDuration) return 0;
+
+    const { start_time, end_time } = this.taskForm.getRawValue();
+
+    if (!start_time || !end_time) return 0;
+
+    const currentDuration = this.calculateDurationMinutes(start_time, end_time);
+
+    return currentDuration - suggestedDuration;
+  }
+
+  requiresAdjustmentReason(): boolean {
+    return this.getManualAdjustmentMinutes() > this.maxAllowedAdjustmentMinutes;
+  }
 
   private buildTaskPayload(): TaskMutationPayload {
     const formValue = this.taskForm.getRawValue();
 
     const duration = this.calculateDurationMinutes(formValue.start_time, formValue.end_time);
+
+    const adjustmentReason = formValue.adjustment_reason.trim();
+
+    const finalDescription = adjustmentReason
+      ? `${formValue.description || ''}
+
+---
+دلیل افزایش زمان:
+${adjustmentReason}`
+      : formValue.description;
 
     return {
       title: formValue.title,
@@ -515,7 +551,7 @@ export class TasksComponent implements OnInit {
       start_time: `${formValue.date} ${formValue.start_time}:00`,
       end_time: `${formValue.date} ${formValue.end_time}:00`,
       duration,
-      description: formValue.description || undefined,
+      description: finalDescription || undefined,
     };
   }
 
@@ -564,6 +600,16 @@ export class TasksComponent implements OnInit {
       return;
     }
 
+    if (this.requiresAdjustmentReason() && !this.taskForm.controls.adjustment_reason.value.trim()) {
+      this.mutationState.set({
+        data: null,
+        loading: false,
+        error: 'برای افزایش زمان بیش از ۳۰ دقیقه نسبت به پیشنهاد سیستم، وارد کردن دلیل الزامی است.',
+      });
+
+      return;
+    }
+
     this.mutationState.set({
       data: null,
       loading: true,
@@ -597,6 +643,7 @@ export class TasksComponent implements OnInit {
       },
     });
   }
+
   applyAdvancedFilters(): void {
     this.activeStatus.set('all');
     this.loadTasks(1);
@@ -624,6 +671,7 @@ export class TasksComponent implements OnInit {
     this.loadTasks(1);
     this.loadTasksCount();
   }
+
   onFilterProjectChange(projectId: number | string): void {
     const selectedProjectId = Number(projectId) || null;
 
@@ -641,6 +689,7 @@ export class TasksComponent implements OnInit {
       });
     }
   }
+
   private buildCurrentTaskQuery(page = this.currentPage()): TaskListQuery {
     const query: TaskListQuery = {
       page,
@@ -709,7 +758,8 @@ export class TasksComponent implements OnInit {
         const durationMinutes = Number(
           response.suggestedDurationMinutes ?? response.durationMinutes ?? 0,
         );
-
+        this.suggestedWorklogDurationMinutes.set(durationMinutes);
+        this.taskForm.patchValue({ adjustment_reason: '' });
         const now = new Date();
 
         const fallbackEndHour = String(now.getHours()).padStart(2, '0');
