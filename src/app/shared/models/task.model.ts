@@ -107,9 +107,29 @@ export interface ExternalTaskSourceItem {
   raw?: unknown;
 }
 
+export interface GitEvidenceSummary {
+  taskKey?: string;
+  branch?: string;
+  commitCount?: number;
+  firstCommitAt?: string;
+  lastCommitAt?: string;
+  excludedGapMinutes?: number;
+  reasoning?: string;
+}
+
 export interface GitEvidenceSyncResponse {
   success: boolean;
   description?: string;
+
   durationMinutes?: number;
+  suggestedStartTime?: string;
+  suggestedEndTime?: string;
+  suggestedDurationMinutes?: number;
+  excludedGapMinutes?: number;
+
+  confidenceScore?: number;
+  confidenceLabel?: 'high' | 'medium' | 'needs-review' | 'manual-review' | string;
+
+  evidence?: GitEvidenceSummary;
   error?: string;
 }

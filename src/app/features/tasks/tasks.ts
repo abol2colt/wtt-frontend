@@ -706,24 +706,45 @@ export class TasksComponent implements OnInit {
           return;
         }
 
-        const durationMinutes = Number(response.durationMinutes || 0);
+        const durationMinutes = Number(
+          response.suggestedDurationMinutes ?? response.durationMinutes ?? 0,
+        );
 
         const now = new Date();
 
-        const endHour = String(now.getHours()).padStart(2, '0');
-        const endMinute = String(now.getMinutes()).padStart(2, '0');
-        const endTimeStr = `${endHour}:${endMinute}`;
+        const fallbackEndHour = String(now.getHours()).padStart(2, '0');
+        const fallbackEndMinute = String(now.getMinutes()).padStart(2, '0');
+        const fallbackEndTimeStr = `${fallbackEndHour}:${fallbackEndMinute}`;
 
-        const startTimeObj = new Date(now.getTime() - durationMinutes * 60000);
-        const startHour = String(startTimeObj.getHours()).padStart(2, '0');
-        const startMinute = String(startTimeObj.getMinutes()).padStart(2, '0');
-        const startTimeStr = `${startHour}:${startMinute}`;
+        const fallbackStartTimeObj = new Date(now.getTime() - durationMinutes * 60000);
+        const fallbackStartHour = String(fallbackStartTimeObj.getHours()).padStart(2, '0');
+        const fallbackStartMinute = String(fallbackStartTimeObj.getMinutes()).padStart(2, '0');
+        const fallbackStartTimeStr = `${fallbackStartHour}:${fallbackStartMinute}`;
 
+        const startTimeStr = response.suggestedStartTime || fallbackStartTimeStr;
+        const endTimeStr = response.suggestedEndTime || fallbackEndTimeStr;
         this.taskForm.patchValue({
-          description: response.description,
           date: this.taskForm.controls.date.value || this.getTodayJalaliDate(),
           start_time: startTimeStr,
           end_time: endTimeStr,
+        });
+        const evidenceNote = [
+          '',
+          '---',
+          `Confidence: ${response.confidenceScore ?? 'N/A'}%`,
+          response.evidence?.commitCount != null
+            ? `Commits: ${response.evidence.commitCount}`
+            : null,
+          response.evidence?.excludedGapMinutes != null
+            ? `Excluded gaps: ${response.evidence.excludedGapMinutes} minutes`
+            : null,
+          response.evidence?.reasoning ? `Reasoning: ${response.evidence.reasoning}` : null,
+        ]
+          .filter(Boolean)
+          .join('\n');
+
+        this.taskForm.patchValue({
+          description: `${response.description ?? ''}${evidenceNote}`,
         });
 
         this.mutationState.set({
