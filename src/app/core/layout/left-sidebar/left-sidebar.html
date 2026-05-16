@@ -221,6 +221,32 @@
               type="button"
               class="filter-chip"
               [class.active]="
+                taskFilters.activeRange() === 'month' &&
+                !taskFilters.startDate() &&
+                !taskFilters.endDate()
+              "
+              (click)="taskFilters.setQuickRange('month')"
+            >
+              ماه مالی کامل
+            </button>
+
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="
+                taskFilters.activeRange() === 'last_month' &&
+                !taskFilters.startDate() &&
+                !taskFilters.endDate()
+              "
+              (click)="taskFilters.setQuickRange('last_month')"
+            >
+              ماه مالی گذشته
+            </button>
+
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="
                 taskFilters.activeRange() === 'today' &&
                 !taskFilters.startDate() &&
                 !taskFilters.endDate()
@@ -503,7 +529,7 @@
   }
 
   <section class="left-card today-stats-card mt-auto">
-    <h3 class="today-stats-title">آمار ماه جاری</h3>
+    <h3 class="today-stats-title">آمار {{ sidebarStatsRangeLabel() }}</h3>
     <div class="today-stats-grid">
       <div class="today-mini-card">
         <svg class="today-mini-icon" viewBox="0 0 24 24" fill="none">

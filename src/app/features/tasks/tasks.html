@@ -136,6 +136,22 @@
       <button
         type="button"
         class="filter-chip"
+        [class.active]="isRangeFilterActive('last_month')"
+        (click)="setRangeFilter('last_month')"
+      >
+        ماه مالی گذشته
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
+        [class.active]="isRangeFilterActive('month')"
+        (click)="setRangeFilter('month')"
+      >
+        ماه مالی کامل
+      </button>
+      <button
+        type="button"
+        class="filter-chip"
         [class.active]="isRangeFilterActive('today')"
         (click)="setRangeFilter('today')"
       >

@@ -1,4 +1,22 @@
 <div class="flex flex-col gap-[10px] pb-6">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="flex flex-wrap gap-2">
+      @for (range of dashboardRanges; track range.key) {
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="isDashboardRangeActive(range.key)"
+          (click)="setDashboardRange(range.key)"
+        >
+          {{ range.label }}
+        </button>
+      }
+    </div>
+
+    <span class="text-[11px] font-bold text-[var(--text-soft)]">
+      داشبورد بر اساس: {{ selectedRangeLabel }}
+    </span>
+  </div>
   <section class="summary-stats-row">
     @if (statsState().loading) {
       @for (i of [1, 2, 3, 4]; track i) {
@@ -104,8 +122,8 @@
 
   <section class="trend-chart-card">
     <div class="trend-chart-topbar">
-      <h3 class="trend-chart-title">روند کارکرد ۳۰ روز گذشته</h3>
-      <button class="trend-chart-filter">۳۰ روز اخیر</button>
+      <h3 class="trend-chart-title">روند کارکرد بازه انتخاب‌شده</h3>
+      <button class="trend-chart-filter">{{ selectedRangeLabel }}</button>
     </div>
 
     @if (lineChartState().loading) {
@@ -189,21 +207,34 @@
         </svg>
       </div>
       <div class="announcement-list">
-        <div class="announcement-item">
-          <span class="announcement-dot" style="background: var(--purple)"></span>
-          <span>جلسه بررسی پروژه [IDEAL-9011]</span>
-          <span class="announcement-arrow">‹</span>
-        </div>
-        <div class="announcement-item">
-          <span class="announcement-dot" style="background: var(--blue)"></span>
-          <span>جلسه روزانه تیم توسعه</span>
-          <span class="announcement-arrow">‹</span>
-        </div>
-        <div class="announcement-item">
-          <span class="announcement-dot" style="background: var(--orange)"></span>
-          <span>سرویس API در گزارش اعلام</span>
-          <span class="announcement-arrow">‹</span>
-        </div>
+        @if (privateNewsState().loading) {
+          <div class="announcement-item">
+            <span>در حال دریافت اطلاعیه‌های شخصی...</span>
+          </div>
+        } @else if (privateNewsState().error) {
+          <div class="announcement-item">
+            <span class="text-red-500">{{ privateNewsState().error }}</span>
+            <button type="button" (click)="loadPrivateNews()">تلاش مجدد</button>
+          </div>
+        } @else if ((privateNewsState().data?.results?.length ?? 0) === 0) {
+          <div class="announcement-item">
+            <span class="announcement-dot" style="background: var(--purple)"></span>
+            <span>اطلاعیه شخصی جدیدی وجود ندارد.</span>
+          </div>
+        } @else {
+          @for (message of privateNewsState().data?.results?.slice(0, 4) ?? []; track message.id) {
+            <div class="announcement-item">
+              <span
+                class="announcement-dot"
+                [style.background]="message.seen ? 'var(--blue)' : 'var(--purple)'"
+              ></span>
+
+              <span>{{ message.title }}</span>
+
+              <span class="announcement-arrow">‹</span>
+            </div>
+          }
+        }
       </div>
     </article>
   </section>

@@ -49,9 +49,22 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly presenceService = inject(PresenceService);
   private readonly tasksService = inject(TasksService);
-  readonly presenceMutationDryRun = signal(true);
-  private readonly sidebarStatsRange = 'month_till_today';
   readonly taskFilters = inject(TasksFiltersService);
+  readonly presenceMutationDryRun = signal(true);
+  readonly sidebarRangeLabels: Record<string, string> = {
+    month_till_today: 'ماه جاری تا امروز',
+    month: 'ماه مالی کامل',
+    last_month: 'ماه مالی گذشته',
+    today: 'امروز',
+    yesterday: 'دیروز',
+    week: 'هفته جاری',
+    last_week: 'هفته گذشته',
+    this_year: 'سال جاری',
+  };
+
+  readonly sidebarStatsRangeLabel = computed(() => {
+    return this.sidebarRangeLabels[this.layout.dashboardRange()] ?? 'بازه انتخاب‌شده';
+  });
 
   taskFilterProjectsState = signal<ApiState<Project[]>>({
     data: null,
@@ -119,6 +132,17 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
         this.loadTaskFilterProjects();
       });
     });
+    effect(() => {
+      const isTasksPage = this.layout.isTasksPage();
+      const range = this.layout.dashboardRange();
+
+      if (isTasksPage || !range) return;
+
+      untracked(() => {
+        this.loadPieChart();
+        this.loadSidebarStats();
+      });
+    });
   }
 
   projectDistributionItems = computed<ProjectDistributionItem[]>(() => {
@@ -148,10 +172,8 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!this.layout.isTasksPage()) {
-      this.loadPieChart();
       this.loadPresenceState();
       this.loadLatestIncompleteTask();
-      this.loadSidebarStats();
     }
   }
 
@@ -179,7 +201,7 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
       error: null,
     });
 
-    this.dashboardService.getPieChart(userId, 'month_till_today').subscribe({
+    this.dashboardService.getPieChart(userId, this.layout.dashboardRange()).subscribe({
       next: (response) => {
         if (!response.length) {
           this.pieChartItems.set([]);
@@ -703,6 +725,7 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
   });
   loadSidebarStats(): void {
     const userId = this.authService.getCurrentUserId();
+    const range = this.layout.dashboardRange();
 
     if (!userId) {
       this.todayProfileState.set({
@@ -731,7 +754,7 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
       loading: true,
       error: null,
     });
-    this.dashboardService.getProfileSummary(userId, this.sidebarStatsRange).subscribe({
+    this.dashboardService.getProfileSummary(userId, range).subscribe({
       next: (response) => {
         this.todayProfileState.set({
           data: response,
@@ -744,14 +767,14 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
         this.todayProfileState.set({
           data: null,
           loading: false,
-          error: 'خطا در دریافت آمار امروز',
+          error: 'خطا در دریافت آمار بازه',
         });
       },
     });
 
     this.tasksService
       .getTasksCount({
-        range: this.sidebarStatsRange,
+        range,
       })
       .subscribe({
         next: (response) => {

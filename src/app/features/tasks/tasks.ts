@@ -24,13 +24,6 @@ type ProjectDetailsPreselect = {
   contractId: number;
 };
 
-type TaskRangeFilter =
-  | 'month_till_today'
-  | 'today'
-  | 'yesterday'
-  | 'week'
-  | 'last_week'
-  | 'this_year';
 type TaskStatusFilter = 'all' | 'pending' | 'rejected';
 @Component({
   selector: 'app-tasks',
@@ -91,7 +84,7 @@ export class TasksComponent implements OnInit {
   suggestedWorklogDurationMinutes = signal<number | null>(null);
 
   currentPage = signal(1);
-  activeRange = signal<TaskRangeFilter>('month_till_today');
+  activeRange = signal<TaskRange>('month_till_today');
   activeStatus = signal<TaskStatusFilter>('all');
   deletingTaskId = signal<number | null>(null);
   deleteError = signal<string | null>(null);
@@ -281,7 +274,7 @@ export class TasksComponent implements OnInit {
     this.loadTasks(this.currentPage() + 1);
   }
 
-  setRangeFilter(range: TaskRangeFilter): void {
+  setRangeFilter(range: TaskRange): void {
     this.taskFilters.setQuickRange(range);
   }
 
