@@ -9,6 +9,7 @@ export const environment = {
 
   // Demo safety flags. Dangerous real mutations must stay off unless explicitly enabled locally.
   enableRealTaskMutation: false,
+  taskMutationTestPrefix: '[FRONTEND-TEST-DO-NOT-APPROVE]',
   enableRealPresenceMutation: false,
   enableIntegrationMockMode: true,
 

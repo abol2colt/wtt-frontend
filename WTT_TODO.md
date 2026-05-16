@@ -619,6 +619,18 @@ No real work item should be created, updated, or deleted during demo except a cl
 
 **خلاصه فارسی:** فقط با یک تسک تستی و قابل حذف، ثبت/ویرایش/حذف واقعی WTT را تست می‌کنیم.
 
+# Branch 018 Smoke Test
+
+- Test title: [FRONTEND-TEST-DO-NOT-APPROVE] Smart Worklog Smoke Test
+- Mutation flag enabled locally: yes
+- Create request reached WTT API: yes
+- Backend response: 403 Forbidden
+- Created task id: none
+- Updated: not executed
+- Deleted: not required
+- Final cleanup status: no test task was created; no real data changed
+- Result: frontend safety guard works; backend create permission is not available for current user
+
 ---
 
 ## 🔥 Branch 019 — `feature/019-force-final-demo-cleanup-and-script`
