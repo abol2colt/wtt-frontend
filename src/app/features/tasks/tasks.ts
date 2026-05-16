@@ -1,7 +1,8 @@
 import { Component, OnInit, effect, inject, signal, untracked } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { LayoutService } from '../../core/services/layout/layout.service';
-import { GitlabSyncService, JiraTask } from './services/gitlab-sync.service';
+import { GitlabSyncService } from './services/gitlab-sync.service';
+import { ExternalTaskSource } from '../../shared/models/task.model';
 import { ApiState } from '../../shared/models/api-state.model';
 import { format } from 'date-fns-jalali';
 import {
@@ -11,6 +12,7 @@ import {
   TaskMutationPayload,
   TasksCountResponse,
   TaskRange,
+  ExternalTaskSourceItem,
 } from '../../shared/models/task.model';
 import { TasksService } from './services/tasks.service';
 import { TasksFiltersService } from './services/tasks-filters.service';
@@ -98,10 +100,10 @@ export class TasksComponent implements OnInit {
 
   startDate = signal('');
   endDate = signal('');
+  jiraTasks = signal<ExternalTaskSourceItem[]>([]);
+  selectedJiraTask = signal<ExternalTaskSourceItem | null>(null);
 
-  jiraTasks = signal<JiraTask[]>([]);
   showJiraDropdown = signal(false);
-  selectedJiraTask = signal<JiraTask | null>(null);
 
   taskForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(3)]],
@@ -680,7 +682,7 @@ export class TasksComponent implements OnInit {
       this.mutationState.set({
         data: null,
         loading: false,
-        error: 'اول یک تسک Jira انتخاب کن تا commitهای مربوط به همان تسک دریافت شوند.',
+        error: 'اول یک تسک از منبع وظایف انتخاب کن تا شواهد مربوط به همان تسک دریافت شوند.',
       });
       return;
     }
@@ -689,10 +691,8 @@ export class TasksComponent implements OnInit {
 
     this.isSyncing.set(true);
 
-    this.gitlabSyncService.syncCommits(selectedTask).subscribe({
+    this.gitlabSyncService.syncEvidence(selectedTask).subscribe({
       next: (response) => {
-        console.log('GitLab & Gemini Response:', response);
-
         if (!response?.success) {
           this.isSyncing.set(false);
 
@@ -752,24 +752,22 @@ export class TasksComponent implements OnInit {
     });
   }
   loadJiraTasks(): void {
-    this.gitlabSyncService.getJiraTasks().subscribe({
+    this.gitlabSyncService.getAssignedTasks().subscribe({
       next: (tasks) => {
         this.jiraTasks.set(tasks);
         this.showJiraDropdown.set(true);
       },
 
-      error: (err) => {
-        console.error('Jira mock request failed:', err);
-
+      error: (error) => {
         this.mutationState.set({
           data: null,
           loading: false,
-          error: 'خطا در دریافت تسک‌های Jira از proxy محلی.',
+          error: 'خطا در دریافت تسک‌های انتسابی از integration proxy.',
         });
       },
     });
   }
-  selectJiraTask(task: JiraTask, event: Event): void {
+  selectJiraTask(task: ExternalTaskSourceItem, event: Event): void {
     event.preventDefault();
     event.stopPropagation();
 
