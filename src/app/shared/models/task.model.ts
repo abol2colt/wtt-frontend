@@ -83,3 +83,33 @@ export interface TaskListQuery {
   teleworking?: boolean;
   favorite?: boolean;
 }
+export type ExternalTaskSource = 'jira' | 'mock-jira';
+
+export interface ExternalTaskSourceItem {
+  id: string;
+  key?: string;
+  title: string;
+
+  project_id: number;
+  project_title?: string;
+
+  service_id: number;
+  service_title?: string;
+
+  contract_id: number;
+  contract_title?: string;
+
+  branch_name?: string;
+  status?: string;
+  estimated_minutes?: number;
+
+  source?: ExternalTaskSource;
+  raw?: unknown;
+}
+
+export interface GitEvidenceSyncResponse {
+  success: boolean;
+  description?: string;
+  durationMinutes?: number;
+  error?: string;
+}
