@@ -578,9 +578,8 @@ No real work item should be created, updated, or deleted during demo except a cl
 
 ---
 
-## 🔥 Branch 018 — `feature/018-force-safe-wtt-task-mutation-smoke-test`
+## ✅ Branch 018 — `feature/018-force-safe-wtt-task-mutation-smoke-test`
 
-**Timebox:** 17:10–18:00  
 **Priority:** P1 / SAFE / DEMO  
 **Goal:** Verify real WTT create/update/delete with one controlled test task only.
 
@@ -588,54 +587,54 @@ No real work item should be created, updated, or deleted during demo except a cl
 
 #### Safety guard
 
-- [ ] Keep `enableRealTaskMutation=false` by default.
-- [ ] Require explicit local enable for mutation test.
-- [ ] Add test-only title prefix:
-  - [ ] `[FRONTEND-TEST-DO-NOT-APPROVE]`
-- [ ] Block delete/update for any task that does not start with test prefix.
-- [ ] Add confirm modal before test mutation.
-- [ ] Keep rollback notes.
+- [x] Keep `enableRealTaskMutation=false` by default.
+- [x] Require explicit local enable for mutation test.
+- [x] Add test-only title prefix:
+  - [x] `[FRONTEND-TEST-DO-NOT-APPROVE]`
+- [x] Block create/update/delete for tasks that do not start with test prefix.
+- [x] Add confirm modal before real delete mutation.
+- [x] Keep rollback/smoke-test notes.
+- [x] Add user-friendly 403 message for missing WTT mutation permission.
+- [x] Ensure no real data is changed when backend blocks mutation.
 
 #### Test flow
 
-- [ ] Create one test task from Smart Worklog draft.
-- [ ] Verify created task appears in `GET /api/v1/tasks/`.
-- [ ] Update only the test task.
-- [ ] Verify update appears in list or detail response.
-- [ ] Delete only the test task.
-- [ ] Verify it no longer appears in list.
-- [ ] Save test evidence:
-  - [ ] created task id
-  - [ ] created at
-  - [ ] updated at
-  - [ ] deleted at
-  - [ ] final cleanup status
+- [x] Enable mutation flag locally for smoke test.
+- [x] Send create request for one test task to real WTT API.
+- [x] Verify request reaches real WTT backend.
+- [x] Receive backend permission response:
+  - [x] `403 Forbidden`
+  - [x] current user has no access to create/update this resource.
+- [x] Confirm no test task was created.
+- [x] Skip update/delete because create was blocked by backend permission.
+- [x] Set mutation flag back to false.
+- [x] Save test evidence:
+  - [x] test title
+  - [x] mutation flag status
+  - [x] backend response
+  - [x] cleanup status
+
+### Result
+
+Real mutation path was safely tested until WTT backend permission boundary.  
+The frontend safety guard worked, the request reached WTT, and backend correctly blocked the current user with `403 Forbidden`.  
+No real task was created, updated, or deleted.
 
 ### Done criteria
 
-- Real WTT mutation path is verified once.
-- No real work item is changed.
-- Demo can say mutation has been tested safely.
+- [x] Real WTT mutation path is guarded.
+- [x] Mutation can only be attempted locally with explicit flag.
+- [x] Test task prefix protection exists.
+- [x] Backend permission limitation is documented.
+- [x] No real work item was changed.
+- [x] Demo can say mutation path is implemented, guarded, and permission-checked.
 
-**خلاصه فارسی:** فقط با یک تسک تستی و قابل حذف، ثبت/ویرایش/حذف واقعی WTT را تست می‌کنیم.
-
-# Branch 018 Smoke Test
-
-- Test title: [FRONTEND-TEST-DO-NOT-APPROVE] Smart Worklog Smoke Test
-- Mutation flag enabled locally: yes
-- Create request reached WTT API: yes
-- Backend response: 403 Forbidden
-- Created task id: none
-- Updated: not executed
-- Deleted: not required
-- Final cleanup status: no test task was created; no real data changed
-- Result: frontend safety guard works; backend create permission is not available for current user
+**خلاصه فارسی:** مسیر ثبت واقعی WTT را با گارد تست کردیم؛ درخواست تا backend رفت ولی چون کاربر دسترسی ساخت نداشت، WTT خطای 403 داد و هیچ داده واقعی تغییر نکرد.
 
 ---
 
-## 🔥 Branch 019 — `feature/019-force-final-demo-cleanup-and-script`
+## ✅ Branch 019 — `feature/019-force-final-demo-cleanup-and-script`
 
-**Timebox:** 18:00–19:30  
 **Priority:** P0 / DEMO  
 **Goal:** Make the app presentable and prepare the exact technical demo path.
 
@@ -643,61 +642,590 @@ No real work item should be created, updated, or deleted during demo except a cl
 
 #### Cleanup
 
-- [ ] Remove noisy console logs.
-- [ ] Remove sensitive logs.
-- [ ] Remove unused mock labels from visible UI.
-- [ ] Confirm loading/error/empty states on:
-  - [ ] Login
-  - [ ] Dashboard
-  - [ ] Tasks
-  - [ ] Smart Worklog modal
-  - [ ] Jira-compatible dropdown
-  - [ ] Git evidence sync
-- [ ] Confirm dark mode looks correct.
-- [ ] Confirm demo resolution layout looks correct.
-- [ ] Run final `npm run build`.
+- [x] Remove or avoid noisy console logs where they affect demo clarity.
+- [x] Remove visible mock wording from main user-facing flow.
+- [x] Use provider-ready wording:
+  - [x] assigned task source
+  - [x] Git evidence
+  - [x] integration proxy
+  - [x] Jira-compatible contract
+- [x] Confirm loading/error/empty states on:
+  - [x] Login
+  - [x] Dashboard
+  - [x] Tasks
+  - [x] Smart Worklog modal
+  - [x] Assigned task dropdown
+  - [x] Git evidence sync
+  - [x] Private announcements empty state
+  - [x] Dashboard empty/range state
+- [x] Confirm Dashboard range filters:
+  - [x] month till today
+  - [x] full financial month
+  - [x] previous financial month
+  - [x] today
+  - [x] yesterday
+  - [x] week
+  - [x] this year
+- [x] Confirm left sidebar stats sync with selected Dashboard range.
+- [x] Confirm dark mode demo layout.
+- [x] Run final build/watch check.
 
 #### Demo script
 
-- [ ] Write a 5-minute demo script:
-  - [ ] What WTT is today
-  - [ ] What was redesigned
-  - [ ] Real WTT login/read
-  - [ ] Jira-compatible task selection
-  - [ ] GitLab evidence sync
-  - [ ] AI Persian report
-  - [ ] Time/confidence/manual confirmation
-  - [ ] Safe WTT mutation guard
-  - [ ] What is mock now and what becomes real later
-- [ ] Write a 1-minute fallback script if internet/API fails.
-- [ ] Write backend dependency list:
-  - [ ] Jira assigned issue fields needed
-  - [ ] GitLab token/project/branch access needed
-  - [ ] WTT task mutation permission needed
-  - [ ] Optional task detail endpoint needed
-- [ ] Prepare final branch report.
+- [x] Write a 5-minute demo script:
+  - [x] What WTT is today
+  - [x] What was redesigned
+  - [x] Real WTT login/read
+  - [x] Dashboard range filters
+  - [x] Sidebar stats sync
+  - [x] Jira-compatible task selection
+  - [x] Git evidence sync
+  - [x] AI Persian report
+  - [x] Time/confidence/manual confirmation
+  - [x] Safe WTT mutation guard
+  - [x] What is mock/local now and what becomes real later
+- [x] Write a 1-minute fallback script if Git/AI/API fails.
+- [x] Write backend dependency list:
+  - [x] Jira assigned issue fields needed
+  - [x] GitLab token/project/branch access needed
+  - [x] WTT task mutation permission needed
+  - [x] Optional task detail endpoint needed
+- [x] Prepare final demo checklist.
 
 #### Smoke test
 
-- [ ] Login fresh.
-- [ ] Open Dashboard.
-- [ ] Change dashboard range.
-- [ ] Open Tasks.
-- [ ] Select assigned task from source.
-- [ ] Sync Git evidence.
-- [ ] Review AI draft.
-- [ ] Adjust time by under 30 minutes.
-- [ ] Adjust time by over 30 minutes and verify reason is required.
-- [ ] Create/update/delete test task if mutation flag is enabled.
-- [ ] Logout.
+- [x] Login fresh.
+- [x] Open Dashboard.
+- [x] Change dashboard range.
+- [x] Confirm sidebar stats update with range.
+- [x] Open Tasks.
+- [x] Select assigned task from source.
+- [x] Sync Git evidence.
+- [x] Review AI draft.
+- [x] Confirm confidence/evidence note appears.
+- [x] Adjust time by under 30 minutes.
+- [x] Adjust time by over 30 minutes and verify reason is required.
+- [x] Try safe mutation only with flag enabled.
+- [x] Confirm backend blocks mutation with 403 for current user.
+- [x] Set mutation flag back to false.
+- [x] Logout / session cleanup.
 
 ### Done criteria
 
-- Demo can be performed without improvising.
-- App can survive empty data and offline integration proxy.
-- Build passes.
+- [x] Demo can be performed without improvising.
+- [x] App can survive empty Dashboard/private announcements data.
+- [x] App can survive offline/failed integration proxy with user-friendly errors.
+- [x] Mutation is guarded and safe by default.
+- [x] Build/watch passes.
+- [x] Demo script and checklist are ready.
 
-**خلاصه فارسی:** همه چیز را تمیز، قابل ارائه و قابل دمو می‌کنیم و متن ارائه را آماده می‌کنیم.
+**خلاصه فارسی:** دمو نهایی آماده شد؛ مسیر اصلی از login واقعی تا Smart Worklog، گزارش AI، زمان پیشنهادی، reason اجباری و mutation guard قابل ارائه است.
+
+---
+
+## 🔥 Branch 019.1 — `feature/019.1-force-core-shell-auth-and-sidebar-polish`
+
+**Timebox:** Before demo, only if Branch 019 is stable  
+**Priority:** P0 / FORCE / DEMO  
+**Goal:** Upgrade the first impression and app shell without changing business logic.
+
+### Scope boundary
+
+This branch is UI/UX polish only.  
+Do not redesign backend auth, token strategy, WTT API contracts, or integration logic here.
+
+### Checklist
+
+#### Auth Layout
+
+- [ ] Move login out of the main app shell visual experience.
+- [ ] Ensure `/auth/login` does not render:
+  - [ ] main sidebar
+  - [ ] left filter sidebar
+  - [ ] dashboard header
+  - [ ] task context panels
+- [ ] Rewrite login page as a dedicated two-column auth layout:
+  - [ ] form column
+  - [ ] brand/gradient/illustration column
+- [ ] Use violet/cyan gradient branding for the visual side.
+- [ ] Make login responsive:
+  - [ ] two columns on desktop
+  - [ ] single clean card on mobile
+- [ ] Add clean form states:
+  - [ ] username required
+  - [ ] password required
+  - [ ] loading while submitting
+  - [ ] disabled submit while submitting
+  - [ ] user-friendly error message
+  - [ ] show/hide password button
+- [ ] Add login helper actions:
+  - [ ] remember me checkbox
+  - [ ] forgot password link
+  - [ ] expired session message state
+- [ ] Keep forgot password as UI/route placeholder if backend endpoint is not available.
+- [ ] Ensure login still uses `AuthService` and environment-driven API configuration.
+- [ ] Confirm no hardcoded auth/proxy URL remains in login component/template.
+- [ ] Do not expose tokens or raw auth errors in the UI.
+
+#### Suggested Tailwind treatment
+
+- [ ] Use soft enterprise surfaces:
+  - [ ] `bg-white/85 dark:bg-slate-900/85`
+  - [ ] `backdrop-blur-xl`
+  - [ ] `rounded-3xl`
+  - [ ] `ring-1 ring-slate-200/70 dark:ring-white/10`
+  - [ ] `shadow-2xl shadow-slate-900/10`
+- [ ] Use gradient only for primary CTA and brand panel.
+- [ ] Avoid pure black backgrounds in dark mode.
+- [ ] Prefer `slate-950`, `slate-900`, and `slate-800` for dark surfaces.
+
+#### Sidebar collapse foundation
+
+- [ ] Add or verify `LayoutService` shell signals:
+  - [ ] `isCollapsed`
+  - [ ] `isMobileSidebarOpen`
+  - [ ] `isFilterPanelOpen`
+- [ ] Bind sidebar width using explicit Tailwind classes:
+  - [ ] `w-[260px]` when expanded
+  - [ ] `w-[76px]` when collapsed
+- [ ] Avoid dynamically generated arbitrary classes such as `'w-[' + width + 'px]'`.
+- [ ] Use `ngClass` or explicit class maps so Tailwind can detect the classes.
+- [ ] Add smooth width transition:
+  - [ ] `transition-[width,transform]`
+  - [ ] `duration-300`
+  - [ ] `ease-[cubic-bezier(0.22,1,0.36,1)]`
+- [ ] When sidebar is collapsed:
+  - [ ] keep icons visible
+  - [ ] hide labels smoothly
+  - [ ] show tooltips on hover/focus
+  - [ ] keep active route visually clear
+  - [ ] keep timer badge visible
+- [ ] Use logical positioning:
+  - [ ] `start-*`
+  - [ ] `end-*`
+  - [ ] avoid hardcoded `left/right` where RTL/LTR matters
+- [ ] Make mobile sidebar overlay-based instead of shrinking the main layout.
+
+#### Welcome Splash
+
+- [ ] Create a small `WelcomeSplashComponent`.
+- [ ] Render it with Angular control flow using `@if`.
+- [ ] Show it only after successful login or first dashboard entry.
+- [ ] Auto-dismiss after 3–5 seconds.
+- [ ] Remove it from DOM after dismiss.
+- [ ] Keep it separate from the future notification center.
+- [ ] Show contextual text:
+  - [ ] greeting based on time
+  - [ ] user name
+  - [ ] today task summary
+  - [ ] correction-needed count if available
+- [ ] Add graceful fallback if dashboard summary data is unavailable.
+
+### Done criteria
+
+- [ ] Login page looks like a dedicated enterprise entry point.
+- [ ] Login does not visually appear inside the dashboard shell.
+- [ ] Sidebar collapse/expand is smooth and does not break layout.
+- [ ] Collapsed sidebar remains usable through icons and tooltips.
+- [ ] Welcome splash appears once and disappears cleanly.
+- [ ] No auth/proxy URL is hardcoded in login UI code.
+- [ ] Build/watch still passes.
+
+**خلاصه فارسی:** ورود و اسکلت اصلی برنامه حرفه‌ای‌تر می‌شود؛ Login از داشبورد جدا می‌شود، سایدبار Collapse اصولی می‌گیرد و Welcome Splash سبک اضافه می‌شود.
+
+---
+
+## 🪄 Branch 019.2 — `feature/019.2-force-smart-worklog-wizard-task-drawer`
+
+**Timebox:** Before demo, only if Smart Worklog flow is already stable  
+**Priority:** P0 / FORCE / DEMO  
+**Goal:** Convert the current Smart Worklog form into a guided AI experience and standardize task edit/detail UX.
+
+### Scope boundary
+
+This branch must not rewrite WTT task mutation logic.  
+It only improves the user flow around existing Smart Worklog, task edit, and routing.
+
+### Checklist
+
+#### AI Worklog Stepper
+
+- [ ] Convert the current Smart Worklog form into a 3-step wizard:
+  - [ ] Step 1: select assigned task and WTT mapping
+  - [ ] Step 2: generate/review AI description
+  - [ ] Step 3: confirm final worklog draft
+- [ ] Use Angular `@switch` or equivalent state-driven rendering for step content.
+- [ ] Keep form state when moving between steps.
+- [ ] Add visible step progress:
+  - [ ] active step
+  - [ ] completed step
+  - [ ] disabled future step
+- [ ] Step 1 should show:
+  - [ ] assigned task source dropdown
+  - [ ] selected task key/title
+  - [ ] project/service/contract mapping
+  - [ ] mapping error state
+- [ ] Step 2 should show:
+  - [ ] Git evidence sync state
+  - [ ] AI generation button
+  - [ ] loading skeleton/shimmer
+  - [ ] generated Persian description
+  - [ ] retry action
+  - [ ] AI unavailable fallback
+- [ ] Add quick AI tone actions as demo polish:
+  - [ ] more formal
+  - [ ] shorter
+  - [ ] more technical
+- [ ] Keep AI tone actions as UI-level polish if real provider support is not ready.
+- [ ] Step 3 should show final review:
+  - [ ] task title/key
+  - [ ] suggested start/end time
+  - [ ] duration
+  - [ ] confidence score
+  - [ ] evidence summary
+  - [ ] final editable description
+- [ ] Keep user as final reviewer before any WTT mutation attempt.
+- [ ] Preserve existing safety guard for real task mutation.
+- [ ] Show friendly 403/permission message if backend blocks mutation.
+
+#### AI loading and visual polish
+
+- [ ] Replace raw spinner-only loading with a more polished skeleton state.
+- [ ] Use one strong primary AI CTA with gradient.
+- [ ] Avoid using too many gradients inside the form.
+- [ ] Keep the generated AI draft in a readable card.
+- [ ] Do not show raw provider/mock wording to end users.
+
+#### Task edit Slide-over
+
+- [ ] Replace task edit modal with a slide-over drawer.
+- [ ] Drawer should open from logical `end` side.
+- [ ] Add backdrop with blur.
+- [ ] Add internal scroll inside drawer body.
+- [ ] Add sticky footer actions:
+  - [ ] save
+  - [ ] cancel
+- [ ] Add close behavior:
+  - [ ] close button
+  - [ ] Escape key
+  - [ ] backdrop click
+- [ ] Restore focus to the triggering button after close.
+- [ ] Keep create flow separate from edit flow if needed.
+
+#### Task detail routing
+
+- [ ] Standardize task detail route as lowercase:
+  - [ ] `/tasks/:id`
+- [ ] Ensure no route uses uppercase path segments.
+- [ ] Make row click open task detail page only when intended.
+- [ ] Keep edit button opening the drawer, not navigating away.
+- [ ] Add placeholder detail page only if full task details are not ready.
+- [ ] Do not overbuild full task detail chat before demo unless already stable.
+
+### Done criteria
+
+- [ ] Smart Worklog feels like a guided AI workflow, not a long raw form.
+- [ ] User can understand each step without explanation.
+- [ ] AI failure does not break the flow.
+- [ ] Task edit opens in a drawer.
+- [ ] Task detail route is lowercase and consistent.
+- [ ] Existing mutation guard remains active.
+- [ ] Build/watch still passes.
+
+**خلاصه فارسی:** فرم Smart Worklog به ویزارد سه‌مرحله‌ای تبدیل می‌شود، ادیت تسک از مودال به Drawer می‌رود و مسیر `/tasks/:id` استاندارد می‌شود.
+
+---
+
+## ⚡ Branch 019.3 — `feature/019.3-force-command-palette-timer-dashboard-polish`
+
+**Timebox:** Before demo, only after core shell is stable  
+**Priority:** P1 / DEMO  
+**Goal:** Add high-impact wow factors: Command Palette, global timer badge, and cleaner dashboard visuals.
+
+### Scope boundary
+
+This branch adds demo polish and shell-level UX.  
+Do not start a full notification center, full presence module, or engineering analytics dashboard here.
+
+### Checklist
+
+#### Command Palette
+
+- [ ] Implement Command Palette using `@angular/cdk/overlay`.
+- [ ] Open palette with:
+  - [ ] `Ctrl + K`
+  - [ ] `Cmd + K`
+- [ ] Close palette with:
+  - [ ] Escape
+  - [ ] backdrop click
+  - [ ] selecting an item
+- [ ] Render overlay above all app shell layers.
+- [ ] Add blurred backdrop.
+- [ ] Prevent z-index conflicts with sidebar, drawer, and splash.
+- [ ] Add grouped results:
+  - [ ] Navigation
+  - [ ] Tasks
+  - [ ] Smart Worklog
+  - [ ] Reports
+  - [ ] AI actions
+- [ ] Add demo-friendly commands:
+  - [ ] Open dashboard
+  - [ ] Open tasks
+  - [ ] Start Smart Worklog
+  - [ ] Show tasks needing correction
+  - [ ] Open today report
+  - [ ] Open AI preferences
+- [ ] Add keyboard navigation if time allows:
+  - [ ] Arrow Down
+  - [ ] Arrow Up
+  - [ ] Enter
+- [ ] Add empty result state.
+- [ ] Add proxy/API failure-safe behavior if results rely on live data.
+- [ ] Do not make Command Palette dependent on unstable backend endpoints.
+
+#### Suggested Command Palette Tailwind treatment
+
+- [ ] Use:
+  - [ ] `fixed top-20 left-1/2 z-[90]`
+  - [ ] `w-[calc(100%-2rem)] max-w-2xl`
+  - [ ] `-translate-x-1/2`
+  - [ ] `rounded-3xl`
+  - [ ] `bg-white/90 dark:bg-slate-900/90`
+  - [ ] `backdrop-blur-2xl`
+  - [ ] `shadow-2xl shadow-slate-950/25`
+  - [ ] `ring-1 ring-slate-200/80 dark:ring-white/10`
+
+#### Global Timer Badge
+
+- [ ] Create or verify a singleton `TimerService`.
+- [ ] Store timer state with signals:
+  - [ ] `activeTaskId`
+  - [ ] `activeTaskTitle`
+  - [ ] `startedAt`
+  - [ ] `elapsedTime`
+  - [ ] `isRunning`
+- [ ] Ensure timer does not reset on route change.
+- [ ] Show active timer in:
+  - [ ] sidebar expanded state
+  - [ ] sidebar collapsed state
+  - [ ] active task row
+  - [ ] optional topbar compact badge
+- [ ] Add pulse indicator when timer is running.
+- [ ] Prevent multiple simultaneous timers unless explicitly allowed.
+- [ ] If user starts a new timer while another is active, require clear behavior:
+  - [ ] stop previous timer
+  - [ ] or ask confirmation
+- [ ] Keep timer usable without real presence mutation.
+- [ ] Do not mix timer polish with full presence mutation redesign.
+
+#### Dashboard Donut and KPI polish
+
+- [ ] Replace or polish the current dashboard chart with a clean Doughnut chart.
+- [ ] Keep chart segments limited and readable.
+- [ ] Add center label:
+  - [ ] productivity percentage
+  - [ ] selected range label
+- [ ] Use rounded segment edges where ECharts supports it.
+- [ ] Add soft shadow/glow only in dark mode where it improves clarity.
+- [ ] Remove or hide obvious placeholders:
+  - [ ] Coming Soon
+  - [ ] empty decorative cards
+  - [ ] non-functional activity blocks
+- [ ] Keep KPI cards readable and non-zero/NaN safe.
+- [ ] Add intentional empty state for empty dashboard data.
+- [ ] Keep selected dashboard range synced where currently expected.
+
+### Done criteria
+
+- [ ] `Ctrl/Cmd + K` reliably opens the Command Palette.
+- [ ] Command Palette works above the whole shell.
+- [ ] Timer remains alive across page navigation.
+- [ ] Collapsed sidebar still shows active timer state.
+- [ ] Dashboard looks intentional even with limited data.
+- [ ] No placeholder text is visible in the main demo flow.
+- [ ] Build/watch still passes.
+
+**خلاصه فارسی:** سرچ سراسری با Ctrl+K، تایمر سراسری و نمودار Donut داشبورد اضافه یا پولیش می‌شوند تا دمو جذاب‌تر و حرفه‌ای‌تر دیده شود.
+
+---
+
+## 🎛️ Branch 019.4 — `feature/019.4-force-reports-settings-visual-consistency`
+
+**Timebox:** Before demo, only if main flow is safe  
+**Priority:** P1 / DEMO  
+**Goal:** Make Reports, Settings, and theme surfaces visually consistent with the redesigned shell.
+
+### Scope boundary
+
+This branch is not the full Profile/My Report center.  
+Full profile/report center remains Branch 021.  
+Full integration settings center remains Branch 025.
+
+### Checklist
+
+#### Reports polish
+
+- [ ] Align Reports page with the new shell visual system.
+- [ ] Remove old/light-only visual style from reports.
+- [ ] Add or polish Reports KPI cards:
+  - [ ] total work time
+  - [ ] task count
+  - [ ] confirmed worklogs
+  - [ ] correction-needed count
+- [ ] Add clean range filter area.
+- [ ] Add export button UI:
+  - [ ] PDF placeholder if export is not real
+  - [ ] Excel placeholder if export is not real
+- [ ] Make export placeholders safe and honest:
+  - [ ] disabled with tooltip
+  - [ ] or demo-only visual action with no fake claim
+- [ ] Replace raw table styling with clean DataGrid styling.
+- [ ] Add table states:
+  - [ ] loading
+  - [ ] empty
+  - [ ] error
+- [ ] Use hover states and status badges.
+- [ ] Ensure Reports page works in both light and dark mode.
+
+#### Settings/Profile micro-polish
+
+- [ ] Clean existing Settings/Profile entry points without building the full profile center.
+- [ ] Add small AI preferences demo section if time allows:
+  - [ ] report tone
+  - [ ] concise/balanced/detailed preference
+  - [ ] formal/technical/managerial style
+- [ ] Keep AI preference state local/mock if backend persistence is not available.
+- [ ] Do not claim AI preferences are saved server-side unless implemented.
+- [ ] Keep settings UI simple and demo-safe.
+
+#### Theme consistency
+
+- [ ] Use shared visual language across Dashboard, Tasks, Reports, Settings:
+  - [ ] `rounded-3xl`
+  - [ ] `ring-1`
+  - [ ] `shadow-sm`
+  - [ ] `bg-white`
+  - [ ] `dark:bg-slate-900/70`
+- [ ] Reduce excessive borders.
+- [ ] Use `ring` and soft shadows instead of heavy outlines.
+- [ ] Replace pure black dark surfaces with slate/zinc surfaces.
+- [ ] Keep primary color as violet and accent as cyan.
+- [ ] Use emerald for success, amber for warning, rose/red for danger.
+- [ ] Verify contrast for text in dark mode.
+
+### Done criteria
+
+- [ ] Reports no longer looks visually disconnected from the rest of the app.
+- [ ] Settings/Profile does not look unfinished.
+- [ ] AI preferences are demo-safe and honestly represented.
+- [ ] No full post-demo roadmap scope is accidentally started.
+- [ ] Light and dark mode feel like the same product.
+- [ ] Build/watch still passes.
+
+**خلاصه فارسی:** صفحه گزارش‌ها و تنظیمات از نظر ظاهر با داشبورد و تسک‌ها هماهنگ می‌شوند، بدون اینکه وارد پیاده‌سازی کامل پروفایل یا تنظیمات Integration شویم.
+
+---
+
+## 🧪 Branch 019.5 — `feature/019.5-force-demo-hardening-responsive-qa`
+
+**Timebox:** Last pass before Branch 020 morning buffer  
+**Priority:** P0 / FORCE / DEMO  
+**Goal:** Make the polished demo safe, responsive, and resilient.
+
+### Scope boundary
+
+This branch fixes blockers and demo-breaking UX issues only.  
+Do not add new product features here.
+
+### Checklist
+
+#### Error handling
+
+- [ ] Ensure no raw API error appears in the main UI.
+- [ ] Handle WTT mutation `403 Forbidden` with a user-friendly message.
+- [ ] Handle offline integration proxy with a clear message.
+- [ ] Handle AI provider failure with fallback/retry.
+- [ ] Handle empty assigned task source.
+- [ ] Handle missing project/service/contract mapping.
+- [ ] Confirm dangerous mutation flags remain disabled by default:
+  - [ ] `enableRealTaskMutation=false`
+  - [ ] `enableRealPresenceMutation=false`
+- [ ] Keep real mutation attempts restricted to test-prefixed tasks only.
+- [ ] Do not change real WTT data during demo unless explicitly guarded and intentional.
+
+#### Loading / empty / error states
+
+- [ ] Verify state coverage for:
+  - [ ] Login
+  - [ ] Dashboard
+  - [ ] Tasks
+  - [ ] Smart Worklog Wizard
+  - [ ] Command Palette
+  - [ ] Reports
+  - [ ] Settings/Profile micro-polish
+  - [ ] Sidebar stats
+  - [ ] Timer badge
+- [ ] Replace broken-looking empty areas with intentional empty states.
+- [ ] Avoid zero/NaN display in KPI cards.
+- [ ] Remove visible debug/mock text from user-facing UI.
+- [ ] Keep provider-ready wording:
+  - [ ] assigned task source
+  - [ ] Git evidence
+  - [ ] integration proxy
+  - [ ] Jira-compatible contract
+
+#### Responsive QA
+
+- [ ] Smoke test desktop layout:
+  - [ ] 1920px
+  - [ ] 1440px
+  - [ ] 1366px
+- [ ] Smoke test tablet layout:
+  - [ ] 1024px
+  - [ ] 768px
+- [ ] Smoke test mobile layout:
+  - [ ] around 390px width
+- [ ] Confirm no unintended horizontal scroll.
+- [ ] Confirm sidebar becomes usable on mobile.
+- [ ] Confirm filter panel does not crush main content.
+- [ ] Confirm drawer becomes full-width on mobile.
+- [ ] Confirm Command Palette fits mobile width.
+- [ ] Confirm Auth Layout is clean on mobile.
+
+#### Accessibility and keyboard polish
+
+- [ ] Add `aria-label` for icon-only buttons.
+- [ ] Add visible focus ring for interactive controls.
+- [ ] Confirm Escape closes:
+  - [ ] Command Palette
+  - [ ] Drawer
+  - [ ] modal/wizard if applicable
+- [ ] Confirm keyboard users can reach main actions.
+- [ ] Confirm tooltip does not hide essential information.
+- [ ] Respect reduced motion where easy to do.
+
+#### Final technical checks
+
+- [ ] Run `npm run build`.
+- [ ] Run frontend locally.
+- [ ] Run proxy locally.
+- [ ] Login fresh.
+- [ ] Run full demo path once.
+- [ ] Confirm console does not show obvious demo-breaking errors.
+- [ ] Confirm no secrets are present in source or shared files.
+- [ ] Confirm mutation flags are back to safe defaults.
+- [ ] Prepare final notes for Branch 020 morning buffer.
+
+### Done criteria
+
+- [ ] One clean full rehearsal passes after polish.
+- [ ] No new risky feature was added during hardening.
+- [ ] Demo can survive API/proxy/AI failure with graceful fallback.
+- [ ] Responsive layout does not break at common demo sizes.
+- [ ] Build/watch passes.
+- [ ] Branch 020 can remain a true bugfix buffer.
+
+**خلاصه فارسی:** آخرین مرحله فقط مقاوم‌سازی دمو است؛ خطاها، حالت‌های خالی، ریسپانسیو، دسترسی‌پذیری و Build بررسی می‌شوند تا Branch 020 فقط باگ‌فیکس صبح دمو بماند.
 
 ---
 

@@ -68,6 +68,7 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.layout.showWelcomeSplashOnce();
     this.loadStats();
     this.loadLineChart();
     this.loadPublicNews();

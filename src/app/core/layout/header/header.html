@@ -1,7 +1,19 @@
 <header
   class="h-[58px] border-b border-[var(--border-main)] pb-[12px] flex items-start justify-between [direction:rtl] shrink-0 transition-colors duration-300"
 >
-  <div class="w-[290px] text-right">
+  <div class="flex items-start gap-3">
+    <button
+      type="button"
+      class="mobile-menu-button mt-1 grid size-10 place-items-center rounded-2xl border border-[var(--border-main)] text-[var(--text-soft)] shadow-sm transition hover:text-[var(--text-main)] lg:hidden"
+      aria-label="باز کردن منوی اصلی"
+      (click)="layout.openMobileSidebar()"
+    >
+      <svg class="size-5" viewBox="0 0 24 24" fill="none">
+        <path d="M4 7H20M4 12H20M4 17H20" stroke="currentColor" stroke-linecap="round" />
+      </svg>
+    </button>
+
+    <div class="w-[290px] text-right">
     <h1 class="m-0 text-[25px] leading-[1.1] font-black tracking-[-0.5px] text-[var(--text-main)]">
       {{ layout.isTasksPage() ? 'مرکز وظایف' : 'داشبورد' }}
     </h1>
@@ -12,6 +24,7 @@
           : 'نمای کلی از عملکرد و فعالیت‌های شما'
       }}
     </p>
+    </div>
   </div>
 
   <div

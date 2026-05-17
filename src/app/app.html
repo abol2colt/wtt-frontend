@@ -1,12 +1,35 @@
-<div class="dashboard-shell transition-colors duration-300">
-  <app-left-sidebar></app-left-sidebar>
+@if (isAuthRoute()) {
+  <router-outlet></router-outlet>
+} @else {
+  <div
+    class="dashboard-shell transition-colors duration-300"
+    [ngClass]="{
+      'shell-sidebar-collapsed': layout.isCollapsed(),
+      'shell-mobile-sidebar-open': layout.isMobileSidebarOpen(),
+    }"
+  >
+    @if (layout.isMobileSidebarOpen()) {
+      <button
+        type="button"
+        class="mobile-sidebar-backdrop"
+        aria-label="بستن منو"
+        (click)="layout.closeMobileSidebar()"
+      ></button>
+    }
 
-  <main class="main-panel">
-    <app-header></app-header>
-    <div class="flex-1 overflow-y-auto mt-4 pr-2 dir-rtl">
-      <router-outlet></router-outlet>
-    </div>
-  </main>
+    <app-left-sidebar></app-left-sidebar>
 
-  <app-sidebar></app-sidebar>
-</div>
+    <main class="main-panel">
+      <app-header></app-header>
+      <div class="flex-1 overflow-y-auto mt-4 pr-2 dir-rtl">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+
+    <app-sidebar></app-sidebar>
+
+    @if (layout.isWelcomeSplashVisible()) {
+      <app-welcome-splash></app-welcome-splash>
+    }
+  </div>
+}

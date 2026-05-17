@@ -1,0 +1,34 @@
+<section class="welcome-splash" dir="rtl" role="status" aria-live="polite">
+  <div class="welcome-splash-card">
+    <button
+      type="button"
+      class="welcome-splash-close"
+      aria-label="بستن پیام خوش‌آمد"
+      (click)="dismiss()"
+    >
+      <svg class="size-4" viewBox="0 0 24 24" fill="none">
+        <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-linecap="round" />
+      </svg>
+    </button>
+
+    <div class="welcome-splash-mark">
+      <span>W</span>
+    </div>
+
+    <div class="min-w-0">
+      <p class="welcome-splash-eyebrow">{{ greeting() }}</p>
+      <h2 class="welcome-splash-title">{{ userName() }}، خوش برگشتی</h2>
+      <p class="welcome-splash-text">
+        @if (todayTaskCount() !== null) {
+          امروز {{ todayTaskCount() }} وظیفه در جریان داری.
+        } @else {
+          خلاصه امروز به محض آماده شدن سرویس نمایش داده می‌شود.
+        }
+
+        @if ((correctionNeededCount() ?? 0) > 0) {
+          {{ correctionNeededCount() }} مورد نیازمند اصلاح است.
+        }
+      </p>
+    </div>
+  </div>
+</section>

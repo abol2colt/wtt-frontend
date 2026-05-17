@@ -1,66 +1,158 @@
-<div class="min-h-screen flex items-center justify-center bg-slate-950 px-4" dir="rtl">
-  <section
-    class="w-full max-w-md rounded-3xl border border-white/10 bg-white/10 p-6 shadow-2xl backdrop-blur"
-  >
-    <div class="mb-6 text-center">
-      <h1 class="text-2xl font-black text-white">ورود به WTT</h1>
-      <p class="mt-2 text-xs font-bold text-slate-300">
-        برای اتصال به API واقعی، وارد حساب WTT خودت شو.
-      </p>
-    </div>
+<main class="login-page" dir="rtl">
+  <div class="login-ambient" aria-hidden="true">
+    <span class="login-ambient__orb login-ambient__orb--cyan"></span>
+    <span class="login-ambient__orb login-ambient__orb--violet"></span>
+    <span class="login-ambient__orb login-ambient__orb--indigo"></span>
+  </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" class="flex flex-col gap-4">
-      <label class="flex flex-col gap-2">
-        <span class="text-xs font-black text-slate-300">نام کاربری</span>
+  <section class="login-shell" aria-label="ورود به سامانه WTT">
+    <aside class="login-hero" aria-label="معرفی سامانه WTT">
+      <div class="login-hero__top">
+        <p class="login-hero__kicker">WTT</p>
+        <div class="login-hero__mark"><img src="/assets/logo.png" alt="Person"></div>
+      </div>
 
-        <input
-          type="text"
-          formControlName="username"
-          autocomplete="username"
-          class="rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400"
-          placeholder="username"
-        />
+      <div class="login-hero__copy">
+        <h2>تجربه کاری یکپارچه</h2>
+        <p>مدیریت وظایف، کارکرد و گزارش‌ها در یک داشبورد واحد</p>
+      </div>
 
-        @if (loginForm.controls.username.touched && loginForm.controls.username.invalid) {
-          <span class="text-[11px] font-bold text-red-400">نام کاربری الزامی است.</span>
-        }
-      </label>
-
-      <label class="flex flex-col gap-2">
-        <span class="text-xs font-black text-slate-300">رمز عبور</span>
-
-        <input
-          type="password"
-          formControlName="password"
-          autocomplete="current-password"
-          class="rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm font-bold text-white outline-none focus:border-cyan-400"
-          placeholder="password"
-        />
-
-        @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
-          <span class="text-[11px] font-bold text-red-400">رمز عبور الزامی است.</span>
-        }
-      </label>
-
-      @if (errorMessage()) {
-        <div class="rounded-2xl border border-red-500/30 bg-red-500/10 p-3">
-          <p class="text-xs font-black text-red-300">
-            {{ errorMessage() }}
-          </p>
+      <div class="login-hero__glass">
+        <div class="login-hero__grid" aria-hidden="true"></div>
+        <span class="login-hero-person-shadow" aria-hidden="true"></span>
+        <div class="login-hero-illustration-slot" aria-label="تصویر فضای کاری WTT">
+          <span class="login-hero-visual__orb" aria-hidden="true"></span>
+          <img
+            src="/assets/login-hero-person.png"
+            alt=""
+            class="login-hero-person"
+            loading="eager"
+          />
         </div>
-      }
+        <div class="login-hero__glass-copy">
+          <h3>یکپارچگی وظایف و گزارش‌ها</h3>
+          <p>سریع، شفاف و هوشمند</p>
+        </div>
+        <div class="login-hero__dots" aria-hidden="true">
+          <span></span>
+          <span class="active"></span>
+          <span></span>
+        </div>
+      </div>
+    </aside>
 
-      <button
-        type="submit"
-        [disabled]="loginForm.invalid || loading()"
-        class="mt-2 rounded-2xl bg-cyan-500 px-4 py-3 text-sm font-black text-slate-950 transition hover:bg-cyan-400 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        @if (loading()) {
-          در حال ورود...
-        } @else {
-          ورود
+    <section class="login-form-panel">
+      <div class="login-form-card">
+        <div class="login-form-card__header">
+          <p class="login-form-card__brand">WTT WORKSPACE</p>
+          <h1>ورود به WTT</h1>
+          <p>برای ادامه وارد شوید</p>
+        </div>
+
+        @if (sessionExpired()) {
+          <div class="login-alert login-alert--warning">
+            نشست قبلی منقضی شده است. لطفاً دوباره وارد شوید.
+          </div>
         }
-      </button>
-    </form>
+
+        <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" class="login-form">
+          <div class="login-field">
+            <label for="login-username">نام کاربری</label>
+            <input
+              id="login-username"
+              name="username"
+              type="text"
+              formControlName="username"
+              autocomplete="username"
+              placeholder="username"
+            />
+
+            @if (loginForm.controls.username.touched && loginForm.controls.username.invalid) {
+              <span class="login-field__error">نام کاربری الزامی است.</span>
+            }
+          </div>
+
+          <div class="login-field">
+            <label for="login-password">کلمه عبور</label>
+            <div class="login-password-control">
+              <input
+                id="login-password"
+                name="password"
+                [type]="showPassword() ? 'text' : 'password'"
+                formControlName="password"
+                autocomplete="current-password"
+                placeholder="password"
+              />
+              <button
+                type="button"
+                class="login-password-toggle"
+                [attr.aria-label]="showPassword() ? 'پنهان کردن کلمه عبور' : 'نمایش کلمه عبور'"
+                (click)="togglePasswordVisibility()"
+              >
+                @if (showPassword()) {
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M3 3L21 21" stroke="currentColor" stroke-linecap="round" />
+                    <path
+                      d="M10.6 10.6A2 2 0 0 0 13.4 13.4"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                    />
+                    <path
+                      d="M9.2 5.3A10.7 10.7 0 0 1 12 5C17 5 20.4 8.2 22 12C21.4 13.5 20.4 14.9 19.2 16"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M15.8 18.2A10.8 10.8 0 0 1 12 19C7 19 3.6 15.8 2 12C2.8 10.1 4.1 8.4 5.8 7.2"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M2 12C3.6 8.2 7 5 12 5C17 5 20.4 8.2 22 12C20.4 15.8 17 19 12 19C7 19 3.6 15.8 2 12Z"
+                      stroke="currentColor"
+                      stroke-linejoin="round"
+                    />
+                    <path d="M12 15A3 3 0 1 0 12 9A3 3 0 0 0 12 15Z" stroke="currentColor" />
+                  </svg>
+                }
+              </button>
+            </div>
+
+            @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
+              <span class="login-field__error">کلمه عبور الزامی است.</span>
+            }
+          </div>
+
+          <div class="login-form__meta">
+            <label class="login-remember">
+              <input type="checkbox" formControlName="rememberMe" />
+              <span>مرا به خاطر بسپار</span>
+            </label>
+            <a routerLink="/auth/forgot-password">فراموشی رمز عبور</a>
+          </div>
+
+          @if (errorMessage()) {
+            <div class="login-alert login-alert--error">
+              {{ errorMessage() }}
+            </div>
+          }
+
+          <button type="submit" class="login-submit" [disabled]="loginForm.invalid || isLoading()">
+            @if (isLoading()) {
+              در حال ورود...
+            } @else {
+              ورود
+            }
+          </button>
+
+          <p class="login-secure-note">نشست امن سازمانی</p>
+        </form>
+      </div>
+    </section>
   </section>
-</div>
+</main>
