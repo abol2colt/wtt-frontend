@@ -97,6 +97,18 @@ export class DashboardComponent implements OnInit {
     return this.dashboardRanges.find((item) => item.key === this.selectedRange())?.label ?? 'بازه';
   }
 
+  get publicAnnouncementsCount(): number {
+    return this.publicNewsState().data?.results?.length ?? 0;
+  }
+
+  get privateAnnouncementsCount(): number {
+    return this.privateNewsState().data?.results?.length ?? 0;
+  }
+
+  get hasAnyAnnouncement(): boolean {
+    return this.publicAnnouncementsCount + this.privateAnnouncementsCount > 0;
+  }
+
   loadStats(): void {
     const userId = this.authService.getCurrentUserId();
 

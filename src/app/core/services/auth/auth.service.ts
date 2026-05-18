@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { tap } from 'rxjs/operators';
+import { tap, map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import { LayoutService } from '../layout/layout.service';
 
@@ -26,15 +26,55 @@ export interface UserProfile {
   first_name?: string;
   last_name?: string;
   user_status?: string;
+  email?: string;
+  avatar?: string | null;
   isAdmin?: boolean;
   isStaff?: boolean;
   isSupervisor?: boolean;
   workflow?: {
+    brand?: string;
     manager?: {
       id: number;
-      first_name: string;
+      first_name?: string;
+      last_name?: string;
+      avatar?: string | null;
     };
   };
+}
+
+interface WttUserListResponse {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: WttUserApiUser[];
+}
+
+interface WttUserApiUser {
+  id: number;
+  username?: string;
+  is_active?: boolean;
+  user_detailed_info?: {
+    base_information?: {
+      role?: string;
+      email?: string;
+      avatar?: string;
+      status?: string;
+      first_name?: string;
+      last_name?: string;
+      mobile_number?: string;
+    };
+    workflow?: {
+      brand?: string;
+      manager?: {
+        id: number;
+        first_name?: string;
+        last_name?: string;
+        avatar?: string;
+      };
+    };
+  };
+  created_date?: string;
+  created_by?: number;
 }
 
 @Injectable({
@@ -57,6 +97,15 @@ export class AuthService {
   // Authenticated state should depend on token existence, not on route or UI state.
   readonly isAuthenticated = computed(() => Boolean(this.token()));
 
+  constructor() {
+    const storedToken =
+      sessionStorage.getItem(this.tokenStorageKey) ?? localStorage.getItem(this.tokenStorageKey);
+
+    if (storedToken) {
+      document.cookie = `auth_token=${storedToken}; path=/; SameSite=Lax`;
+    }
+  }
+
   login(credentials: LoginRequest, rememberMe = false) {
     return this.http.post<LoginResponse>(`${this.apiBaseUrl}/login/`, credentials).pipe(
       tap((response) => {
@@ -72,15 +121,16 @@ export class AuthService {
     localStorage.removeItem(this.tokenStorageKey);
     localStorage.removeItem(this.userIdStorageKey);
 
+    document.cookie = 'auth_token=; path=/; max-age=0';
+
     this.token.set(null);
     this.currentUser.set(null);
     this.layout.resetWelcomeSplash();
   }
 
   fetchProfile() {
-    // Real WTT frontend calls the current-user endpoint after login.
-    // This endpoint should return the authenticated user's profile based on the token.
-    return this.http.get<UserProfile>(`${this.apiBaseUrl}/user/`).pipe(
+    return this.http.get<WttUserListResponse | UserProfile>(`${this.apiBaseUrl}/user/`).pipe(
+      map((response) => this.normalizeUserProfile(response)),
       tap((profile) => {
         this.currentUser.set(profile);
       }),
@@ -110,7 +160,45 @@ export class AuthService {
     // Current WTT v1 backend uses token authentication.
     return `Token ${currentToken}`;
   }
+  private normalizeUserProfile(response: WttUserListResponse | UserProfile): UserProfile {
+    if ('results' in response) {
+      const user = response.results[0];
 
+      if (!user) {
+        return {
+          id: this.getCurrentUserId() ?? 0,
+          role: 'developer',
+        };
+      }
+
+      const baseInfo = user.user_detailed_info?.base_information;
+      const workflow = user.user_detailed_info?.workflow;
+
+      return {
+        id: user.id,
+        username: user.username,
+        role: baseInfo?.role ?? workflow?.brand ?? 'developer',
+        first_name: baseInfo?.first_name,
+        last_name: baseInfo?.last_name,
+        user_status: baseInfo?.status,
+        email: baseInfo?.email,
+        avatar: baseInfo?.avatar ?? null,
+        workflow: {
+          brand: workflow?.brand,
+          manager: workflow?.manager
+            ? {
+                id: workflow.manager.id,
+                first_name: workflow.manager.first_name,
+                last_name: workflow.manager.last_name,
+                avatar: workflow.manager.avatar ?? null,
+              }
+            : undefined,
+        },
+      };
+    }
+
+    return response;
+  }
   private setSession(response: LoginResponse, rememberMe: boolean): void {
     // Never hardcode real tokens in source code. Store them only at runtime.
     const persistentStorage = rememberMe ? localStorage : sessionStorage;
@@ -121,6 +209,8 @@ export class AuthService {
 
     persistentStorage.setItem(this.tokenStorageKey, response.token);
     persistentStorage.setItem(this.userIdStorageKey, String(response.user_id));
+
+    document.cookie = `auth_token=${response.token}; path=/; SameSite=Lax`;
 
     this.token.set(response.token);
 

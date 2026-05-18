@@ -10,6 +10,7 @@ interface RequestRow {
   date: string;
   duration: string;
   status: RequestStatus;
+  approver?: string; // اضافه شدن تاییدکننده برای نمایش در آواتار
 }
 
 @Component({
@@ -28,6 +29,7 @@ export class PresenceComponent {
       date: '1405/02/28',
       duration: '2 ساعت',
       status: 'pending',
+      approver: 'سعید',
     },
     {
       id: 2,
@@ -36,6 +38,7 @@ export class PresenceComponent {
       date: '1405/02/27',
       duration: 'نیم‌روز',
       status: 'approved',
+      approver: 'مهدی',
     },
   ];
 
@@ -68,6 +71,7 @@ export class PresenceComponent {
         return 'bg-rose-500/10 text-rose-500 ring-rose-500/20';
     }
   }
+
   get leaveCount(): number {
     return this.requests.filter((item) => item.type === 'leave').length;
   }

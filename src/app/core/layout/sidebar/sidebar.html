@@ -5,18 +5,24 @@
   <div class="sidebar-profile" [class.justify-center]="layout.isCollapsed()">
     <div class="sidebar-profile-info sidebar-collapsible-label">
       <p class="sidebar-profile-name">
-        @if (authService.currentUser()) {
-          {{ authService.currentUser()?.first_name }} {{ authService.currentUser()?.last_name }}
-        } @else {
-          مهدی کریمی
-        }
+        {{ userFullName }}
       </p>
-      <p class="sidebar-profile-role">Developer</p>
+      <p class="sidebar-profile-role">{{ userRoleLabel }}</p>
     </div>
     <div
       class="sidebar-avatar border-0 overflow-hidden bg-gradient-to-br from-slate-200 to-white flex items-center justify-center relative"
     >
-      <span class="text-slate-700 font-bold text-lg">MK</span>
+      @if (userAvatarUrl()) {
+        <img
+          [src]="userAvatarUrl()"
+          [alt]="userFullName"
+          class="h-full w-full object-cover"
+          (error)="onAvatarError()"
+        />
+      } @else {
+        <span class="text-slate-700 font-bold text-lg">{{ userInitials }}</span>
+      }
+
       <span class="sidebar-online-dot"></span>
     </div>
   </div>

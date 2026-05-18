@@ -244,4 +244,72 @@
       </div>
     </article>
   </section>
+  <section class="dashboard-insight-grid">
+    <article class="dashboard-insight-card">
+      <div>
+        <p class="dashboard-insight-eyebrow">خلاصه بازه</p>
+        <h3 class="dashboard-insight-title">{{ selectedRangeLabel }}</h3>
+      </div>
+
+      @if (statsState().loading) {
+        <p class="dashboard-insight-text">در حال دریافت خلاصه عملکرد...</p>
+      } @else if (statsState().error) {
+        <p class="dashboard-insight-text text-red-500">{{ statsState().error }}</p>
+      } @else {
+        <div class="dashboard-insight-metrics">
+          <div>
+            <span>کارکرد</span>
+            <strong>{{ formatMinutes(statsState().data?.total_work) }}</strong>
+          </div>
+          <div>
+            <span>مورد انتظار</span>
+            <strong>{{ formatMinutes(statsState().data?.expected_time) }}</strong>
+          </div>
+          <div>
+            <span>اضافه‌کاری</span>
+            <strong>{{ formatMinutes(statsState().data?.overtime_working) }}</strong>
+          </div>
+        </div>
+      }
+    </article>
+
+    <article class="dashboard-insight-card">
+      <div>
+        <p class="dashboard-insight-eyebrow">وضعیت اطلاعیه‌ها</p>
+        <h3 class="dashboard-insight-title">مرکز پیام‌ها</h3>
+      </div>
+
+      @if (publicNewsState().loading || privateNewsState().loading) {
+        <p class="dashboard-insight-text">در حال بررسی اطلاعیه‌ها...</p>
+      } @else if (!hasAnyAnnouncement) {
+        <p class="dashboard-insight-text">اطلاعیه جدیدی برای نمایش وجود ندارد.</p>
+      } @else {
+        <div class="dashboard-insight-metrics two">
+          <div>
+            <span>عمومی</span>
+            <strong>{{ publicAnnouncementsCount }}</strong>
+          </div>
+          <div>
+            <span>شخصی</span>
+            <strong>{{ privateAnnouncementsCount }}</strong>
+          </div>
+        </div>
+      }
+
+      <a routerLink="/announcements" class="dashboard-insight-link">مشاهده اطلاعیه‌ها</a>
+    </article>
+
+    <article class="dashboard-insight-card">
+      <div>
+        <p class="dashboard-insight-eyebrow">اقدام سریع</p>
+        <h3 class="dashboard-insight-title">ثبت و بررسی کارکرد</h3>
+      </div>
+
+      <p class="dashboard-insight-text">
+        برای ثبت هوشمند کارکرد یا بررسی وضعیت وظایف، وارد مرکز وظایف شو.
+      </p>
+
+      <a routerLink="/tasks" class="dashboard-insight-link primary">رفتن به وظایف</a>
+    </article>
+  </section>
 </div>
