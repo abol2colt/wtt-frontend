@@ -28,6 +28,7 @@
         </svg>
       </div>
     </article>
+
     <article class="summary-stat-card tint-purple">
       <div class="summary-stat-label">زمان ثبت‌شده</div>
       <div class="summary-stat-value text-right">
@@ -50,6 +51,7 @@
         </svg>
       </div>
     </article>
+
     <article class="summary-stat-card tint-cyan">
       <div class="summary-stat-label">در انتظار بررسی</div>
       <div class="summary-stat-value text-right text-orange-500">
@@ -79,6 +81,7 @@
         </svg>
       </div>
     </article>
+
     <article class="summary-stat-card tint-purple">
       <div class="summary-stat-label">نیازمند اصلاح</div>
       <div class="summary-stat-value text-right text-red-500">
@@ -132,7 +135,6 @@
       >
         ماه جاری
       </button>
-
       <button
         type="button"
         class="filter-chip"
@@ -157,7 +159,6 @@
       >
         امروز
       </button>
-
       <button
         type="button"
         class="filter-chip"
@@ -167,27 +168,23 @@
         دیروز
       </button>
     </div>
+
     <div class="flex items-center gap-2">
       <button
         type="button"
         class="px-4 py-2 rounded-xl bg-violet-600 text-white text-xs font-black shadow-[0_0_18px_rgba(124,58,237,0.35)] cursor-pointer"
         (click)="openCreateTaskModal()"
       >
-        + ثبت وظیفه جدید
-      </button>
-
-      <button
-        type="button"
-        class="px-4 py-2 rounded-xl border border-cyan-500/25 bg-cyan-500/10 text-cyan-400 text-xs font-black cursor-pointer"
-      >
-        ⚡ تولید با AI
+        + ثبت کارکرد هوشمند
       </button>
     </div>
+
     <div
       class="flex gap-2 bg-white dark:bg-[#061525] border border-[var(--card-border)] rounded-lg p-1"
     >
       <button
         class="p-1.5 rounded-md bg-slate-100 dark:bg-[#071a2b] text-[var(--text-main)] shadow-sm cursor-pointer"
+        aria-label="نمایش لیستی"
       >
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
           <path
@@ -201,6 +198,7 @@
       </button>
       <button
         class="p-1.5 rounded-md text-[var(--text-soft)] hover:text-[var(--text-main)] cursor-pointer"
+        aria-label="نمایش کارت‌ها"
       >
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
           <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2" />
@@ -216,21 +214,17 @@
     <div class="task-list-container">
       @if (deleteError()) {
         <div class="rounded-2xl border border-red-500/20 bg-red-500/10 p-3">
-          <p class="text-xs font-black text-red-500">
-            {{ deleteError() }}
-          </p>
+          <p class="text-xs font-black text-red-500">{{ deleteError() }}</p>
         </div>
       }
       @if (tasksState().loading) {
         @for (i of [1, 2, 3, 4, 5]; track i) {
           <div class="task-row-card animate-pulse">
             <div class="task-status-rail progress"></div>
-
             <div class="flex flex-col gap-2 flex-1">
               <div class="h-4 w-1/2 rounded bg-slate-200/60 dark:bg-white/10"></div>
               <div class="h-3 w-1/3 rounded bg-slate-200/40 dark:bg-white/5"></div>
             </div>
-
             <div class="h-5 w-20 rounded bg-slate-200/50 dark:bg-white/10"></div>
           </div>
         }
@@ -239,7 +233,6 @@
           <p class="text-sm font-black text-red-500 mb-3">
             {{ tasksState().error }}
           </p>
-
           <button
             type="button"
             (click)="loadTasks()"
@@ -251,73 +244,73 @@
       } @else if (tasks.length === 0) {
         <div class="rounded-2xl border border-dashed border-[var(--card-border)] p-8 text-center">
           <p class="text-sm font-black text-[var(--text-main)]">هنوز تسکی برای نمایش وجود ندارد</p>
-
           <p class="text-xs font-bold text-[var(--text-soft)] mt-2">
             در این بازه زمانی کاری ثبت نشده است.
           </p>
         </div>
       } @else {
         @for (task of tasks; track trackTask($index, task)) {
-          <div class="task-row-card">
+          <div
+            class="task-row-card group !grid !h-auto !min-h-[72px] grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 sm:gap-4"
+          >
             <div [class]="'task-status-rail ' + getStatusRailClass(task.status)"></div>
 
-            <div class="flex items-center gap-4 flex-1 min-w-0">
-              <button class="task-play-btn" type="button" title="شروع تایمر">
+            <div class="flex min-w-0 items-center gap-4">
+              <button
+                class="task-play-btn"
+                type="button"
+                title="شروع تایمر"
+                aria-label="شروع تایمر"
+              >
                 <span class="text-sm font-black">▶</span>
               </button>
-
-              <div class="flex flex-col min-w-0">
-                <span class="text-[14px] font-black text-[var(--text-main)] truncate">
+              <a
+                class="min-w-0 max-w-full flex-1 overflow-hidden hover:opacity-80 transition-opacity"
+                [routerLink]="['/tasks', task.id]"
+                [title]="task.title"
+              >
+                <span
+                  class="block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[14px] font-black text-[var(--text-main)]"
+                >
                   {{ task.title }}
                 </span>
 
-                <span class="text-[11px] font-bold text-[var(--text-soft)] mt-1.5 truncate">
+                <span
+                  class="mt-1.5 block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-bold text-[var(--text-soft)]"
+                >
                   {{ task.project_title ?? 'پروژه #' + task.project_id }}
                 </span>
-
-                <span [class]="'text-[11px] font-black mt-1 ' + getStatusTextClass(task.status)">
-                  {{ getStatusLabel(task.status) }}
-                </span>
-              </div>
+              </a>
             </div>
 
-            <div class="flex items-center gap-6 dir-ltr shrink-0">
-              <span class="text-blue-500 dark:text-cyan-400 font-black text-sm tracking-wide">
-                #{{ task.id }}
-              </span>
+            <span
+              class="hidden min-w-[76px] text-left text-blue-500 dark:text-cyan-400 font-black text-sm tracking-wide sm:block"
+            >
+              #{{ task.id }}
+            </span>
 
-              <div class="flex flex-col items-end gap-1">
-                <span class="text-[var(--text-main)] font-black text-sm font-mono">
-                  {{ formatMinutes(task.duration) }}
-                </span>
-
-                <span class="text-[10px] font-bold text-[var(--text-soft)]">
-                  {{ task.date }}
-                </span>
-              </div>
-
-              <div class="flex items-center gap-3">
-                <button
-                  type="button"
-                  class="text-[11px] font-black text-blue-500 hover:text-blue-400 cursor-pointer"
-                  (click)="openEditTaskModal(task)"
-                >
-                  ویرایش
-                </button>
-
-                <button
-                  type="button"
-                  class="text-[11px] font-black text-red-500 hover:text-red-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  [disabled]="deletingTaskId() === task.id"
-                  (click)="deleteTask(task)"
-                >
-                  @if (deletingTaskId() === task.id) {
-                    حذف...
-                  } @else {
-                    حذف
-                  }
-                </button>
-              </div>
+            <div
+              class="flex min-w-[76px] items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <button
+                type="button"
+                class="text-[11px] font-black text-blue-500 hover:text-blue-400 cursor-pointer"
+                (click)="openEditTaskModal(task, $event)"
+              >
+                ویرایش
+              </button>
+              <button
+                type="button"
+                class="text-[11px] font-black text-red-500 hover:text-red-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="deletingTaskId() === task.id"
+                (click)="deleteTask(task)"
+              >
+                @if (deletingTaskId() === task.id) {
+                  حذف...
+                } @else {
+                  حذف
+                }
+              </button>
             </div>
           </div>
         }
@@ -329,7 +322,6 @@
             <span class="mx-1">·</span>
             مجموع {{ listTotalTasks }} وظیفه
           </div>
-
           <div class="flex items-center gap-2">
             <button
               type="button"
@@ -339,7 +331,6 @@
             >
               بعدی
             </button>
-
             <button
               type="button"
               (click)="goToPreviousPage()"
@@ -354,295 +345,910 @@
     </div>
   </div>
 </div>
+
 @if (isTaskModalOpen()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4 backdrop-blur-sm"
+  >
     <div
-      class="w-full max-w-3xl rounded-3xl border border-[var(--card-border)] bg-[var(--card-bg)] p-6 shadow-2xl"
+      class="max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-3xl border border-white/15 bg-white/95 shadow-2xl dark:bg-slate-950/95"
       dir="rtl"
     >
-      <div class="flex items-center justify-between gap-4 mb-6">
+      <div
+        class="flex items-center justify-between gap-4 border-b border-slate-200/70 px-6 py-5 dark:border-white/10"
+      >
         <div>
-          <h2 class="text-lg font-black text-[var(--text-main)]">
-            @if (editingTask()) {
-              ویرایش وظیفه
-            } @else {
-              ثبت وظیفه جدید
-            }
-          </h2>
-
-          <p class="text-xs font-bold text-[var(--text-soft)] mt-1">اطلاعات وظیفه را وارد کن.</p>
+          <h2 class="text-lg font-black text-[var(--text-main)]">ثبت هوشمند کارکرد</h2>
+          <p class="mt-1 text-xs font-bold text-[var(--text-soft)]">
+            از انتخاب تسک تا ثبت نهایی، همه چیز قابل بازبینی است.
+          </p>
         </div>
-
         <button
           type="button"
-          class="text-[var(--text-soft)] hover:text-[var(--text-main)] text-2xl leading-none"
+          class="grid h-9 w-9 place-items-center rounded-full border border-slate-200 text-xl leading-none text-[var(--text-soft)] hover:text-[var(--text-main)] dark:border-white/10"
           (click)="closeTaskModal()"
+          aria-label="بستن"
         >
           ×
         </button>
       </div>
 
+      <div class="border-b border-slate-200/70 px-6 py-4 dark:border-white/10">
+        <div class="grid grid-cols-4 gap-2">
+          @for (step of [1, 2, 3, 4]; track step) {
+            <button
+              type="button"
+              class="rounded-2xl border px-3 py-2 text-right transition disabled:cursor-not-allowed disabled:opacity-50"
+              [disabled]="isWizardStepDisabled(step)"
+              [class.border-cyan-400]="currentStep() === step"
+              [class.bg-cyan-500]="currentStep() === step"
+              [class.text-white]="currentStep() === step"
+              [class.border-emerald-500]="currentStep() !== step && isWizardStepComplete(step)"
+              [class.bg-emerald-50]="currentStep() !== step && isWizardStepComplete(step)"
+              [class.text-emerald-600]="currentStep() !== step && isWizardStepComplete(step)"
+              [class.border-slate-200]="currentStep() !== step && !isWizardStepComplete(step)"
+              [class.text-slate-400]="currentStep() !== step && !isWizardStepComplete(step)"
+              (click)="goToWizardStep(step)"
+            >
+              <span class="block text-[10px] font-black">مرحله {{ step }}</span>
+              <span class="mt-1 block text-xs font-black">
+                @switch (step) {
+                  @case (1) {
+                    انتخاب تسک
+                  }
+                  @case (2) {
+                    انتخاب مسیر
+                  }
+                  @case (3) {
+                    @if (flowType() === 'manual') {
+                      ورود دستی
+                    } @else {
+                      پردازش AI
+                    }
+                  }
+                  @default {
+                    بازبینی
+                  }
+                }
+              </span>
+            </button>
+          }
+        </div>
+      </div>
+
       <form
         [formGroup]="taskForm"
         (ngSubmit)="submitTaskForm()"
-        class="grid grid-cols-1 md:grid-cols-2 gap-4"
+        class="max-h-[72vh] overflow-y-auto px-6 py-5 custom-scrollbar"
       >
-        <label class="flex flex-col gap-2 md:col-span-2 relative">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-black text-[var(--text-soft)]">عنوان وظیفه</span>
-            <button
-              type="button"
-              (click)="loadJiraTasks()"
-              class="text-[10px] text-blue-400 font-bold hover:underline"
-            >
-              + دریافت تسک‌های انتسابی
-            </button>
-          </div>
+        @switch (currentStep()) {
+          @case (1) {
+            <div class="animate-in fade-in slide-in-from-right duration-300 space-y-6">
+              <div class="rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-6 text-center">
+                <p class="text-[11px] font-black text-cyan-600 dark:text-cyan-300">مرحله ۱</p>
+                <h3 class="mt-2 text-xl font-black text-[var(--text-main)]">
+                  تسک Jira-compatible را انتخاب کن
+                </h3>
+                <p class="mt-2 text-xs font-bold text-[var(--text-soft)]">
+                  بعد از انتخاب تسک، عنوان و مپینگ پروژه، سرویس و قرارداد به صورت خودکار پر می‌شود.
+                </p>
+              </div>
 
-          <input
-            type="text"
-            formControlName="title"
-            class="rounded-2xl border border-[var(--card-border)] bg-white/70 dark:bg-[#061525] px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none"
-          />
+              <label class="block">
+                <span class="mb-3 block text-xs font-black text-[var(--text-soft)]"
+                  >تسک انتسابی</span
+                >
+                <select
+                  #jiraTaskSelect
+                  class="w-full rounded-3xl border border-[var(--card-border)] bg-white/90 px-5 py-5 text-base font-black text-[var(--text-main)] shadow-sm outline-none dark:bg-[#061525]"
+                  [value]="selectedJiraTask()?.id || ''"
+                  (change)="selectJiraTaskById(jiraTaskSelect.value)"
+                >
+                  <option value="">
+                    @if (jiraTasks().length === 0) {
+                      در حال دریافت یا بدون تسک انتسابی
+                    } @else {
+                      انتخاب تسک از جیرا
+                    }
+                  </option>
+                  @for (task of jiraTasks(); track task.id) {
+                    <option [value]="task.id">{{ task.key ?? task.id }} · {{ task.title }}</option>
+                  }
+                </select>
+              </label>
 
-          @if (showJiraDropdown() && jiraTasks().length > 0) {
-            <div
-              class="absolute top-full left-0 right-0 z-[100] mt-2 bg-[#0b1e33] border border-slate-700 rounded-xl shadow-2xl overflow-hidden"
-            >
-              <div class="max-h-60 overflow-y-auto custom-scrollbar">
-                @for (task of jiraTasks(); track task.id) {
-                  <div
-                    (click)="selectJiraTask(task, $event)"
-                    class="p-4 hover:bg-blue-500/10 cursor-pointer border-b border-slate-800 last:border-0 transition-colors"
-                  >
-                    <div class="text-[10px] font-black text-blue-400 uppercase mb-1">
-                      {{ task.id }}
-                    </div>
-                    <div class="text-sm font-bold text-slate-200">{{ task.title }}</div>
-                  </div>
-                }
+              @if (selectedJiraTask()) {
+                <div class="rounded-3xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                  <p class="text-xs font-black text-emerald-600 dark:text-emerald-300">
+                    {{ selectedJiraTask()?.key ?? selectedJiraTask()?.id }} ·
+                    {{ selectedJiraTask()?.title }}
+                  </p>
+                  <p class="mt-2 text-[11px] font-bold text-[var(--text-soft)]">
+                    @if (projectDetailsState().loading) {
+                      در حال تکمیل مپینگ پروژه/سرویس/قرارداد...
+                    } @else if (isWizardStepOneValid()) {
+                      مپینگ آماده است. ادامه بده.
+                    } @else {
+                      مپینگ کامل نیست؛ پروژه، سرویس یا قرارداد را بررسی کن.
+                    }
+                  </p>
+                </div>
+              }
+              @if (mutationState().error) {
+                <div class="rounded-2xl border border-red-500/20 bg-red-500/10 p-3">
+                  <p class="text-xs font-black text-red-500">
+                    {{ mutationState().error }}
+                  </p>
+                </div>
+              }
+
+              <div class="flex items-center justify-end gap-3">
+                <button type="button" class="filter-chip" (click)="closeTaskModal()">انصراف</button>
+                <button
+                  type="button"
+                  class="filter-chip active disabled:opacity-50 disabled:cursor-not-allowed"
+                  [disabled]="!isWizardStepOneValid()"
+                  (click)="goToNextWizardStep()"
+                >
+                  مرحله بعد
+                </button>
               </div>
             </div>
           }
-        </label>
+          @case (2) {
+            <div class="animate-in fade-in slide-in-from-right duration-300 space-y-6">
+              <div>
+                <p class="text-[11px] font-black text-cyan-500">مرحله ۲</p>
+                <h3 class="mt-2 text-xl font-black text-[var(--text-main)]">
+                  مسیر ثبت کارکرد را انتخاب کن
+                </h3>
+                <p class="mt-1 text-xs font-bold text-[var(--text-soft)]">
+                  هر دو مسیر قبل از ثبت نهایی به صفحه بازبینی می‌رسند.
+                </p>
+              </div>
 
-        <label class="flex flex-col gap-2">
-          <span class="text-xs font-black text-[var(--text-soft)]">پروژه</span>
-          <select
-            #projectSelect
-            formControlName="project"
-            (change)="onProjectChange(projectSelect.value)"
-            class="rounded-2xl border border-[var(--card-border)] bg-white/70 dark:bg-[#061525] px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none"
-          >
-            <option [value]="0">
-              @if (projectsState().loading) {
-                در حال دریافت پروژه‌ها...
-              } @else {
-                انتخاب پروژه
-              }
-            </option>
-
-            @for (project of projectsState().data ?? []; track project.id) {
-              <option [value]="project.id">
-                {{ project.title }}
-              </option>
-            }
-          </select>
-          @if (projectsState().error) {
-            <span class="text-[11px] font-bold text-red-500">
-              {{ projectsState().error }}
-            </span>
-          }
-        </label>
-
-        <label class="flex flex-col gap-2">
-          <span class="text-xs font-black text-[var(--text-soft)]">محل انجام</span>
-          <select
-            formControlName="location"
-            class="rounded-2xl border border-[var(--card-border)] bg-white/70 dark:bg-[#061525] px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none"
-          >
-            <option value="teleworking">دورکاری</option>
-            <option value="incompany_working">حضوری</option>
-          </select>
-        </label>
-
-        <label class="flex flex-col gap-2">
-          <span class="text-xs font-black text-[var(--text-soft)]">سرویس پروژه</span>
-          <select
-            formControlName="project_service"
-            class="rounded-2xl border border-[var(--card-border)] bg-white/70 dark:bg-[#061525] px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none disabled:opacity-50"
-          >
-            <option [value]="0">
-              @if (projectDetailsState().loading) {
-                در حال دریافت سرویس‌ها...
-              } @else {
-                انتخاب سرویس
-              }
-            </option>
-
-            @for (service of projectDetailsState().data?.services ?? []; track service.id) {
-              <option [value]="service.id">
-                {{ service.service }}
-              </option>
-            }
-          </select>
-        </label>
-
-        <label class="flex flex-col gap-2">
-          <span class="text-xs font-black text-[var(--text-soft)]">قرارداد پروژه</span>
-          <select
-            formControlName="project_contract"
-            class="rounded-2xl border border-[var(--card-border)] bg-white/70 dark:bg-[#061525] px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none disabled:opacity-50"
-          >
-            <option [value]="0">
-              @if (projectDetailsState().loading) {
-                در حال دریافت قراردادها...
-              } @else {
-                انتخاب قرارداد
-              }
-            </option>
-
-            @for (contract of projectDetailsState().data?.contracts ?? []; track contract.id) {
-              <option [value]="contract.id">
-                {{ contract.contract }}
-              </option>
-            }
-          </select>
-          @if (projectDetailsState().error) {
-            <div class="md:col-span-2 rounded-2xl border border-red-500/20 bg-red-500/10 p-3">
-              <p class="text-xs font-black text-red-500">
-                {{ projectDetailsState().error }}
-              </p>
-            </div>
-          }
-        </label>
-
-        <label class="flex flex-col gap-2">
-          <span class="text-xs font-black text-[var(--text-soft)]">تاریخ</span>
-          <input
-            type="text"
-            formControlName="date"
-            class="rounded-2xl border border-[var(--card-border)] bg-white/70 dark:bg-[#061525] px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dir-ltr"
-            placeholder="1405-02-08"
-          />
-        </label>
-
-        <label class="flex flex-col gap-2">
-          <span class="text-xs font-black text-[var(--text-soft)]">ساعت شروع</span>
-          <input
-            type="time"
-            formControlName="start_time"
-            class="rounded-2xl border border-[var(--card-border)] bg-white/70 dark:bg-[#061525] px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none"
-          />
-        </label>
-
-        <label class="flex flex-col gap-2">
-          <span class="text-xs font-black text-[var(--text-soft)]">ساعت پایان</span>
-          <input
-            type="time"
-            formControlName="end_time"
-            class="rounded-2xl border border-[var(--card-border)] bg-white/70 dark:bg-[#061525] px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none"
-          />
-        </label>
-
-        @if (requiresAdjustmentReason()) {
-          <div class="md:col-span-2 rounded-2xl border border-orange-500/25 bg-orange-500/10 p-4">
-            <div class="flex flex-col gap-2">
-              <p class="text-xs font-black text-orange-400">
-                زمان واردشده بیشتر از ۳۰ دقیقه از پیشنهاد سیستم بالاتر است.
-              </p>
-
-              <p class="text-[11px] font-bold text-[var(--text-soft)]">
-                افزایش زمان: {{ getManualAdjustmentMinutes() }} دقیقه
-              </p>
-
-              <textarea
-                formControlName="adjustment_reason"
-                rows="3"
-                class="rounded-2xl border border-orange-500/20 bg-white/70 dark:bg-[#061525] px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none resize-none"
-                placeholder="دلیل افزایش زمان را بنویس..."
-              ></textarea>
-            </div>
-          </div>
-        }
-
-        <div class="flex flex-col gap-2 md:col-span-2">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-black text-[var(--text-soft)]">توضیحات</span>
-
-            <button
-              type="button"
-              (click)="onSyncGitlab()"
-              [disabled]="isSyncing()"
-              class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-colors disabled:opacity-50 cursor-pointer"
-            >
-              @if (isSyncing()) {
-                <svg
-                  class="animate-spin h-3.5 w-3.5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
+              <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <button
+                  type="button"
+                  class="flow-option-card flow-manual-card"
+                  [class.is-selected]="flowType() === 'manual'"
+                  (click)="selectFlowType('manual')"
                 >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  ></circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                <span>در حال دریافت...</span>
-              } @else {
-                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path
-                    d="M22.65 14.39L12 22.13 1.35 14.39a.84.84 0 0 1-.3-.94l1.22-3.78 2.44-7.51A.42.42 0 0 1 5.1 2.2a.39.39 0 0 1 .38.28l2.44 7.51L12 10l4.08-10.03a.39.39 0 0 1 .38-.28.42.42 0 0 1 .39.26l2.44 7.51 1.22 3.78a.84.84 0 0 1-.3.95Z"
-                  />
-                </svg>
-                <span>تولید گزارش از شواهد Git</span>
+                  <span class="flow-option-icon">✍</span>
+
+                  <span class="mt-5 block text-lg font-black">وارد کردن دستی</span>
+
+                  <span class="mt-2 block text-xs font-bold leading-6 opacity-75">
+                    تاریخ، ساعت و توضیحات را خودت وارد می‌کنی و قبل از ثبت نهایی بازبینی می‌کنی.
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  class="flow-option-card flow-ai-card"
+                  [class.is-selected]="flowType() === 'ai'"
+                  (click)="selectFlowType('ai')"
+                >
+                  <span class="flow-option-icon">✨</span>
+
+                  <span class="mt-5 block text-lg font-black">سپردن به هوش مصنوعی</span>
+
+                  <span class="mt-2 block text-xs font-bold leading-6 opacity-75">
+                    AI شواهد Git را بررسی می‌کند، زمان پیشنهادی و توضیحات اولیه را می‌سازد.
+                  </span>
+                </button>
+              </div>
+
+              @if (flowType() === 'ai') {
+                <div class="rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <p class="text-sm font-black text-[var(--text-main)]">تنظیمات تولید AI</p>
+                      <p class="mt-1 text-[11px] font-bold text-[var(--text-soft)]">
+                        قبل از شروع، لحن و سطح جزئیات گزارش را مشخص کن.
+                      </p>
+                    </div>
+                    <span
+                      class="rounded-full bg-cyan-500/15 px-3 py-1 text-[10px] font-black text-cyan-500"
+                      >AI Prompt</span
+                    >
+                  </div>
+
+                  <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <label class="flex flex-col gap-2">
+                      <span class="text-[11px] font-black text-[var(--text-soft)]">لحن</span>
+                      <select
+                        class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-3 py-3 text-xs font-black text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                        [value]="aiTone()"
+                        (change)="aiTone.set($any($event.target).value)"
+                      >
+                        <option value="formal">رسمی</option>
+                        <option value="technical">فنی</option>
+                        <option value="managerial">مدیریتی</option>
+                      </select>
+                    </label>
+
+                    <label class="flex flex-col gap-2">
+                      <span class="text-[11px] font-black text-[var(--text-soft)]">جزئیات</span>
+                      <select
+                        class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-3 py-3 text-xs font-black text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                        [value]="aiDetailLevel()"
+                        (change)="aiDetailLevel.set($any($event.target).value)"
+                      >
+                        <option value="short">خلاصه</option>
+                        <option value="balanced">متعادل</option>
+                        <option value="detailed">کامل</option>
+                      </select>
+                    </label>
+
+                    <label class="flex flex-col gap-2 md:col-span-2">
+                      <span class="text-[11px] font-black text-[var(--text-soft)]"
+                        >توضیح اختیاری برای AI</span
+                      >
+                      <textarea
+                        rows="3"
+                        class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-3 py-3 text-xs font-bold text-[var(--text-main)] outline-none resize-none dark:bg-[#061525]"
+                        placeholder="مثلاً: روی refactor تاکید کن و گزارش خیلی طولانی نباشد."
+                        [value]="aiExtraInstruction()"
+                        (input)="aiExtraInstruction.set($any($event.target).value)"
+                      ></textarea>
+                    </label>
+                  </div>
+                </div>
               }
-            </button>
-          </div>
+              @if (mutationState().error) {
+                <div class="rounded-2xl border border-red-500/20 bg-red-500/10 p-3">
+                  <p class="text-xs font-black text-red-500">
+                    {{ mutationState().error }}
+                  </p>
+                </div>
+              }
 
-          <textarea
-            formControlName="description"
-            rows="5"
-            class="rounded-2xl border border-[var(--card-border)] bg-white/70 dark:bg-[#061525] px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none resize-none"
-            placeholder="توضیحات اختیاری..."
-          ></textarea>
-        </div>
+              <div class="flex items-center justify-between gap-3">
+                <button type="button" class="filter-chip" (click)="goToPreviousWizardStep()">
+                  قبلی
+                </button>
+                <button
+                  type="button"
+                  class="filter-chip active disabled:opacity-50 disabled:cursor-not-allowed"
+                  [disabled]="!flowType()"
+                  (click)="goToNextWizardStep()"
+                >
+                  @if (flowType() === 'ai') {
+                    شروع تولید هوشمند
+                  } @else if (flowType() === 'manual') {
+                    ادامه به ورود دستی
+                  } @else {
+                    ادامه
+                  }
+                </button>
+              </div>
+            </div>
+          }
+          @case (3) {
+            @if (flowType() === 'manual') {
+              <div class="animate-in fade-in slide-in-from-right duration-300 space-y-5">
+                <div>
+                  <p class="text-[11px] font-black text-emerald-500">مرحله ۳</p>
+                  <h3 class="mt-2 text-xl font-black text-[var(--text-main)]">ورود دستی کارکرد</h3>
+                  <p class="mt-1 text-xs font-bold text-[var(--text-soft)]">
+                    تاریخ، ساعت و توضیحات را وارد کن. ثبت نهایی در مرحله بعد انجام می‌شود.
+                  </p>
+                </div>
 
-        @if (mutationState().error) {
-          <div class="md:col-span-2 rounded-2xl border border-red-500/20 bg-red-500/10 p-3">
-            <p class="text-xs font-black text-red-500">
-              {{ mutationState().error }}
-            </p>
-          </div>
-        }
+                <div class="grid grid-cols-1 gap-5 lg:grid-cols-[380px_minmax(0,1fr)]">
+                  <div
+                    class="mx-auto w-full max-w-[360px] rounded-2xl border border-[var(--card-border)] bg-white/80 p-3 dark:bg-white/5"
+                  >
+                    <div class="mb-3 flex items-center justify-between">
+                      <button
+                        type="button"
+                        class="grid h-8 w-8 place-items-center rounded-xl border border-[var(--card-border)] text-lg font-black text-[var(--text-soft)] hover:text-[var(--text-main)]"
+                        (click)="moveDatePickerMonth(-1)"
+                      >
+                        ‹
+                      </button>
+                      <div class="text-center">
+                        <p class="text-sm font-black text-[var(--text-main)]">
+                          {{ jalaliMonthNames[datePickerMonth() - 1] }} {{ datePickerYear() }}
+                        </p>
+                        <p class="mt-0.5 text-[10px] font-bold text-[var(--text-soft)]">
+                          {{ taskForm.controls.date.value || 'انتخاب روز' }}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        class="grid h-8 w-8 place-items-center rounded-xl border border-[var(--card-border)] text-lg font-black text-[var(--text-soft)] hover:text-[var(--text-main)]"
+                        (click)="moveDatePickerMonth(1)"
+                      >
+                        ›
+                      </button>
+                    </div>
 
-        <div class="md:col-span-2 flex items-center justify-end gap-3 mt-2">
-          <button type="button" class="filter-chip" (click)="closeTaskModal()">انصراف</button>
+                    <div
+                      class="grid grid-cols-7 text-center text-[10px] font-black text-[var(--text-soft)]"
+                    >
+                      <span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span
+                      ><span>پ</span><span>ج</span>
+                    </div>
+                    <div class="mt-2 grid grid-cols-7 justify-items-center gap-1">
+                      @for (day of getJalaliMonthDays(); track day) {
+                        <button
+                          type="button"
+                          class="grid h-8 w-8 place-items-center rounded-xl border text-[11px] font-black transition hover:border-cyan-400 hover:bg-cyan-500/10"
+                          [class.border-cyan-400]="isSelectedJalaliDate(day)"
+                          [class.bg-cyan-500]="isSelectedJalaliDate(day)"
+                          [class.text-white]="isSelectedJalaliDate(day)"
+                          [class.border-transparent]="!isSelectedJalaliDate(day)"
+                          (click)="selectJalaliDate(day)"
+                        >
+                          {{ day }}
+                        </button>
+                      }
+                    </div>
+                  </div>
 
-          <button
-            type="submit"
-            class="filter-chip active disabled:opacity-50 disabled:cursor-not-allowed"
-            [disabled]="taskForm.invalid || mutationState().loading"
-          >
-            @if (mutationState().loading) {
-              در حال ذخیره...
-            } @else if (editingTask()) {
-              ذخیره تغییرات
+                  <div class="grid grid-cols-1 gap-4 content-start">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <label class="flex flex-col gap-2">
+                        <span class="text-xs font-black text-[var(--text-soft)]">ساعت شروع</span>
+                        <input
+                          type="time"
+                          formControlName="start_time"
+                          class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                        />
+                      </label>
+                      <label class="flex flex-col gap-2">
+                        <span class="text-xs font-black text-[var(--text-soft)]">ساعت پایان</span>
+                        <input
+                          type="time"
+                          formControlName="end_time"
+                          class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                        />
+                      </label>
+                    </div>
+
+                    <label class="flex flex-col gap-2">
+                      <span class="text-xs font-black text-[var(--text-soft)]">توضیحات</span>
+                      <textarea
+                        formControlName="description"
+                        rows="6"
+                        class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none resize-none dark:bg-[#061525]"
+                        placeholder="کار انجام‌شده را بنویس..."
+                      ></textarea>
+                    </label>
+                  </div>
+                </div>
+
+                @if (requiresAdjustmentReason()) {
+                  <div class="rounded-2xl border border-orange-500/25 bg-orange-500/10 p-4">
+                    <textarea
+                      formControlName="adjustment_reason"
+                      rows="3"
+                      class="w-full rounded-2xl border border-orange-500/20 bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none resize-none dark:bg-[#061525]"
+                      placeholder="دلیل افزایش زمان را بنویس..."
+                    ></textarea>
+                  </div>
+                }
+                @if (mutationState().error) {
+                  <div class="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
+                    <p class="text-xs font-black text-red-500">
+                      {{ mutationState().error }}
+                    </p>
+                  </div>
+                }
+
+                <div class="flex items-center justify-between gap-3">
+                  <button type="button" class="filter-chip" (click)="goToPreviousWizardStep()">
+                    قبلی
+                  </button>
+                  <button
+                    type="button"
+                    class="filter-chip active disabled:opacity-50 disabled:cursor-not-allowed"
+                    [disabled]="!isManualEntryReady()"
+                    (click)="goToNextWizardStep()"
+                  >
+                    ادامه به بازبینی
+                  </button>
+                </div>
+              </div>
             } @else {
-              ثبت وظیفه
+              <div class="animate-in fade-in slide-in-from-right duration-300 space-y-5">
+                <div
+                  class="rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 to-violet-600/15 p-6 text-center"
+                >
+                  <div
+                    class="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-cyan-500/20 text-3xl"
+                  >
+                    ✨
+                  </div>
+                  <h3 class="mt-4 text-xl font-black text-[var(--text-main)]">
+                    AI در حال ساخت پیش‌نویس کارکرد است
+                  </h3>
+                  <p class="mt-2 text-xs font-bold text-[var(--text-soft)]">
+                    شواهد Git بررسی می‌شود و تاریخ، زمان و توضیحات روی فرم نوشته می‌شود.
+                  </p>
+                </div>
+
+                @if (isSyncing()) {
+                  <div
+                    class="animate-pulse space-y-3 rounded-3xl border border-slate-200 bg-white/70 p-5 dark:border-white/10 dark:bg-white/5"
+                  >
+                    <div class="h-4 w-2/5 rounded-full bg-slate-200 dark:bg-white/10"></div>
+                    <div class="h-4 w-full rounded-full bg-slate-200 dark:bg-white/10"></div>
+                    <div class="h-4 w-10/12 rounded-full bg-slate-200 dark:bg-white/10"></div>
+                    <div class="grid grid-cols-3 gap-3 pt-3">
+                      <div class="h-20 rounded-2xl bg-slate-200 dark:bg-white/10"></div>
+                      <div class="h-20 rounded-2xl bg-slate-200 dark:bg-white/10"></div>
+                      <div class="h-20 rounded-2xl bg-slate-200 dark:bg-white/10"></div>
+                    </div>
+                  </div>
+                }
+                @if (mutationState().error && !isSyncing()) {
+                  <div class="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
+                    <p class="text-xs font-black text-red-500">
+                      {{ mutationState().error }}
+                    </p>
+                    <div class="mt-3 flex gap-2">
+                      <button type="button" class="filter-chip" (click)="goToPreviousWizardStep()">
+                        برگشت به تنظیمات
+                      </button>
+                      <button type="button" class="filter-chip active" (click)="startAiFlow()">
+                        تلاش مجدد
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
             }
-          </button>
-        </div>
+          }
+          @default {
+            <div class="animate-in fade-in slide-in-from-right duration-300 space-y-5">
+              <div class="rounded-3xl border border-emerald-500/20 bg-emerald-500/10 p-5">
+                <p class="text-[11px] font-black text-emerald-600 dark:text-emerald-300">مرحله ۴</p>
+                <h3 class="mt-2 text-xl font-black text-[var(--text-main)]">بازبینی و ثبت نهایی</h3>
+                <p class="mt-1 text-xs font-bold text-[var(--text-soft)]">
+                  همه اطلاعات قبل از ارسال قابل ویرایش است.
+                </p>
+              </div>
+
+              <div
+                class="grid grid-cols-1 gap-3 rounded-3xl border border-slate-200 bg-white/80 p-5 dark:border-white/10 dark:bg-white/5 md:grid-cols-4"
+              >
+                <div>
+                  <p class="text-[10px] font-black text-[var(--text-soft)]">تسک</p>
+                  <p class="mt-2 text-xs font-black text-[var(--text-main)]">
+                    {{ taskForm.controls.title.value }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[10px] font-black text-[var(--text-soft)]">پروژه</p>
+                  <p class="mt-2 text-xs font-black text-[var(--text-main)]">
+                    {{ getProjectTitleById(taskForm.controls.project.value) }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[10px] font-black text-[var(--text-soft)]">سرویس</p>
+                  <p class="mt-2 text-xs font-black text-[var(--text-main)]">
+                    {{ getServiceTitleById(taskForm.controls.project_service.value) }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[10px] font-black text-[var(--text-soft)]">قرارداد</p>
+                  <p class="mt-2 text-xs font-black text-[var(--text-main)]">
+                    {{ getContractTitleById(taskForm.controls.project_contract.value) }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[10px] font-black text-[var(--text-soft)]">تاریخ</p>
+                  <p class="mt-2 text-xs font-black text-[var(--text-main)]">
+                    {{ taskForm.controls.date.value }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[10px] font-black text-[var(--text-soft)]">بازه زمانی</p>
+                  <p class="mt-2 text-xs font-black text-[var(--text-main)]">
+                    {{ taskForm.controls.start_time.value }} تا
+                    {{ taskForm.controls.end_time.value }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[10px] font-black text-[var(--text-soft)]">مدت</p>
+                  <p class="mt-2 text-xs font-black text-[var(--text-main)]">
+                    {{ formatMinutes(getCurrentDurationMinutes()) }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[10px] font-black text-[var(--text-soft)]">محل انجام</p>
+                  <p class="mt-2 text-xs font-black text-[var(--text-main)]">
+                    {{ getLocationLabel(taskForm.controls.location.value) }}
+                  </p>
+                </div>
+              </div>
+
+              @if (flowType() === 'ai') {
+                <div class="rounded-3xl border border-cyan-500/20 bg-cyan-500/10 p-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <p class="text-sm font-black text-[var(--text-main)]">خلاصه شواهد AI</p>
+                      <p class="mt-1 text-xs font-bold text-[var(--text-soft)]">
+                        {{ aiEvidenceSummary() || 'شواهد Git بررسی شد.' }}
+                      </p>
+                    </div>
+                    <span
+                      class="rounded-full bg-cyan-500/15 px-3 py-1 text-[11px] font-black text-cyan-500"
+                    >
+                      @if (aiConfidenceScore() !== null) {
+                        {{ aiConfidenceScore() }}٪
+                      } @else {
+                        نیازمند بازبینی
+                      }
+                    </span>
+                  </div>
+                </div>
+              }
+
+              <div
+                class="grid grid-cols-1 gap-4 rounded-3xl border border-[var(--card-border)] bg-white/70 p-5 dark:bg-white/5 md:grid-cols-2"
+              >
+                <label class="flex flex-col gap-2 md:col-span-2">
+                  <span class="text-xs font-black text-[var(--text-soft)]">عنوان وظیفه</span>
+                  <input
+                    type="text"
+                    formControlName="title"
+                    class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                  />
+                </label>
+
+                <label class="flex flex-col gap-2">
+                  <span class="text-xs font-black text-[var(--text-soft)]">پروژه</span>
+                  <select
+                    #reviewProjectSelect
+                    formControlName="project"
+                    (change)="onProjectChange(reviewProjectSelect.value)"
+                    class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                  >
+                    <option [value]="0">انتخاب پروژه</option>
+                    @for (project of projectsState().data ?? []; track project.id) {
+                      <option [value]="project.id">{{ project.title }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label class="flex flex-col gap-2">
+                  <span class="text-xs font-black text-[var(--text-soft)]">محل انجام</span>
+                  <select
+                    formControlName="location"
+                    class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                  >
+                    <option value="teleworking">دورکاری</option>
+                    <option value="incompany_working">حضوری</option>
+                  </select>
+                </label>
+
+                <label class="flex flex-col gap-2">
+                  <span class="text-xs font-black text-[var(--text-soft)]">سرویس پروژه</span>
+                  <select
+                    formControlName="project_service"
+                    class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                  >
+                    <option [value]="0">
+                      @if (projectDetailsState().loading) {
+                        در حال دریافت سرویس‌ها...
+                      } @else {
+                        انتخاب سرویس
+                      }
+                    </option>
+                    @for (service of projectDetailsState().data?.services ?? []; track service.id) {
+                      <option [value]="service.id">{{ service.service }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label class="flex flex-col gap-2">
+                  <span class="text-xs font-black text-[var(--text-soft)]">قرارداد پروژه</span>
+                  <select
+                    formControlName="project_contract"
+                    class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                  >
+                    <option [value]="0">
+                      @if (projectDetailsState().loading) {
+                        در حال دریافت قراردادها...
+                      } @else {
+                        انتخاب قرارداد
+                      }
+                    </option>
+                    @for (
+                      contract of projectDetailsState().data?.contracts ?? [];
+                      track contract.id
+                    ) {
+                      <option [value]="contract.id">{{ contract.contract }}</option>
+                    }
+                  </select>
+                </label>
+
+                <label class="flex flex-col gap-2">
+                  <span class="text-xs font-black text-[var(--text-soft)]">تاریخ</span>
+                  <input
+                    type="text"
+                    formControlName="date"
+                    class="dir-ltr rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                    placeholder="1405-02-08"
+                  />
+                </label>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <label class="flex flex-col gap-2">
+                    <span class="text-xs font-black text-[var(--text-soft)]">شروع</span>
+                    <input
+                      type="time"
+                      formControlName="start_time"
+                      class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                    />
+                  </label>
+                  <label class="flex flex-col gap-2">
+                    <span class="text-xs font-black text-[var(--text-soft)]">پایان</span>
+                    <input
+                      type="time"
+                      formControlName="end_time"
+                      class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                    />
+                  </label>
+                </div>
+
+                <label class="flex flex-col gap-2 md:col-span-2">
+                  <span class="text-xs font-black text-[var(--text-soft)]">توضیحات نهایی</span>
+                  <textarea
+                    formControlName="description"
+                    rows="6"
+                    class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none resize-none dark:bg-[#061525]"
+                  ></textarea>
+                </label>
+              </div>
+
+              @if (requiresAdjustmentReason()) {
+                <div class="rounded-2xl border border-orange-500/25 bg-orange-500/10 p-4">
+                  <p class="mb-2 text-xs font-black text-orange-500">
+                    زمان واردشده بیشتر از ۳۰ دقیقه از پیشنهاد سیستم بالاتر است.
+                  </p>
+                  <textarea
+                    formControlName="adjustment_reason"
+                    rows="3"
+                    class="w-full rounded-2xl border border-orange-500/20 bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none resize-none dark:bg-[#061525]"
+                    placeholder="دلیل افزایش زمان را بنویس..."
+                  ></textarea>
+                </div>
+              }
+              @if (mutationState().error) {
+                <div class="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
+                  <p class="text-xs font-black text-red-500">
+                    {{ mutationState().error }}
+                  </p>
+                </div>
+              }
+
+              <div class="flex items-center justify-between gap-3">
+                <button type="button" class="filter-chip" (click)="goToPreviousWizardStep()">
+                  قبلی
+                </button>
+                <button
+                  type="submit"
+                  class="filter-chip active disabled:opacity-50 disabled:cursor-not-allowed"
+                  [disabled]="taskForm.invalid || mutationState().loading"
+                >
+                  @if (mutationState().loading) {
+                    در حال ذخیره...
+                  } @else {
+                    تایید و ثبت نهایی
+                  }
+                </button>
+              </div>
+            </div>
+          }
+        }
       </form>
     </div>
   </div>
+}
+@if (isDrawerOpen()) {
+  <div
+    class="fixed inset-0 z-[60] bg-slate-950/40 backdrop-blur-sm"
+    (click)="closeTaskModal()"
+  ></div>
+  <aside
+    class="fixed inset-y-0 end-0 z-[70] flex w-full flex-col bg-white shadow-2xl transition-transform duration-300 dark:bg-slate-950 sm:max-w-xl"
+    dir="rtl"
+  >
+    <div
+      class="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-6 py-5 dark:border-white/10 dark:bg-slate-950"
+    >
+      <div>
+        <h2 class="text-lg font-black text-[var(--text-main)]">ویرایش وظیفه</h2>
+        <p class="mt-1 text-xs font-bold text-[var(--text-soft)]">
+          تغییرات با همان منطق امن فعلی ذخیره می‌شود.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="grid h-9 w-9 place-items-center rounded-full border border-slate-200 text-xl leading-none text-[var(--text-soft)] hover:text-[var(--text-main)] dark:border-white/10"
+        (click)="closeTaskModal()"
+        aria-label="بستن"
+      >
+        ×
+      </button>
+    </div>
+
+    <form [formGroup]="taskForm" (ngSubmit)="submitTaskForm()" class="flex min-h-0 flex-1 flex-col">
+      <div class="min-h-0 flex-1 overflow-y-auto px-6 py-5 custom-scrollbar">
+        <div class="grid grid-cols-1 gap-4">
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-black text-[var(--text-soft)]">عنوان وظیفه</span>
+            <input
+              type="text"
+              formControlName="title"
+              class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+            />
+          </label>
+
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-black text-[var(--text-soft)]">پروژه</span>
+            <select
+              #drawerProjectSelect
+              formControlName="project"
+              (change)="onProjectChange(drawerProjectSelect.value)"
+              class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+            >
+              <option [value]="0">
+                @if (projectsState().loading) {
+                  در حال دریافت پروژه‌ها...
+                } @else {
+                  انتخاب پروژه
+                }
+              </option>
+              @for (project of projectsState().data ?? []; track project.id) {
+                <option [value]="project.id">{{ project.title }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-black text-[var(--text-soft)]">محل انجام</span>
+            <select
+              formControlName="location"
+              class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+            >
+              <option value="teleworking">دورکاری</option>
+              <option value="incompany_working">حضوری</option>
+            </select>
+          </label>
+
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-black text-[var(--text-soft)]">سرویس پروژه</span>
+            <select
+              formControlName="project_service"
+              class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+            >
+              <option [value]="0">
+                @if (projectDetailsState().loading) {
+                  در حال دریافت سرویس‌ها...
+                } @else {
+                  انتخاب سرویس
+                }
+              </option>
+              @for (service of projectDetailsState().data?.services ?? []; track service.id) {
+                <option [value]="service.id">{{ service.service }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-black text-[var(--text-soft)]">قرارداد پروژه</span>
+            <select
+              formControlName="project_contract"
+              class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+            >
+              <option [value]="0">
+                @if (projectDetailsState().loading) {
+                  در حال دریافت قراردادها...
+                } @else {
+                  انتخاب قرارداد
+                }
+              </option>
+              @for (contract of projectDetailsState().data?.contracts ?? []; track contract.id) {
+                <option [value]="contract.id">{{ contract.contract }}</option>
+              }
+            </select>
+            @if (projectDetailsState().error) {
+              <span class="text-[11px] font-bold text-red-500">{{
+                projectDetailsState().error
+              }}</span>
+            }
+          </label>
+
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-black text-[var(--text-soft)]">تاریخ</span>
+            <input
+              type="text"
+              formControlName="date"
+              class="dir-ltr rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+              placeholder="1405-02-08"
+            />
+          </label>
+
+          <div class="grid grid-cols-2 gap-3">
+            <label class="flex flex-col gap-2">
+              <span class="text-xs font-black text-[var(--text-soft)]">ساعت شروع</span>
+              <input
+                type="time"
+                formControlName="start_time"
+                class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+              />
+            </label>
+            <label class="flex flex-col gap-2">
+              <span class="text-xs font-black text-[var(--text-soft)]">ساعت پایان</span>
+              <input
+                type="time"
+                formControlName="end_time"
+                class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+              />
+            </label>
+          </div>
+
+          @if (requiresAdjustmentReason()) {
+            <div class="rounded-2xl border border-orange-500/25 bg-orange-500/10 p-4">
+              <div class="flex flex-col gap-2">
+                <p class="text-xs font-black text-orange-400">
+                  زمان واردشده بیشتر از ۳۰ دقیقه از پیشنهاد سیستم بالاتر است.
+                </p>
+                <p class="text-[11px] font-bold text-[var(--text-soft)]">
+                  افزایش زمان: {{ getManualAdjustmentMinutes() }} دقیقه
+                </p>
+                <textarea
+                  formControlName="adjustment_reason"
+                  rows="3"
+                  class="rounded-2xl border border-orange-500/20 bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none resize-none dark:bg-[#061525]"
+                  placeholder="دلیل افزایش زمان را بنویس..."
+                ></textarea>
+              </div>
+            </div>
+          }
+
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-black text-[var(--text-soft)]">توضیحات</span>
+            <textarea
+              formControlName="description"
+              rows="5"
+              class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none resize-none dark:bg-[#061525]"
+              placeholder="توضیحات اختیاری..."
+            ></textarea>
+          </label>
+
+          @if (mutationState().error) {
+            <div class="rounded-2xl border border-red-500/20 bg-red-500/10 p-3">
+              <p class="text-xs font-black text-red-500">
+                {{ mutationState().error }}
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div
+        class="sticky bottom-0 flex items-center justify-end gap-3 border-t border-slate-200 bg-white px-6 py-4 dark:border-white/10 dark:bg-slate-950"
+      >
+        <button type="button" class="filter-chip" (click)="closeTaskModal()">انصراف</button>
+        <button
+          type="submit"
+          class="filter-chip active disabled:opacity-50 disabled:cursor-not-allowed"
+          [disabled]="taskForm.invalid || mutationState().loading"
+        >
+          @if (mutationState().loading) {
+            در حال ذخیره...
+          } @else {
+            ذخیره تغییرات
+          }
+        </button>
+      </div>
+    </form>
+  </aside>
 }

@@ -738,98 +738,98 @@ Do not redesign backend auth, token strategy, WTT API contracts, or integration 
 
 #### Auth Layout
 
-- [ ] Move login out of the main app shell visual experience.
-- [ ] Ensure `/auth/login` does not render:
-  - [ ] main sidebar
-  - [ ] left filter sidebar
-  - [ ] dashboard header
-  - [ ] task context panels
-- [ ] Rewrite login page as a dedicated two-column auth layout:
-  - [ ] form column
-  - [ ] brand/gradient/illustration column
-- [ ] Use violet/cyan gradient branding for the visual side.
-- [ ] Make login responsive:
-  - [ ] two columns on desktop
-  - [ ] single clean card on mobile
-- [ ] Add clean form states:
-  - [ ] username required
-  - [ ] password required
-  - [ ] loading while submitting
-  - [ ] disabled submit while submitting
-  - [ ] user-friendly error message
-  - [ ] show/hide password button
-- [ ] Add login helper actions:
-  - [ ] remember me checkbox
-  - [ ] forgot password link
-  - [ ] expired session message state
-- [ ] Keep forgot password as UI/route placeholder if backend endpoint is not available.
-- [ ] Ensure login still uses `AuthService` and environment-driven API configuration.
-- [ ] Confirm no hardcoded auth/proxy URL remains in login component/template.
-- [ ] Do not expose tokens or raw auth errors in the UI.
+- [x] Move login out of the main app shell visual experience.
+- [x] Ensure `/auth/login` does not render:
+  - [x] main sidebar
+  - [x] left filter sidebar
+  - [x] dashboard header
+  - [x] task context panels
+- [x] Rewrite login page as a dedicated two-column auth layout:
+  - [x] form column
+  - [x] brand/gradient/illustration column
+- [x] Use violet/cyan gradient branding for the visual side.
+- [x] Make login responsive:
+  - [x] two columns on desktop
+  - [x] single clean card on mobile
+- [x] Add clean form states:
+  - [x] username required
+  - [x] password required
+  - [x] loading while submitting
+  - [x] disabled submit while submitting
+  - [x] user-friendly error message
+  - [x] show/hide password button
+- [x] Add login helper actions:
+  - [x] remember me checkbox
+  - [x] forgot password link
+  - [x] expired session message state
+- [x] Keep forgot password as UI/route placeholder if backend endpoint is not available.
+- [x] Ensure login still uses `AuthService` and environment-driven API configuration.
+- [x] Confirm no hardcoded auth/proxy URL remains in login component/template.
+- [x] Do not expose tokens or raw auth errors in the UI.
 
 #### Suggested Tailwind treatment
 
-- [ ] Use soft enterprise surfaces:
-  - [ ] `bg-white/85 dark:bg-slate-900/85`
-  - [ ] `backdrop-blur-xl`
-  - [ ] `rounded-3xl`
-  - [ ] `ring-1 ring-slate-200/70 dark:ring-white/10`
-  - [ ] `shadow-2xl shadow-slate-900/10`
-- [ ] Use gradient only for primary CTA and brand panel.
-- [ ] Avoid pure black backgrounds in dark mode.
-- [ ] Prefer `slate-950`, `slate-900`, and `slate-800` for dark surfaces.
+- [x] Use soft enterprise surfaces:
+  - [x] `bg-white/85 dark:bg-slate-900/85`
+  - [x] `backdrop-blur-xl`
+  - [x] `rounded-3xl`
+  - [x] `ring-1 ring-slate-200/70 dark:ring-white/10`
+  - [x] `shadow-2xl shadow-slate-900/10`
+- [x] Use gradient only for primary CTA and brand panel.
+- [x] Avoid pure black backgrounds in dark mode.
+- [x] Prefer `slate-950`, `slate-900`, and `slate-800` for dark surfaces.
 
 #### Sidebar collapse foundation
 
-- [ ] Add or verify `LayoutService` shell signals:
-  - [ ] `isCollapsed`
-  - [ ] `isMobileSidebarOpen`
-  - [ ] `isFilterPanelOpen`
-- [ ] Bind sidebar width using explicit Tailwind classes:
-  - [ ] `w-[260px]` when expanded
-  - [ ] `w-[76px]` when collapsed
-- [ ] Avoid dynamically generated arbitrary classes such as `'w-[' + width + 'px]'`.
-- [ ] Use `ngClass` or explicit class maps so Tailwind can detect the classes.
-- [ ] Add smooth width transition:
-  - [ ] `transition-[width,transform]`
-  - [ ] `duration-300`
-  - [ ] `ease-[cubic-bezier(0.22,1,0.36,1)]`
-- [ ] When sidebar is collapsed:
-  - [ ] keep icons visible
-  - [ ] hide labels smoothly
-  - [ ] show tooltips on hover/focus
-  - [ ] keep active route visually clear
-  - [ ] keep timer badge visible
-- [ ] Use logical positioning:
-  - [ ] `start-*`
-  - [ ] `end-*`
-  - [ ] avoid hardcoded `left/right` where RTL/LTR matters
-- [ ] Make mobile sidebar overlay-based instead of shrinking the main layout.
+- [x] Add or verify `LayoutService` shell signals:
+  - [x] `isCollapsed`
+  - [x] `isMobileSidebarOpen`
+  - [x] `isFilterPanelOpen`
+- [x] Bind sidebar width using explicit Tailwind classes:
+  - [x] `w-[260px]` when expanded
+  - [x] `w-[76px]` when collapsed
+- [x] Avoid dynamically generated arbitrary classes such as `'w-[' + width + 'px]'`.
+- [x] Use `ngClass` or explicit class maps so Tailwind can detect the classes.
+- [x] Add smooth width transition:
+  - [x] `transition-[width,transform]`
+  - [x] `duration-300`
+  - [x] `ease-[cubic-bezier(0.22,1,0.36,1)]`
+- [x] When sidebar is collapsed:
+  - [x] keep icons visible
+  - [x] hide labels smoothly
+  - [x] show tooltips on hover/focus
+  - [x] keep active route visually clear
+  - [x] keep timer badge visible
+- [x] Use logical positioning:
+  - [x] `start-*`
+  - [x] `end-*`
+  - [x] avoid hardcoded `left/right` where RTL/LTR matters
+- [x] Make mobile sidebar overlay-based instead of shrinking the main layout.
 
 #### Welcome Splash
 
-- [ ] Create a small `WelcomeSplashComponent`.
-- [ ] Render it with Angular control flow using `@if`.
-- [ ] Show it only after successful login or first dashboard entry.
-- [ ] Auto-dismiss after 3–5 seconds.
-- [ ] Remove it from DOM after dismiss.
-- [ ] Keep it separate from the future notification center.
-- [ ] Show contextual text:
-  - [ ] greeting based on time
-  - [ ] user name
-  - [ ] today task summary
-  - [ ] correction-needed count if available
-- [ ] Add graceful fallback if dashboard summary data is unavailable.
+- [x] Create a small `WelcomeSplashComponent`.
+- [x] Render it with Angular control flow using `@if`.
+- [x] Show it only after successful login or first dashboard entry.
+- [x] Auto-dismiss after 3–5 seconds.
+- [x] Remove it from DOM after dismiss.
+- [x] Keep it separate from the future notification center.
+- [x] Show contextual text:
+  - [x] greeting based on time
+  - [x] user name
+  - [x] today task summary
+  - [x] correction-needed count if available
+- [x] Add graceful fallback if dashboard summary data is unavailable.
 
 ### Done criteria
 
-- [ ] Login page looks like a dedicated enterprise entry point.
-- [ ] Login does not visually appear inside the dashboard shell.
-- [ ] Sidebar collapse/expand is smooth and does not break layout.
-- [ ] Collapsed sidebar remains usable through icons and tooltips.
-- [ ] Welcome splash appears once and disappears cleanly.
-- [ ] No auth/proxy URL is hardcoded in login UI code.
-- [ ] Build/watch still passes.
+- [x] Login page looks like a dedicated enterprise entry point.
+- [x] Login does not visually appear inside the dashboard shell.
+- [x] Sidebar collapse/expand is smooth and does not break layout.
+- [x] Collapsed sidebar remains usable through icons and tooltips.
+- [x] Welcome splash appears once and disappears cleanly.
+- [x] No auth/proxy URL is hardcoded in login UI code.
+- [x] Build/watch still passes.
 
 **خلاصه فارسی:** ورود و اسکلت اصلی برنامه حرفه‌ای‌تر می‌شود؛ Login از داشبورد جدا می‌شود، سایدبار Collapse اصولی می‌گیرد و Welcome Splash سبک اضافه می‌شود.
 

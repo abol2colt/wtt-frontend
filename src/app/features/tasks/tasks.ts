@@ -1,10 +1,19 @@
-import { Component, OnInit, effect, inject, signal, untracked } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { LayoutService } from '../../core/services/layout/layout.service';
-import { GitlabSyncService } from './services/gitlab-sync.service';
-import { environment } from '../../../environments/environment';
-import { ApiState } from '../../shared/models/api-state.model';
-import { format } from 'date-fns-jalali';
+import {
+  Component,
+  HostListener,
+  OnInit,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from "@angular/core";
+import { ReactiveFormsModule, FormBuilder, Validators } from "@angular/forms";
+import { RouterLink } from "@angular/router";
+import { LayoutService } from "../../core/services/layout/layout.service";
+import { GitlabSyncService } from "./services/gitlab-sync.service";
+import { environment } from "../../../environments/environment";
+import { ApiState } from "../../shared/models/api-state.model";
+import { format } from "date-fns-jalali";
 import {
   TaskItem,
   TaskListQuery,
@@ -13,23 +22,29 @@ import {
   TasksCountResponse,
   TaskRange,
   ExternalTaskSourceItem,
-} from '../../shared/models/task.model';
-import { TasksService } from './services/tasks.service';
-import { TasksFiltersService } from './services/tasks-filters.service';
-import { AuthService } from '../../core/services/auth/auth.service';
-import { Project, ProjectDetailsResponse } from '../../shared/models/project.model';
+} from "../../shared/models/task.model";
+import { TasksService } from "./services/tasks.service";
+import { TasksFiltersService } from "./services/tasks-filters.service";
+import { AuthService } from "../../core/services/auth/auth.service";
+import {
+  Project,
+  ProjectDetailsResponse,
+} from "../../shared/models/project.model";
 
 type ProjectDetailsPreselect = {
   serviceId: number;
   contractId: number;
 };
 
-type TaskStatusFilter = 'all' | 'pending' | 'rejected';
+type TaskStatusFilter = "all" | "pending" | "rejected";
+type WorklogFlowType = "manual" | "ai";
+type AiTone = "formal" | "technical" | "managerial";
+type AiDetailLevel = "short" | "balanced" | "detailed";
 @Component({
-  selector: 'app-tasks',
+  selector: "app-tasks",
   standalone: true,
-  imports: [ReactiveFormsModule],
-  templateUrl: './tasks.html',
+  imports: [ReactiveFormsModule, RouterLink],
+  templateUrl: "./tasks.html",
 })
 export class TasksComponent implements OnInit {
   layout = inject(LayoutService);
@@ -39,7 +54,7 @@ export class TasksComponent implements OnInit {
   readonly testTaskPrefix = environment.taskMutationTestPrefix;
   readonly taskFilters = inject(TasksFiltersService);
   private getTodayJalaliDate(): string {
-    return format(new Date(), 'yyyy-MM-dd');
+    return format(new Date(), "yyyy-MM-dd");
   }
 
   private filtersEffectReady = false;
@@ -76,17 +91,22 @@ export class TasksComponent implements OnInit {
   });
 
   isTaskModalOpen = signal(false);
+  isDrawerOpen = signal(false);
+  currentStep = signal(1);
   private readonly gitlabSyncService = inject(GitlabSyncService);
 
   isSyncing = signal(false);
   editingTask = signal<TaskItem | null>(null);
+  aiConfidenceScore = signal<number | null>(null);
+  aiEvidenceSummary = signal("");
 
   readonly maxAllowedAdjustmentMinutes = 30;
   suggestedWorklogDurationMinutes = signal<number | null>(null);
+  private lastEditTrigger: HTMLElement | null = null;
 
   currentPage = signal(1);
-  activeRange = signal<TaskRange>('month_till_today');
-  activeStatus = signal<TaskStatusFilter>('all');
+  activeRange = signal<TaskRange>("month_till_today");
+  activeStatus = signal<TaskStatusFilter>("all");
   deletingTaskId = signal<number | null>(null);
   deleteError = signal<string | null>(null);
   selectedProjectId = signal<number | null>(null);
@@ -96,24 +116,45 @@ export class TasksComponent implements OnInit {
   teleworkingOnly = signal(false);
   favoriteOnly = signal(false);
 
-  startDate = signal('');
-  endDate = signal('');
+  startDate = signal("");
+  endDate = signal("");
   jiraTasks = signal<ExternalTaskSourceItem[]>([]);
   selectedJiraTask = signal<ExternalTaskSourceItem | null>(null);
 
   showJiraDropdown = signal(false);
+  flowType = signal<WorklogFlowType | null>(null);
+  aiTone = signal<AiTone>("formal");
+  aiDetailLevel = signal<AiDetailLevel>("balanced");
+  aiExtraInstruction = signal("");
+
+  readonly jalaliMonthNames = [
+    "فروردین",
+    "اردیبهشت",
+    "خرداد",
+    "تیر",
+    "مرداد",
+    "شهریور",
+    "مهر",
+    "آبان",
+    "آذر",
+    "دی",
+    "بهمن",
+    "اسفند",
+  ];
+  datePickerYear = signal(this.getInitialJalaliYearMonth().year);
+  datePickerMonth = signal(this.getInitialJalaliYearMonth().month);
 
   taskForm = this.fb.nonNullable.group({
-    title: ['', [Validators.required, Validators.minLength(3)]],
+    title: ["", [Validators.required, Validators.minLength(3)]],
     project: [0, [Validators.required, Validators.min(1)]],
     project_service: [0, [Validators.required, Validators.min(1)]],
     project_contract: [0, [Validators.required, Validators.min(1)]],
-    location: ['teleworking', Validators.required],
-    date: ['', Validators.required],
-    start_time: ['', Validators.required],
-    end_time: ['', Validators.required],
-    description: [''],
-    adjustment_reason: [''],
+    location: ["teleworking", Validators.required],
+    date: ["", Validators.required],
+    start_time: ["", Validators.required],
+    end_time: ["", Validators.required],
+    description: [""],
+    adjustment_reason: [""],
   });
 
   constructor() {
@@ -160,7 +201,7 @@ export class TasksComponent implements OnInit {
         this.tasksCountState.set({
           data: null,
           loading: false,
-          error: 'خطا در دریافت شمارنده وظایف',
+          error: "خطا در دریافت شمارنده وظایف",
         });
       },
     });
@@ -173,7 +214,7 @@ export class TasksComponent implements OnInit {
       this.tasksState.set({
         data: null,
         loading: false,
-        error: 'شناسه کاربر پیدا نشد. لطفاً دوباره وارد شوید.',
+        error: "شناسه کاربر پیدا نشد. لطفاً دوباره وارد شوید.",
       });
 
       return;
@@ -186,23 +227,25 @@ export class TasksComponent implements OnInit {
       loading: true,
       error: null,
     });
-    this.tasksService.getTasks(userId, this.taskFilters.buildQuery(page)).subscribe({
-      next: (response) => {
-        this.tasksState.set({
-          data: response,
-          loading: false,
-          error: null,
-        });
-      },
+    this.tasksService
+      .getTasks(userId, this.taskFilters.buildQuery(page))
+      .subscribe({
+        next: (response) => {
+          this.tasksState.set({
+            data: response,
+            loading: false,
+            error: null,
+          });
+        },
 
-      error: () => {
-        this.tasksState.set({
-          data: null,
-          loading: false,
-          error: 'خطا در دریافت لیست وظایف',
-        });
-      },
-    });
+        error: () => {
+          this.tasksState.set({
+            data: null,
+            loading: false,
+            error: "خطا در دریافت لیست وظایف",
+          });
+        },
+      });
   }
 
   get allTasks(): TaskItem[] {
@@ -212,7 +255,7 @@ export class TasksComponent implements OnInit {
   get tasks(): TaskItem[] {
     const status = this.activeStatus();
 
-    if (status === 'all') {
+    if (status === "all") {
       return this.allTasks;
     }
 
@@ -283,19 +326,26 @@ export class TasksComponent implements OnInit {
     this.taskFilters.reset();
   }
 
-  setStatusFilter(status: 'all' | 'approved' | 'pending' | 'rejected'): void {
+  setStatusFilter(status: "all" | "approved" | "pending" | "rejected"): void {
     this.taskFilters.activeStatus.set(status);
   }
 
   isAllFilterActive(): boolean {
-    return this.activeRange() === 'month_till_today' && this.activeStatus() === 'all';
+    return (
+      this.activeRange() === "month_till_today" && this.activeStatus() === "all"
+    );
   }
 
   isRangeFilterActive(range: TaskRange): boolean {
-    return this.taskFilters.activeRange() === range && this.taskFilters.activeStatus() === 'all';
+    return (
+      this.taskFilters.activeRange() === range &&
+      this.taskFilters.activeStatus() === "all"
+    );
   }
 
-  isStatusFilterActive(status: 'all' | 'approved' | 'pending' | 'rejected'): boolean {
+  isStatusFilterActive(
+    status: "all" | "approved" | "pending" | "rejected",
+  ): boolean {
     return this.taskFilters.activeStatus() === status;
   }
 
@@ -319,13 +369,16 @@ export class TasksComponent implements OnInit {
         this.projectsState.set({
           data: null,
           loading: false,
-          error: 'خطا در دریافت لیست پروژه‌ها',
+          error: "خطا در دریافت لیست پروژه‌ها",
         });
       },
     });
   }
 
-  loadProjectDetails(projectId: number, preselect?: ProjectDetailsPreselect): void {
+  loadProjectDetails(
+    projectId: number,
+    preselect?: ProjectDetailsPreselect,
+  ): void {
     if (!projectId || projectId <= 0) {
       this.projectDetailsState.set({ data: null, loading: false, error: null });
       return;
@@ -334,15 +387,23 @@ export class TasksComponent implements OnInit {
     this.projectDetailsState.set({ data: null, loading: true, error: null });
     this.tasksService.getProjectDetails(projectId).subscribe({
       next: (details) => {
-        this.projectDetailsState.set({ data: details, loading: false, error: null });
+        this.projectDetailsState.set({
+          data: details,
+          loading: false,
+          error: null,
+        });
 
         if (!preselect) return;
 
-        const serviceId = details.services.some((s) => s.id === preselect.serviceId)
+        const serviceId = details.services.some(
+          (s) => s.id === preselect.serviceId,
+        )
           ? preselect.serviceId
           : details.services[0]?.id || 0;
 
-        const contractId = details.contracts.some((c) => c.id === preselect.contractId)
+        const contractId = details.contracts.some(
+          (c) => c.id === preselect.contractId,
+        )
           ? preselect.contractId
           : details.contracts[0]?.id || 0;
 
@@ -352,7 +413,11 @@ export class TasksComponent implements OnInit {
         });
       },
       error: () =>
-        this.projectDetailsState.set({ data: null, loading: false, error: 'خطا در دریافت جزئیات' }),
+        this.projectDetailsState.set({
+          data: null,
+          loading: false,
+          error: "خطا در دریافت جزئیات",
+        }),
     });
   }
 
@@ -362,63 +427,80 @@ export class TasksComponent implements OnInit {
     this.loadProjectDetails(id);
   }
   formatMinutes(minutes: number | null | undefined): string {
-    if (minutes == null || minutes <= 0) return '00:00';
+    if (minutes == null || minutes <= 0) return "00:00";
 
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
 
-    const paddedHours = String(hours).padStart(2, '0');
-    const paddedMinutes = String(mins).padStart(2, '0');
+    const paddedHours = String(hours).padStart(2, "0");
+    const paddedMinutes = String(mins).padStart(2, "0");
 
     return `${paddedHours}:${paddedMinutes}`;
   }
   getStatusLabel(status: string): string {
     switch (status) {
-      case 'approved':
-        return 'تایید شده';
-      case 'pending':
-        return 'در انتظار تایید';
-      case 'rejected':
-        return 'نیازمند اصلاح';
-      case 'draft':
-        return 'پیش‌نویس';
-      case 'edited':
-        return 'ویرایش شده';
+      case "approved":
+        return "تایید شده";
+      case "pending":
+        return "در انتظار تایید";
+      case "rejected":
+        return "نیازمند اصلاح";
+      case "draft":
+        return "پیش‌نویس";
+      case "edited":
+        return "ویرایش شده";
       default:
         return status;
     }
   }
   getStatusRailClass(status: string): string {
     switch (status) {
-      case 'approved':
-        return 'done';
-      case 'pending':
-        return 'review';
-      case 'rejected':
-        return 'review';
-      case 'edited':
-        return 'progress';
-      case 'draft':
-        return 'progress';
+      case "approved":
+        return "done";
+      case "pending":
+        return "review";
+      case "rejected":
+        return "rejected";
+      case "edited":
+        return "progress";
+      case "draft":
+        return "draft";
       default:
-        return 'progress';
+        return "progress";
     }
   }
 
   getStatusTextClass(status: string): string {
     switch (status) {
-      case 'approved':
-        return 'text-emerald-500';
-      case 'pending':
-        return 'text-orange-500';
-      case 'rejected':
-        return 'text-red-500';
-      case 'edited':
-        return 'text-blue-500';
-      case 'draft':
-        return 'text-slate-500';
+      case "approved":
+        return "text-emerald-500";
+      case "pending":
+        return "text-orange-500";
+      case "rejected":
+        return "text-red-500";
+      case "edited":
+        return "text-blue-500";
+      case "draft":
+        return "text-slate-500";
       default:
-        return 'text-[var(--text-soft)]';
+        return "text-[var(--text-soft)]";
+    }
+  }
+
+  getStatusBadgeClass(status: string): string {
+    switch (status) {
+      case "approved":
+        return "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300";
+      case "pending":
+        return "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300";
+      case "rejected":
+        return "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300";
+      case "edited":
+        return "border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-300";
+      case "draft":
+        return "border-slate-500/20 bg-slate-500/10 text-slate-600 dark:text-slate-300";
+      default:
+        return "border-slate-500/20 bg-slate-500/10 text-[var(--text-soft)]";
     }
   }
 
@@ -428,18 +510,28 @@ export class TasksComponent implements OnInit {
   openCreateTaskModal(): void {
     this.editingTask.set(null);
     this.suggestedWorklogDurationMinutes.set(null);
+    this.currentStep.set(1);
+    this.aiConfidenceScore.set(null);
+    this.aiEvidenceSummary.set("");
+    this.selectedJiraTask.set(null);
+    this.showJiraDropdown.set(false);
+    this.flowType.set(null);
+    this.aiTone.set("formal");
+    this.aiDetailLevel.set("balanced");
+    this.aiExtraInstruction.set("");
+    this.resetDatePickerToToday();
 
     this.taskForm.reset({
-      title: '',
+      title: "",
       project: 0,
       project_service: 0,
       project_contract: 0,
-      location: 'teleworking',
-      date: '',
-      start_time: '',
-      end_time: '',
-      description: '',
-      adjustment_reason: '',
+      location: "teleworking",
+      date: "",
+      start_time: "",
+      end_time: "",
+      description: "",
+      adjustment_reason: "",
     });
 
     this.mutationState.set({
@@ -449,24 +541,30 @@ export class TasksComponent implements OnInit {
     });
 
     this.isTaskModalOpen.set(true);
+    this.loadJiraTasks();
   }
-  openEditTaskModal(task: TaskItem): void {
+  openEditTaskModal(task: TaskItem, event?: Event): void {
+    this.lastEditTrigger =
+      event?.currentTarget instanceof HTMLElement ? event.currentTarget : null;
     this.editingTask.set(task);
     this.suggestedWorklogDurationMinutes.set(null);
+    this.aiConfidenceScore.set(null);
+    this.aiEvidenceSummary.set("");
     this.selectedJiraTask.set(null);
     this.showJiraDropdown.set(false);
+    this.flowType.set(null);
 
     this.taskForm.reset({
       title: task.title,
       project: task.project_id,
       project_service: 0,
       project_contract: 0,
-      location: task.location ?? 'teleworking',
+      location: task.location ?? "teleworking",
       date: task.date,
       start_time: this.extractTime(task.start_time),
       end_time: this.extractTime(task.end_time),
-      description: '',
-      adjustment_reason: '',
+      description: task.description ?? "",
+      adjustment_reason: "",
     });
     this.loadProjectDetails(task.project_id);
     this.mutationState.set({
@@ -475,14 +573,14 @@ export class TasksComponent implements OnInit {
       error: null,
     });
 
-    this.isTaskModalOpen.set(true);
+    this.isDrawerOpen.set(true);
   }
   private extractTime(dateTime: string | undefined): string {
-    if (!dateTime) return '';
+    if (!dateTime) return "";
 
-    const timePart = dateTime.split(' ')[1];
+    const timePart = dateTime.split(" ")[1];
 
-    if (!timePart) return '';
+    if (!timePart) return "";
 
     return timePart.slice(0, 5);
   }
@@ -490,12 +588,345 @@ export class TasksComponent implements OnInit {
     if (this.mutationState().loading) return;
 
     this.isTaskModalOpen.set(false);
+    this.isDrawerOpen.set(false);
     this.editingTask.set(null);
+    this.currentStep.set(1);
+    this.showJiraDropdown.set(false);
+    this.resetTaskForm();
+    queueMicrotask(() => {
+      this.lastEditTrigger?.focus();
+      this.lastEditTrigger = null;
+    });
+  }
+
+  @HostListener("document:keydown.escape")
+  onEscapeKey(): void {
+    if (this.isTaskModalOpen() || this.isDrawerOpen()) {
+      this.closeTaskModal();
+    }
+  }
+
+  private resetTaskForm(): void {
+    this.taskForm.reset({
+      title: "",
+      project: 0,
+      project_service: 0,
+      project_contract: 0,
+      location: "teleworking",
+      date: "",
+      start_time: "",
+      end_time: "",
+      description: "",
+      adjustment_reason: "",
+    });
+    this.suggestedWorklogDurationMinutes.set(null);
+    this.aiConfidenceScore.set(null);
+    this.aiEvidenceSummary.set("");
+    this.selectedJiraTask.set(null);
+    this.flowType.set(null);
+    this.aiTone.set("formal");
+    this.aiDetailLevel.set("balanced");
+    this.aiExtraInstruction.set("");
+    this.resetDatePickerToToday();
+  }
+
+  goToWizardStep(step: number): void {
+    if (step < 1 || step > 4) return;
+
+    if (step === 2 && !this.isWizardStepOneValid()) return;
+
+    if (step === 3 && (!this.isWizardStepOneValid() || !this.flowType()))
+      return;
+
+    if (step === 4) {
+      if (this.flowType() === "manual" && !this.isManualEntryReady()) return;
+      if (
+        this.flowType() === "ai" &&
+        !this.taskForm.controls.description.value.trim()
+      )
+        return;
+    }
+
+    this.currentStep.set(step);
+  }
+
+  goToNextWizardStep(): void {
+    if (this.currentStep() === 1) {
+      if (!this.isJiraTaskSelected()) {
+        this.mutationState.set({
+          data: null,
+          loading: false,
+          error: "برای ادامه، اول یک تسک از جیرا انتخاب کن.",
+        });
+        return;
+      }
+
+      if (!this.isWizardStepOneValid()) {
+        this.mutationState.set({
+          data: null,
+          loading: false,
+          error:
+            "مپینگ پروژه، سرویس یا قرارداد هنوز کامل نشده است. چند لحظه صبر کن یا تسک دیگری انتخاب کن.",
+        });
+        return;
+      }
+    }
+
+    if (this.currentStep() === 2 && !this.flowType()) {
+      this.mutationState.set({
+        data: null,
+        loading: false,
+        error: "لطفاً مسیر ثبت کارکرد را انتخاب کن.",
+      });
+      return;
+    }
+
+    if (this.currentStep() === 2 && this.flowType() === "ai") {
+      this.startAiFlow();
+      return;
+    }
+
+    if (this.currentStep() === 3 && this.flowType() === "manual") {
+      if (!this.isManualEntryReady()) {
+        this.taskForm.markAllAsTouched();
+        this.mutationState.set({
+          data: null,
+          loading: false,
+          error: "تاریخ، ساعت شروع، ساعت پایان و توضیحات را کامل کن.",
+        });
+        return;
+      }
+
+      this.currentStep.set(4);
+      this.mutationState.set({ data: null, loading: false, error: null });
+      return;
+    }
+
+    this.mutationState.set({ data: null, loading: false, error: null });
+    this.currentStep.set(Math.min(4, this.currentStep() + 1));
+  }
+
+  goToPreviousWizardStep(): void {
+    if (this.currentStep() === 4) {
+      this.currentStep.set(3);
+      return;
+    }
+
+    this.currentStep.set(Math.max(1, this.currentStep() - 1));
+  }
+  isWizardStepComplete(step: number): boolean {
+    if (step === 1) return this.isWizardStepOneValid();
+    if (step === 2) return Boolean(this.flowType());
+    if (step === 3) {
+      if (this.flowType() === "manual") return this.isManualEntryReady();
+      if (this.flowType() === "ai")
+        return Boolean(this.taskForm.controls.description.value.trim());
+    }
+
+    return false;
+  }
+
+  isWizardStepDisabled(step: number): boolean {
+    if (step <= this.currentStep()) return false;
+
+    if (step === 2) return !this.isWizardStepOneValid();
+
+    if (step === 3) {
+      return !this.isWizardStepOneValid() || !this.flowType();
+    }
+
+    if (step === 4) {
+      if (this.flowType() === "manual") return !this.isManualEntryReady();
+      if (this.flowType() === "ai")
+        return !this.taskForm.controls.description.value.trim();
+      return true;
+    }
+
+    return true;
+  }
+  isWizardStepOneValid(): boolean {
+    const controls = this.taskForm.controls;
+
+    return (
+      this.isJiraTaskSelected() &&
+      controls.title.valid &&
+      controls.project.valid &&
+      controls.project_service.valid &&
+      controls.project_contract.valid &&
+      controls.location.valid
+    );
+  }
+
+  isJiraTaskSelected(): boolean {
+    return Boolean(this.selectedJiraTask());
+  }
+
+  isManualEntryReady(): boolean {
+    const controls = this.taskForm.controls;
+    const description = controls.description.value.trim();
+
+    return (
+      this.isWizardStepOneValid() &&
+      controls.date.valid &&
+      controls.start_time.valid &&
+      controls.end_time.valid &&
+      this.getCurrentDurationMinutes() > 0 &&
+      description.length > 0 &&
+      (!this.requiresAdjustmentReason() ||
+        Boolean(controls.adjustment_reason.value.trim()))
+    );
+  }
+
+  private markWizardStepOneTouched(): void {
+    const controls = this.taskForm.controls;
+    controls.title.markAsTouched();
+    controls.project.markAsTouched();
+    controls.project_service.markAsTouched();
+    controls.project_contract.markAsTouched();
+    controls.location.markAsTouched();
+    controls.date.markAsTouched();
+    controls.start_time.markAsTouched();
+    controls.end_time.markAsTouched();
+  }
+
+  selectFlowType(type: WorklogFlowType): void {
+    this.flowType.set(type);
+    this.mutationState.set({ data: null, loading: false, error: null });
+
+    if (type === "manual") {
+      this.aiConfidenceScore.set(null);
+      this.aiEvidenceSummary.set("");
+    }
+  }
+
+  startAiFlow(): void {
+    if (!this.isWizardStepOneValid()) {
+      this.mutationState.set({
+        data: null,
+        loading: false,
+        error:
+          "برای شروع AI، اول تسک و مپینگ پروژه/سرویس/قرارداد باید کامل باشد.",
+      });
+      return;
+    }
+
+    this.currentStep.set(3);
+    this.mutationState.set({ data: null, loading: false, error: null });
+    this.onSyncGitlab();
+  }
+
+  private getInitialJalaliYearMonth(): { year: number; month: number } {
+    const [year, month] = this.getTodayJalaliDate().split("-").map(Number);
+    return { year, month };
+  }
+
+  private resetDatePickerToToday(): void {
+    const { year, month } = this.getInitialJalaliYearMonth();
+    this.datePickerYear.set(year);
+    this.datePickerMonth.set(month);
+  }
+
+  moveDatePickerMonth(delta: number): void {
+    let year = this.datePickerYear();
+    let month = this.datePickerMonth() + delta;
+
+    while (month < 1) {
+      month += 12;
+      year -= 1;
+    }
+
+    while (month > 12) {
+      month -= 12;
+      year += 1;
+    }
+
+    this.datePickerYear.set(year);
+    this.datePickerMonth.set(month);
+  }
+
+  getJalaliMonthDays(): number[] {
+    const month = this.datePickerMonth();
+    const daysInMonth = month <= 6 ? 31 : month <= 11 ? 30 : 29;
+
+    return Array.from({ length: daysInMonth }, (_, index) => index + 1);
+  }
+
+  selectJalaliDate(day: number): void {
+    const month = String(this.datePickerMonth()).padStart(2, "0");
+    const dayText = String(day).padStart(2, "0");
+
+    this.taskForm.patchValue({
+      date: `${this.datePickerYear()}-${month}-${dayText}`,
+    });
+    this.mutationState.set({ data: null, loading: false, error: null });
+  }
+
+  isSelectedJalaliDate(day: number): boolean {
+    const month = String(this.datePickerMonth()).padStart(2, "0");
+    const dayText = String(day).padStart(2, "0");
+
+    return (
+      this.taskForm.controls.date.value ===
+      `${this.datePickerYear()}-${month}-${dayText}`
+    );
+  }
+
+  getProjectTitleById(projectId: number): string {
+    return (
+      this.projectsState().data?.find(
+        (project) => project.id === Number(projectId),
+      )?.title ?? `پروژه #${projectId || "-"}`
+    );
+  }
+
+  getServiceTitleById(serviceId: number): string {
+    return (
+      this.projectDetailsState().data?.services.find(
+        (service) => service.id === Number(serviceId),
+      )?.service ?? `سرویس #${serviceId || "-"}`
+    );
+  }
+
+  getContractTitleById(contractId: number): string {
+    return (
+      this.projectDetailsState().data?.contracts.find(
+        (contract) => contract.id === Number(contractId),
+      )?.contract ?? `قرارداد #${contractId || "-"}`
+    );
+  }
+
+  getLocationLabel(location: string): string {
+    return location === "incompany_working" ? "حضوری" : "دورکاری";
+  }
+
+  getCurrentDurationMinutes(): number {
+    const { start_time, end_time } = this.taskForm.getRawValue();
+
+    if (!start_time || !end_time) return 0;
+
+    return this.calculateDurationMinutes(start_time, end_time);
+  }
+
+  applyAiTone(tone: "formal" | "shorter" | "technical"): void {
+    const currentDescription = this.taskForm.controls.description.value.trim();
+
+    if (!currentDescription) return;
+
+    const tonePrefix =
+      tone === "formal"
+        ? "با لحن رسمی‌تر:"
+        : tone === "shorter"
+          ? "خلاصه‌تر:"
+          : "با تاکید فنی:";
+
+    this.taskForm.patchValue({
+      description: `${tonePrefix}\n${currentDescription}`,
+    });
   }
 
   private calculateDurationMinutes(startTime: string, endTime: string): number {
-    const [startHour, startMinute] = startTime.split(':').map(Number);
-    const [endHour, endMinute] = endTime.split(':').map(Number);
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
 
     const startTotal = startHour * 60 + startMinute;
     const endTotal = endHour * 60 + endMinute;
@@ -523,12 +954,15 @@ export class TasksComponent implements OnInit {
   private buildTaskPayload(): TaskMutationPayload {
     const formValue = this.taskForm.getRawValue();
 
-    const duration = this.calculateDurationMinutes(formValue.start_time, formValue.end_time);
+    const duration = this.calculateDurationMinutes(
+      formValue.start_time,
+      formValue.end_time,
+    );
 
     const adjustmentReason = formValue.adjustment_reason.trim();
 
     const finalDescription = adjustmentReason
-      ? `${formValue.description || ''}
+      ? `${formValue.description || ""}
 
 ---
 دلیل افزایش زمان:
@@ -550,7 +984,10 @@ ${adjustmentReason}`
   }
 
   deleteTask(task: TaskItem): void {
-    if (environment.enableRealTaskMutation && !task.title.startsWith(this.testTaskPrefix)) {
+    if (
+      environment.enableRealTaskMutation &&
+      !task.title.startsWith(this.testTaskPrefix)
+    ) {
       this.deleteError.set(
         `حذف واقعی فقط برای تسک‌های تستی با prefix ${this.testTaskPrefix} مجاز است.`,
       );
@@ -573,18 +1010,27 @@ ${adjustmentReason}`
 
       error: () => {
         this.deletingTaskId.set(null);
-        this.deleteError.set('خطا در حذف وظیفه');
+        this.deleteError.set("خطا در حذف وظیفه");
       },
     });
   }
   submitTaskForm(): void {
+    if (
+      this.isTaskModalOpen() &&
+      !this.editingTask() &&
+      this.currentStep() !== 4
+    ) {
+      this.goToNextWizardStep();
+      return;
+    }
+
     if (this.taskForm.invalid) {
       this.taskForm.markAllAsTouched();
 
       this.mutationState.set({
         data: null,
         loading: false,
-        error: 'لطفاً فیلدهای ضروری را کامل وارد کن.',
+        error: "لطفاً فیلدهای ضروری را کامل وارد کن.",
       });
 
       return;
@@ -596,12 +1042,15 @@ ${adjustmentReason}`
       this.mutationState.set({
         data: null,
         loading: false,
-        error: 'ساعت پایان باید بعد از ساعت شروع باشد.',
+        error: "ساعت پایان باید بعد از ساعت شروع باشد.",
       });
 
       return;
     }
-    if (environment.enableRealTaskMutation && !payload.title.startsWith(this.testTaskPrefix)) {
+    if (
+      environment.enableRealTaskMutation &&
+      !payload.title.startsWith(this.testTaskPrefix)
+    ) {
       this.mutationState.set({
         data: null,
         loading: false,
@@ -611,11 +1060,15 @@ ${adjustmentReason}`
       return;
     }
 
-    if (this.requiresAdjustmentReason() && !this.taskForm.controls.adjustment_reason.value.trim()) {
+    if (
+      this.requiresAdjustmentReason() &&
+      !this.taskForm.controls.adjustment_reason.value.trim()
+    ) {
       this.mutationState.set({
         data: null,
         loading: false,
-        error: 'برای افزایش زمان بیش از ۳۰ دقیقه نسبت به پیشنهاد سیستم، وارد کردن دلیل الزامی است.',
+        error:
+          "برای افزایش زمان بیش از ۳۰ دقیقه نسبت به پیشنهاد سیستم، وارد کردن دلیل الزامی است.",
       });
 
       return;
@@ -628,10 +1081,23 @@ ${adjustmentReason}`
     });
 
     const editingTask = this.editingTask();
+    let request$: ReturnType<TasksService["createTask"]>;
 
-    const request$ = editingTask
-      ? this.tasksService.updateTask(editingTask.id, payload)
-      : this.tasksService.createTask(payload);
+    try {
+      request$ = editingTask
+        ? this.tasksService.updateTask(editingTask.id, payload)
+        : this.tasksService.createTask(payload);
+    } catch (error) {
+      this.mutationState.set({
+        data: null,
+        loading: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "خطا در آماده‌سازی درخواست ذخیره.",
+      });
+      return;
+    }
 
     request$.subscribe({
       next: () => {
@@ -648,8 +1114,9 @@ ${adjustmentReason}`
       error: (error) => {
         const backendMessage =
           error?.status === 403
-            ? 'دسترسی ثبت/ویرایش وظیفه برای این کاربر توسط WTT مجاز نیست. مسیر mutation تا backend تست شد و داده‌ای تغییر نکرد.'
-            : error?.message || (editingTask ? 'خطا در ویرایش وظیفه' : 'خطا در ثبت وظیفه');
+            ? "دسترسی ثبت/ویرایش وظیفه برای این کاربر توسط WTT مجاز نیست. مسیر mutation تا backend تست شد و داده‌ای تغییر نکرد."
+            : error?.message ||
+              (editingTask ? "خطا در ویرایش وظیفه" : "خطا در ثبت وظیفه");
 
         this.mutationState.set({
           data: null,
@@ -661,7 +1128,7 @@ ${adjustmentReason}`
   }
 
   applyAdvancedFilters(): void {
-    this.activeStatus.set('all');
+    this.activeStatus.set("all");
     this.loadTasks(1);
     this.loadTasksCount();
   }
@@ -672,11 +1139,11 @@ ${adjustmentReason}`
     this.selectedContractId.set(null);
     this.teleworkingOnly.set(false);
     this.favoriteOnly.set(false);
-    this.startDate.set('');
-    this.endDate.set('');
+    this.startDate.set("");
+    this.endDate.set("");
 
-    this.activeRange.set('month_till_today');
-    this.activeStatus.set('all');
+    this.activeRange.set("month_till_today");
+    this.activeStatus.set("all");
 
     this.projectDetailsState.set({
       data: null,
@@ -747,7 +1214,8 @@ ${adjustmentReason}`
       this.mutationState.set({
         data: null,
         loading: false,
-        error: 'اول یک تسک از منبع وظایف انتخاب کن تا شواهد مربوط به همان تسک دریافت شوند.',
+        error:
+          "اول یک تسک از منبع وظایف انتخاب کن تا شواهد مربوط به همان تسک دریافت شوند.",
       });
       return;
     }
@@ -755,88 +1223,116 @@ ${adjustmentReason}`
     if (this.isSyncing()) return;
 
     this.isSyncing.set(true);
+    this.aiConfidenceScore.set(null);
+    this.aiEvidenceSummary.set("");
 
-    this.gitlabSyncService.syncEvidence(selectedTask).subscribe({
-      next: (response) => {
-        if (!response?.success) {
+    this.gitlabSyncService
+      .syncEvidence(selectedTask, {
+        tone: this.aiTone(),
+        detailLevel: this.aiDetailLevel(),
+        extraInstruction: this.aiExtraInstruction().trim(),
+      })
+      .subscribe({
+        next: (response) => {
+          if (!response?.success) {
+            this.isSyncing.set(false);
+
+            this.mutationState.set({
+              data: null,
+              loading: false,
+              error:
+                response?.error ||
+                response?.description ||
+                "کامیت مرتبطی برای این تسک پیدا نشد.",
+            });
+
+            return;
+          }
+
+          const rawDurationMinutes = Number(
+            response.suggestedDurationMinutes ??
+              response.durationMinutes ??
+              selectedTask.estimated_minutes ??
+              60,
+          );
+          const durationMinutes =
+            rawDurationMinutes > 0 ? rawDurationMinutes : 60;
+          this.suggestedWorklogDurationMinutes.set(durationMinutes);
+          this.taskForm.patchValue({ adjustment_reason: "" });
+          const now = new Date();
+
+          const fallbackEndHour = String(now.getHours()).padStart(2, "0");
+          const fallbackEndMinute = String(now.getMinutes()).padStart(2, "0");
+          const fallbackEndTimeStr = `${fallbackEndHour}:${fallbackEndMinute}`;
+
+          const fallbackStartTimeObj = new Date(
+            now.getTime() - durationMinutes * 60000,
+          );
+          const fallbackStartHour = String(
+            fallbackStartTimeObj.getHours(),
+          ).padStart(2, "0");
+          const fallbackStartMinute = String(
+            fallbackStartTimeObj.getMinutes(),
+          ).padStart(2, "0");
+          const fallbackStartTimeStr = `${fallbackStartHour}:${fallbackStartMinute}`;
+
+          const startTimeStr =
+            response.suggestedStartTime || fallbackStartTimeStr;
+          const endTimeStr = response.suggestedEndTime || fallbackEndTimeStr;
+          this.taskForm.patchValue({
+            date:
+              this.taskForm.controls.date.value || this.getTodayJalaliDate(),
+            start_time: startTimeStr,
+            end_time: endTimeStr,
+          });
+
+          this.aiConfidenceScore.set(response.confidenceScore ?? null);
+          this.aiEvidenceSummary.set(
+            [
+              response.evidence?.commitCount != null
+                ? `${response.evidence.commitCount} کامیت مرتبط بررسی شد`
+                : null,
+              response.evidence?.excludedGapMinutes != null
+                ? `${response.evidence.excludedGapMinutes} دقیقه فاصله غیرکاری کنار گذاشته شد`
+                : null,
+              response.confidenceLabel
+                ? `سطح اطمینان: ${response.confidenceLabel}`
+                : null,
+            ]
+              .filter(Boolean)
+              .join("، ") || "شواهد Git برای این پیش‌نویس بررسی شد.",
+          );
+
+          this.taskForm.patchValue({
+            description: response.description ?? "",
+          });
+
+          this.mutationState.set({
+            data: null,
+            loading: false,
+            error: null,
+          });
+
           this.isSyncing.set(false);
+          this.currentStep.set(4);
+        },
+
+        error: (err) => {
+          this.isSyncing.set(false);
+          this.aiConfidenceScore.set(null);
+          this.aiEvidenceSummary.set("");
 
           this.mutationState.set({
             data: null,
             loading: false,
             error:
-              response?.error || response?.description || 'کامیت مرتبطی برای این تسک پیدا نشد.',
+              err?.message ||
+              err?.error?.error ||
+              err?.error?.debugMessage ||
+              "خطا در دریافت توضیحات از GitLab/AI proxy.",
           });
-
-          return;
-        }
-
-        const durationMinutes = Number(
-          response.suggestedDurationMinutes ?? response.durationMinutes ?? 0,
-        );
-        this.suggestedWorklogDurationMinutes.set(durationMinutes);
-        this.taskForm.patchValue({ adjustment_reason: '' });
-        const now = new Date();
-
-        const fallbackEndHour = String(now.getHours()).padStart(2, '0');
-        const fallbackEndMinute = String(now.getMinutes()).padStart(2, '0');
-        const fallbackEndTimeStr = `${fallbackEndHour}:${fallbackEndMinute}`;
-
-        const fallbackStartTimeObj = new Date(now.getTime() - durationMinutes * 60000);
-        const fallbackStartHour = String(fallbackStartTimeObj.getHours()).padStart(2, '0');
-        const fallbackStartMinute = String(fallbackStartTimeObj.getMinutes()).padStart(2, '0');
-        const fallbackStartTimeStr = `${fallbackStartHour}:${fallbackStartMinute}`;
-
-        const startTimeStr = response.suggestedStartTime || fallbackStartTimeStr;
-        const endTimeStr = response.suggestedEndTime || fallbackEndTimeStr;
-        this.taskForm.patchValue({
-          date: this.taskForm.controls.date.value || this.getTodayJalaliDate(),
-          start_time: startTimeStr,
-          end_time: endTimeStr,
-        });
-        const evidenceNote = [
-          '',
-          '---',
-          `Confidence: ${response.confidenceScore ?? 'N/A'}%`,
-          response.evidence?.commitCount != null
-            ? `Commits: ${response.evidence.commitCount}`
-            : null,
-          response.evidence?.excludedGapMinutes != null
-            ? `Excluded gaps: ${response.evidence.excludedGapMinutes} minutes`
-            : null,
-          response.evidence?.reasoning ? `Reasoning: ${response.evidence.reasoning}` : null,
-        ]
-          .filter(Boolean)
-          .join('\n');
-
-        this.taskForm.patchValue({
-          description: `${response.description ?? ''}${evidenceNote}`,
-        });
-
-        this.mutationState.set({
-          data: null,
-          loading: false,
-          error: null,
-        });
-
-        this.isSyncing.set(false);
-      },
-
-      error: (err) => {
-        console.error('GitLab sync failed:', err);
-
-        this.isSyncing.set(false);
-
-        this.mutationState.set({
-          data: null,
-          loading: false,
-          error:
-            err.error?.error ||
-            err.error?.debugMessage ||
-            'خطا در دریافت توضیحات از GitLab/AI proxy.',
-        });
-      },
-    });
+        },
+      });
   }
   loadJiraTasks(): void {
     this.gitlabSyncService.getAssignedTasks().subscribe({
@@ -849,22 +1345,38 @@ ${adjustmentReason}`
         this.mutationState.set({
           data: null,
           loading: false,
-          error: 'خطا در دریافت تسک‌های انتسابی از integration proxy.',
+          error: "خطا در دریافت تسک‌های انتسابی از integration proxy.",
         });
       },
     });
   }
-  selectJiraTask(task: ExternalTaskSourceItem, event: Event): void {
-    event.preventDefault();
-    event.stopPropagation();
+  selectJiraTaskById(taskId: string): void {
+    const task = this.jiraTasks().find(
+      (item) => String(item.id) === taskId || item.key === taskId,
+    );
+
+    if (!task) {
+      this.selectedJiraTask.set(null);
+      return;
+    }
+
+    this.selectJiraTask(task);
+  }
+
+  selectJiraTask(task: ExternalTaskSourceItem, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
 
     this.selectedJiraTask.set(task);
     this.showJiraDropdown.set(false);
+    this.flowType.set(null);
 
     this.mutationState.set({ data: null, loading: false, error: null });
+    this.aiConfidenceScore.set(null);
+    this.aiEvidenceSummary.set("");
 
     this.taskForm.patchValue({
-      title: `[${task.id}] ${task.title}`,
+      title: `[${task.key ?? task.id}] ${task.title}`,
       project: task.project_id,
     });
 

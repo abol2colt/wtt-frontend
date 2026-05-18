@@ -10,7 +10,11 @@ export class LayoutService {
   public isTasksPage = signal<boolean>(false);
   public isCollapsed = signal<boolean>(false);
   public isMobileSidebarOpen = signal<boolean>(false);
-  public isFilterPanelOpen = signal<boolean>(true);
+  public isFilterPanelOpen = signal<boolean>(false);
+
+  public toggleFilterPanel(): void {
+    this.isFilterPanelOpen.update((isOpen) => !isOpen);
+  }
   public isWelcomeSplashVisible = signal<boolean>(false);
 
   dashboardRange = signal<TaskRange>('month_till_today');
@@ -25,10 +29,6 @@ export class LayoutService {
 
   closeMobileSidebar(): void {
     this.isMobileSidebarOpen.set(false);
-  }
-
-  toggleFilterPanel(): void {
-    this.isFilterPanelOpen.update((isOpen) => !isOpen);
   }
 
   showWelcomeSplashOnce(): void {
