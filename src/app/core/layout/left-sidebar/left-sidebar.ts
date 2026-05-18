@@ -164,10 +164,13 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
       };
     });
   });
-  readonly hasActivePresence = computed(() => {
-    return (this.presenceCountState().data?.no_end ?? 0) > 0;
-  });
 
+  readonly hasActivePresence = computed(() => {
+    const noEndCount = Number(this.presenceCountState().data?.no_end ?? 0);
+    const activePresence = this.activePresenceState().data;
+
+    return noEndCount > 0 && !!activePresence?.id && !!activePresence?.start_time;
+  });
   private timerSub?: Subscription;
 
   ngOnInit(): void {
@@ -381,6 +384,17 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
 
     this.presenceService.getActivePresence().subscribe({
       next: (presence) => {
+        if (!presence?.id || !presence?.start_time) {
+          this.activePresenceState.set({
+            data: null,
+            loading: false,
+            error: null,
+          });
+
+          this.stopPresenceTimer();
+          return;
+        }
+
         this.activePresenceState.set({
           data: presence,
           loading: false,
@@ -396,6 +410,8 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
           loading: false,
           error: 'خطا در دریافت حضور فعال',
         });
+
+        this.stopPresenceTimer();
       },
     });
   }
@@ -404,12 +420,19 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
     const userId = this.authService.getCurrentUserId();
 
     if (!userId) {
-      this.runningTaskState.set({
+      this.presenceCountState.set({
         data: null,
         loading: false,
         error: 'شناسه کاربر پیدا نشد.',
       });
 
+      this.activePresenceState.set({
+        data: null,
+        loading: false,
+        error: null,
+      });
+
+      this.stopPresenceTimer();
       return;
     }
 
