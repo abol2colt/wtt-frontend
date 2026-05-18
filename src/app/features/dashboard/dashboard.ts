@@ -11,11 +11,12 @@ import {
   NewsMessagesCountResponse,
   NewsMessagesResponse,
 } from '../../shared/models/dashboard.model';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [NgxEchartsDirective],
+  imports: [NgxEchartsDirective, RouterLink],
   templateUrl: './dashboard.html',
 })
 export class DashboardComponent implements OnInit {
@@ -72,10 +73,10 @@ export class DashboardComponent implements OnInit {
     this.loadStats();
     this.loadLineChart();
     this.loadPublicNews();
-    this.loadPublicNewsCount();
-    this.loadPublicNews();
+    this.loadPrivateNews();
     this.loadPublicNewsCount();
   }
+
   setDashboardRange(range: TaskRange): void {
     if (this.selectedRange() === range) return;
 
@@ -94,6 +95,18 @@ export class DashboardComponent implements OnInit {
 
   get selectedRangeLabel(): string {
     return this.dashboardRanges.find((item) => item.key === this.selectedRange())?.label ?? 'بازه';
+  }
+
+  get publicAnnouncementsCount(): number {
+    return this.publicNewsState().data?.results?.length ?? 0;
+  }
+
+  get privateAnnouncementsCount(): number {
+    return this.privateNewsState().data?.results?.length ?? 0;
+  }
+
+  get hasAnyAnnouncement(): boolean {
+    return this.publicAnnouncementsCount + this.privateAnnouncementsCount > 0;
   }
 
   loadStats(): void {

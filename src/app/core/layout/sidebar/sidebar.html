@@ -5,18 +5,24 @@
   <div class="sidebar-profile" [class.justify-center]="layout.isCollapsed()">
     <div class="sidebar-profile-info sidebar-collapsible-label">
       <p class="sidebar-profile-name">
-        @if (authService.currentUser()) {
-          {{ authService.currentUser()?.first_name }} {{ authService.currentUser()?.last_name }}
-        } @else {
-          مهدی کریمی
-        }
+        {{ userFullName }}
       </p>
-      <p class="sidebar-profile-role">Developer</p>
+      <p class="sidebar-profile-role">{{ userRoleLabel }}</p>
     </div>
     <div
       class="sidebar-avatar border-0 overflow-hidden bg-gradient-to-br from-slate-200 to-white flex items-center justify-center relative"
     >
-      <span class="text-slate-700 font-bold text-lg">MK</span>
+      @if (userAvatarUrl()) {
+        <img
+          [src]="userAvatarUrl()"
+          [alt]="userFullName"
+          class="h-full w-full object-cover"
+          (error)="onAvatarError()"
+        />
+      } @else {
+        <span class="text-slate-700 font-bold text-lg">{{ userInitials }}</span>
+      }
+
       <span class="sidebar-online-dot"></span>
     </div>
   </div>
@@ -80,7 +86,12 @@
       <span class="sidebar-nav-label sidebar-collapsible-label">وظایف</span>
     </a>
 
-    <a routerLink="/presence" routerLinkActive="active" class="sidebar-nav-item" title="مرخصی">
+    <a
+      routerLink="/presence"
+      routerLinkActive="active"
+      class="sidebar-nav-item"
+      title="ماموریت/مرخصی"
+    >
       <span class="sidebar-nav-icon text-xl flex items-center justify-center w-6 h-6">
         <svg viewBox="0 0 24 24" fill="none">
           <path
@@ -99,7 +110,7 @@
           />
         </svg>
       </span>
-      <span class="sidebar-nav-label sidebar-collapsible-label">مرخصی</span>
+      <span class="sidebar-nav-label sidebar-collapsible-label">ماموریت/مرخصی</span>
     </a>
 
     <a routerLink="/reports" routerLinkActive="active" class="sidebar-nav-item" title="گزارش‌ها">
@@ -116,7 +127,12 @@
 
   <div class="sidebar-bottom">
     <div class="sidebar-bottom-menu">
-      <a class="sidebar-nav-item cursor-pointer" title="تنظیمات">
+      <a
+        routerLink="/settings"
+        routerLinkActive="active"
+        class="sidebar-nav-item cursor-pointer"
+        title="تنظیمات"
+      >
         <span class="sidebar-nav-icon w-5 h-5 flex items-center">
           <svg viewBox="0 0 24 24" fill="none">
             <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5A3.5 3.5 0 0 0 12 15.5Z" stroke="currentColor" />
@@ -166,8 +182,18 @@
         viewBox="0 0 24 24"
         fill="none"
       >
-        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M20 18L14 12L20 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+        <path
+          d="M15 18L9 12L15 6"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M20 18L14 12L20 6"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
       </svg>
     </button>
   </div>

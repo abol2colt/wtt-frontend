@@ -2,6 +2,7 @@ export type UserRole = 'developer' | string;
 
 export interface UserProfile {
   id: number;
+  profile_picture: string | null;
   username: string;
   role: UserRole;
   first_name: string;

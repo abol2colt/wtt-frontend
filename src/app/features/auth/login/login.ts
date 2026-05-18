@@ -39,7 +39,10 @@ export class LoginComponent implements OnInit {
 
     // If the user already has a valid local auth session, do not show the login page again.
     if (this.authService.isAuthenticated()) {
-      this.router.navigate(['/dashboard']);
+      this.authService.fetchProfile().subscribe({
+        next: () => this.router.navigate(['/dashboard']),
+        error: () => this.router.navigate(['/dashboard']),
+      });
     }
   }
 

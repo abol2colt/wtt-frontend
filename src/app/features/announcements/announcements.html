@@ -1,0 +1,129 @@
+<div class="flex flex-col gap-5 pb-6" dir="rtl">
+  <section
+    class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
+  >
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <p class="text-[11px] font-black text-cyan-500">Announcements</p>
+        <h1 class="mt-2 text-2xl font-black text-[var(--text-main)]">مرکز اطلاعیه‌ها</h1>
+        <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
+          اطلاعیه‌های عمومی و شخصی از API فعلی WTT خوانده می‌شوند.
+        </p>
+      </div>
+
+      <a
+        routerLink="/dashboard"
+        class="rounded-2xl bg-white px-4 py-2 text-xs font-black text-[var(--text-soft)] shadow-sm ring-1 ring-slate-200 transition hover:text-[var(--text-main)] dark:bg-slate-950/60 dark:ring-white/10"
+      >
+        برگشت به داشبورد
+      </a>
+    </div>
+  </section>
+
+  <section class="flex flex-wrap gap-2">
+    <button
+      type="button"
+      class="rounded-2xl px-4 py-2 text-xs font-black ring-1 transition"
+      [class.bg-violet-600]="activeTab() === 'public'"
+      [class.text-white]="activeTab() === 'public'"
+      [class.ring-violet-500]="activeTab() === 'public'"
+      [class.bg-white]="activeTab() !== 'public'"
+      [class.text-[var(--text-soft)]]="activeTab() !== 'public'"
+      [class.ring-slate-200]="activeTab() !== 'public'"
+      [class.dark:bg-slate-900]="activeTab() !== 'public'"
+      [class.dark:ring-white/10]="activeTab() !== 'public'"
+      (click)="setTab('public')"
+    >
+      عمومی
+    </button>
+
+    <button
+      type="button"
+      class="rounded-2xl px-4 py-2 text-xs font-black ring-1 transition"
+      [class.bg-violet-600]="activeTab() === 'private'"
+      [class.text-white]="activeTab() === 'private'"
+      [class.ring-violet-500]="activeTab() === 'private'"
+      [class.bg-white]="activeTab() !== 'private'"
+      [class.text-[var(--text-soft)]]="activeTab() !== 'private'"
+      [class.ring-slate-200]="activeTab() !== 'private'"
+      [class.dark:bg-slate-900]="activeTab() !== 'private'"
+      [class.dark:ring-white/10]="activeTab() !== 'private'"
+      (click)="setTab('private')"
+    >
+      شخصی
+    </button>
+  </section>
+
+  <section
+    class="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
+  >
+    <div class="border-b border-slate-200/70 px-5 py-4 dark:border-white/10">
+      <h2 class="text-sm font-black text-[var(--text-main)]">{{ tabTitle }}</h2>
+    </div>
+
+    @if (announcementsState().loading) {
+      <div class="space-y-3 p-5">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="h-16 animate-pulse rounded-2xl bg-slate-100 dark:bg-white/10"></div>
+        }
+      </div>
+    } @else if (announcementsState().error) {
+      <div class="p-8 text-center">
+        <p class="text-sm font-black text-rose-500">{{ announcementsState().error }}</p>
+        <button
+          type="button"
+          class="mt-4 rounded-2xl bg-rose-500 px-4 py-2 text-xs font-black text-white"
+          (click)="loadAnnouncements()"
+        >
+          تلاش مجدد
+        </button>
+      </div>
+    } @else if ((announcementsState().data?.results?.length ?? 0) === 0) {
+      <div class="p-8 text-center">
+        <p class="text-sm font-black text-[var(--text-main)]">اطلاعیه‌ای برای نمایش وجود ندارد</p>
+        <p class="mt-2 text-xs font-bold text-[var(--text-soft)]">
+          در این بخش فعلاً پیام جدیدی ثبت نشده است.
+        </p>
+      </div>
+    } @else {
+      <div class="divide-y divide-slate-100 dark:divide-white/10">
+        @for (message of announcementsState().data?.results ?? []; track message.id) {
+          <article
+            class="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-slate-50/80 dark:hover:bg-white/5"
+          >
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span
+                  class="h-2 w-2 rounded-full"
+                  [class.bg-emerald-500]="message.seen"
+                  [class.bg-violet-500]="!message.seen"
+                ></span>
+                <h3 class="truncate text-sm font-black text-[var(--text-main)]">
+                  {{ message.title }}
+                </h3>
+              </div>
+
+              @if (message.text) {
+                <p class="mt-2 line-clamp-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
+                  {{ message.text }}
+                </p>
+              }
+            </div>
+
+            <span
+              class="shrink-0 rounded-full px-3 py-1 text-[11px] font-black ring-1"
+              [class.bg-emerald-500/10]="message.seen"
+              [class.text-emerald-500]="message.seen"
+              [class.ring-emerald-500/20]="message.seen"
+              [class.bg-violet-500/10]="!message.seen"
+              [class.text-violet-500]="!message.seen"
+              [class.ring-violet-500/20]="!message.seen"
+            >
+              {{ message.seen ? 'دیده‌شده' : 'جدید' }}
+            </span>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</div>

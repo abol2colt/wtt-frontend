@@ -19,6 +19,22 @@ export class LayoutService {
 
   dashboardRange = signal<TaskRange>('month_till_today');
 
+  private readonly leftSidebarCollapsed = signal(false);
+
+  readonly isLeftSidebarCollapsed = this.leftSidebarCollapsed.asReadonly();
+
+  toggleLeftSidebar(): void {
+    this.leftSidebarCollapsed.update((value) => !value);
+  }
+
+  collapseLeftSidebar(): void {
+    this.leftSidebarCollapsed.set(true);
+  }
+
+  expandLeftSidebar(): void {
+    this.leftSidebarCollapsed.set(false);
+  }
+
   toggleSidebar(): void {
     this.isCollapsed.update((isCollapsed) => !isCollapsed);
   }
