@@ -1,6 +1,9 @@
-<aside class="right-sidebar transition-colors duration-300">
-  <div class="sidebar-profile">
-    <div class="sidebar-profile-info">
+<aside
+  class="right-sidebar transition-[width,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+  [ngClass]="layout.isCollapsed() ? 'w-[76px]' : 'w-[260px]'"
+>
+  <div class="sidebar-profile" [class.justify-center]="layout.isCollapsed()">
+    <div class="sidebar-profile-info sidebar-collapsible-label">
       <p class="sidebar-profile-name">
         @if (authService.currentUser()) {
           {{ authService.currentUser()?.first_name }} {{ authService.currentUser()?.last_name }}
@@ -19,7 +22,7 @@
   </div>
 
   <nav class="sidebar-nav">
-    <a routerLink="/dashboard" routerLinkActive="active" class="sidebar-nav-item">
+    <a routerLink="/dashboard" routerLinkActive="active" class="sidebar-nav-item" title="داشبورد">
       <span class="sidebar-nav-icon text-xl flex items-center justify-center w-6 h-6">
         <svg viewBox="0 0 24 24" fill="none">
           <path
@@ -52,10 +55,10 @@
           />
         </svg>
       </span>
-      <span class="sidebar-nav-label">داشبورد</span>
+      <span class="sidebar-nav-label sidebar-collapsible-label">داشبورد</span>
     </a>
 
-    <a routerLink="/tasks" routerLinkActive="active" class="sidebar-nav-item">
+    <a routerLink="/tasks" routerLinkActive="active" class="sidebar-nav-item" title="وظایف">
       <span class="sidebar-nav-icon text-xl flex items-center justify-center w-6 h-6">
         <svg viewBox="0 0 24 24" fill="none">
           <path
@@ -74,10 +77,10 @@
           />
         </svg>
       </span>
-      <span class="sidebar-nav-label">وظایف</span>
+      <span class="sidebar-nav-label sidebar-collapsible-label">وظایف</span>
     </a>
 
-    <a routerLink="/presence" routerLinkActive="active" class="sidebar-nav-item">
+    <a routerLink="/presence" routerLinkActive="active" class="sidebar-nav-item" title="مرخصی">
       <span class="sidebar-nav-icon text-xl flex items-center justify-center w-6 h-6">
         <svg viewBox="0 0 24 24" fill="none">
           <path
@@ -96,10 +99,10 @@
           />
         </svg>
       </span>
-      <span class="sidebar-nav-label">مرخصی</span>
+      <span class="sidebar-nav-label sidebar-collapsible-label">مرخصی</span>
     </a>
 
-    <a routerLink="/reports" routerLinkActive="active" class="sidebar-nav-item">
+    <a routerLink="/reports" routerLinkActive="active" class="sidebar-nav-item" title="گزارش‌ها">
       <span class="sidebar-nav-icon text-xl flex items-center justify-center w-6 h-6">
         <svg viewBox="0 0 24 24" fill="none">
           <path d="M18 20V10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
@@ -107,13 +110,13 @@
           <path d="M6 20V14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
         </svg>
       </span>
-      <span class="sidebar-nav-label">گزارش‌ها</span>
+      <span class="sidebar-nav-label sidebar-collapsible-label">گزارش‌ها</span>
     </a>
   </nav>
 
   <div class="sidebar-bottom">
     <div class="sidebar-bottom-menu">
-      <a class="sidebar-nav-item cursor-pointer">
+      <a class="sidebar-nav-item cursor-pointer" title="تنظیمات">
         <span class="sidebar-nav-icon w-5 h-5 flex items-center">
           <svg viewBox="0 0 24 24" fill="none">
             <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5A3.5 3.5 0 0 0 12 15.5Z" stroke="currentColor" />
@@ -125,9 +128,9 @@
             />
           </svg>
         </span>
-        <span class="sidebar-nav-label">تنظیمات</span>
+        <span class="sidebar-nav-label sidebar-collapsible-label">تنظیمات</span>
       </a>
-      <a class="sidebar-nav-item cursor-pointer">
+      <button type="button" class="sidebar-nav-item cursor-pointer" title="خروج" (click)="logout()">
         <span class="sidebar-nav-icon w-5 h-5 flex items-center text-red-400 dark:text-red-500">
           <svg viewBox="0 0 24 24" fill="none">
             <path
@@ -144,34 +147,27 @@
             <path d="M21 12H9" stroke="currentColor" stroke-linecap="round" />
           </svg>
         </span>
-        <button
-          type="button"
-          (click)="logout()"
-          class="sidebar-nav-label text-red-400 dark:text-red-500"
-        >
+        <span class="sidebar-nav-label sidebar-collapsible-label text-red-400 dark:text-red-500">
           خروج
-        </button>
-      </a>
+        </span>
+      </button>
     </div>
 
     <button
       class="sidebar-collapse text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
       type="button"
-      title="جمع کردن"
+      [attr.title]="layout.isCollapsed() ? 'باز کردن' : 'جمع کردن'"
+      [attr.aria-label]="layout.isCollapsed() ? 'باز کردن منوی اصلی' : 'جمع کردن منوی اصلی'"
+      (click)="layout.toggleSidebar()"
     >
-      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M15 18L9 12L15 6"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-        <path
-          d="M20 18L14 12L20 6"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
+      <svg
+        class="w-5 h-5 transition-transform duration-300"
+        [class.rotate-180]="layout.isCollapsed()"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M20 18L14 12L20 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
     </button>
   </div>

@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
+import { LayoutService } from '../layout/layout.service';
 
 export interface LoginRequest {
   username: string;
@@ -41,22 +42,25 @@ export interface UserProfile {
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly layout = inject(LayoutService);
   private readonly apiBaseUrl = environment.apiBaseUrl;
 
   private readonly tokenStorageKey = 'wtt_auth_token';
   private readonly userIdStorageKey = 'wtt_user_id';
 
   // Keep auth state in signals so components can react to login/logout changes.
-  readonly token = signal<string | null>(sessionStorage.getItem(this.tokenStorageKey));
+  readonly token = signal<string | null>(
+    sessionStorage.getItem(this.tokenStorageKey) ?? localStorage.getItem(this.tokenStorageKey),
+  );
   readonly currentUser = signal<UserProfile | null>(null);
 
   // Authenticated state should depend on token existence, not on route or UI state.
   readonly isAuthenticated = computed(() => Boolean(this.token()));
 
-  login(credentials: LoginRequest) {
+  login(credentials: LoginRequest, rememberMe = false) {
     return this.http.post<LoginResponse>(`${this.apiBaseUrl}/login/`, credentials).pipe(
       tap((response) => {
-        this.setSession(response);
+        this.setSession(response, rememberMe);
       }),
     );
   }
@@ -65,9 +69,12 @@ export class AuthService {
     // Clear all auth-related runtime and session state.
     sessionStorage.removeItem(this.tokenStorageKey);
     sessionStorage.removeItem(this.userIdStorageKey);
+    localStorage.removeItem(this.tokenStorageKey);
+    localStorage.removeItem(this.userIdStorageKey);
 
     this.token.set(null);
     this.currentUser.set(null);
+    this.layout.resetWelcomeSplash();
   }
 
   fetchProfile() {
@@ -81,7 +88,8 @@ export class AuthService {
   }
 
   getCurrentUserId(): number | null {
-    const storedUserId = sessionStorage.getItem(this.userIdStorageKey);
+    const storedUserId =
+      sessionStorage.getItem(this.userIdStorageKey) ?? localStorage.getItem(this.userIdStorageKey);
 
     if (!storedUserId) {
       return null;
@@ -103,10 +111,16 @@ export class AuthService {
     return `Token ${currentToken}`;
   }
 
-  private setSession(response: LoginResponse): void {
+  private setSession(response: LoginResponse, rememberMe: boolean): void {
     // Never hardcode real tokens in source code. Store them only at runtime.
-    sessionStorage.setItem(this.tokenStorageKey, response.token);
-    sessionStorage.setItem(this.userIdStorageKey, String(response.user_id));
+    const persistentStorage = rememberMe ? localStorage : sessionStorage;
+    const volatileStorage = rememberMe ? sessionStorage : localStorage;
+
+    volatileStorage.removeItem(this.tokenStorageKey);
+    volatileStorage.removeItem(this.userIdStorageKey);
+
+    persistentStorage.setItem(this.tokenStorageKey, response.token);
+    persistentStorage.setItem(this.userIdStorageKey, String(response.user_id));
 
     this.token.set(response.token);
 
