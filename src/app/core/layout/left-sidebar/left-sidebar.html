@@ -1,4 +1,7 @@
-<aside class="left-sidebar transition-colors duration-300">
+<aside
+  class="left-sidebar transition-all duration-300"
+  [class.left-sidebar-collapsed]="layout.isLeftSidebarCollapsed()"
+>
   <div class="left-logo-area">
     <div>
       <h1 class="left-logo-title">WTT</h1>
@@ -7,8 +10,27 @@
         HUB EDITION 2.5
       </p>
     </div>
-    <button class="left-menu-dots" type="button" aria-label="menu">
-      <span></span>
+    <button
+      class="left-menu-dots left-collapse-arrow"
+      type="button"
+      [attr.aria-label]="layout.isLeftSidebarCollapsed() ? 'باز کردن پنل چپ' : 'بستن پنل چپ'"
+      [attr.title]="layout.isLeftSidebarCollapsed() ? 'باز کردن' : 'بستن'"
+      (click)="layout.toggleLeftSidebar()"
+    >
+      <svg
+        class="h-5 w-5 transition-transform duration-300"
+        [class.rotate-180]="layout.isLeftSidebarCollapsed()"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <path
+          d="M9 6L15 12L9 18"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
     </button>
   </div>
 

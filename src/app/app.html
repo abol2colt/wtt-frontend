@@ -5,6 +5,7 @@
     class="dashboard-shell transition-colors duration-300"
     [ngClass]="{
       'shell-sidebar-collapsed': layout.isCollapsed(),
+      'shell-left-sidebar-collapsed': layout.isLeftSidebarCollapsed(),
       'shell-mobile-sidebar-open': layout.isMobileSidebarOpen(),
     }"
   >

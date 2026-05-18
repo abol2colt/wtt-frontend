@@ -1,0 +1,94 @@
+<div class="flex flex-col gap-5 pb-6" dir="rtl">
+  <section
+    class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
+  >
+    <p class="text-[11px] font-black text-cyan-500">Settings</p>
+    <h1 class="mt-2 text-2xl font-black text-[var(--text-main)]">تنظیمات</h1>
+    <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
+      تنظیمات سبک و demo-safe برای ظاهر، ترجیحات AI و امنیت دمو.
+    </p>
+  </section>
+
+  <section class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+    <article
+      class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
+    >
+      <h2 class="text-sm font-black text-[var(--text-main)]">ظاهر محصول</h2>
+      <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
+        ظاهر برنامه با shell جدید هماهنگ شده و از سطح‌های slate، ring و shadow سبک استفاده می‌کند.
+      </p>
+      <div
+        class="mt-4 rounded-2xl bg-slate-50 p-4 text-xs font-black text-[var(--text-main)] dark:bg-white/5"
+      >
+        Light / Dark mode از ThemeService کنترل می‌شود.
+      </div>
+    </article>
+
+    <article
+      class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10 xl:col-span-2"
+    >
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 class="text-sm font-black text-[var(--text-main)]">ترجیحات گزارش AI</h2>
+          <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
+            این تنظیمات فعلاً محلی و نمایشی هستند و روی سرور ذخیره نمی‌شوند.
+          </p>
+        </div>
+        <span
+          class="rounded-full bg-amber-500/10 px-3 py-1 text-[11px] font-black text-amber-500 ring-1 ring-amber-500/20"
+        >
+          local demo state
+        </span>
+      </div>
+
+      <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <label class="flex flex-col gap-2">
+          <span class="text-xs font-black text-[var(--text-soft)]">لحن گزارش</span>
+          <select
+            class="rounded-2xl bg-white px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-slate-950/70 dark:ring-white/10"
+            [value]="reportTone()"
+            (change)="setTone($any($event.target).value)"
+          >
+            <option value="formal">رسمی</option>
+            <option value="technical">فنی</option>
+            <option value="managerial">مدیریتی</option>
+          </select>
+        </label>
+
+        <label class="flex flex-col gap-2">
+          <span class="text-xs font-black text-[var(--text-soft)]">سطح جزئیات</span>
+          <select
+            class="rounded-2xl bg-white px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-slate-950/70 dark:ring-white/10"
+            [value]="detailLevel()"
+            (change)="setDetailLevel($any($event.target).value)"
+          >
+            <option value="short">خلاصه</option>
+            <option value="balanced">متعادل</option>
+            <option value="detailed">کامل</option>
+          </select>
+        </label>
+      </div>
+    </article>
+  </section>
+
+  <section
+    class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
+  >
+    <h2 class="text-sm font-black text-[var(--text-main)]">وضعیت امنیت دمو</h2>
+    <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+      <div class="rounded-2xl bg-emerald-500/10 p-4 ring-1 ring-emerald-500/20">
+        <p class="text-xs font-black text-emerald-500">Task mutation</p>
+        <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+          enableRealTaskMutation = {{ enableRealTaskMutation }}
+        </p>
+      </div>
+
+      <div class="rounded-2xl bg-emerald-500/10 p-4 ring-1 ring-emerald-500/20">
+        <p class="text-xs font-black text-emerald-500">Presence mutation</p>
+        <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+          enableRealPresenceMutation = {{ enableRealPresenceMutation }}
+        </p>
+      </div>
+    </div>
+  </section>
+</div>

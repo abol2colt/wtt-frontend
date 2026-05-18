@@ -155,7 +155,10 @@
   </section>
 
   <section class="announcements-grid">
-    <article class="announcement-card">
+    <article
+      class="announcement-card cursor-pointer transition hover:-translate-y-0.5"
+      routerLink="/announcements"
+    >
       <div class="announcement-card-header">
         <h3 class="announcement-card-title">اطلاعیه‌های عمومی</h3>
         <svg class="announcement-card-icon" viewBox="0 0 24 24" fill="none">
@@ -193,7 +196,10 @@
       }
     </article>
 
-    <article class="announcement-card">
+    <article
+      class="announcement-card cursor-pointer transition hover:-translate-y-0.5"
+      routerLink="/announcements"
+    >
       <div class="announcement-card-header">
         <h3 class="announcement-card-title">اطلاعیه‌های شخصی</h3>
         <svg class="announcement-card-icon purple" viewBox="0 0 24 24" fill="none">
@@ -237,56 +243,5 @@
         }
       </div>
     </article>
-  </section>
-
-  <section class="recent-activities-card">
-    <div class="recent-activities-header">
-      <h3 class="recent-activities-title">فعالیت‌های اخیر</h3>
-      <svg class="recent-activities-icon" viewBox="0 0 24 24" fill="none">
-        <path
-          d="M3 12H7L9.5 6L14 18L16.5 12H21"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </div>
-    <div class="recent-activities-list">
-      <div class="activity-row">
-        <span class="activity-badge task">تسک</span>
-        <span class="activity-text">تسک جدید ثبت شد: رفع مشکل وضعیت اسکرول [IDEAL-9011]</span>
-        <span class="activity-dot" style="background: var(--green)"></span>
-        <span class="activity-time">10:45</span>
-      </div>
-
-      <div class="activity-row">
-        <span class="activity-badge meeting">جلسه مرتبط</span>
-        <span class="activity-text">جلسه روزانه تیم توسعه</span>
-        <span class="activity-dot" style="background: var(--blue)"></span>
-        <span class="activity-time">10:30</span>
-      </div>
-
-      <div class="activity-row">
-        <span class="activity-badge task">تسک</span>
-        <span class="activity-text">تسک به‌روزرسانی شد: بهبود عملکرد API [NEO-234]</span>
-        <span class="activity-dot" style="background: var(--purple)"></span>
-        <span class="activity-time">09:15</span>
-      </div>
-
-      <div class="activity-row">
-        <span class="activity-badge report">گزارش‌ها</span>
-        <span class="activity-text">ارسال گزارش روزانه تیم‌ها</span>
-        <span class="activity-dot" style="background: var(--orange)"></span>
-        <span class="activity-time">18:20 دی‌روز</span>
-      </div>
-
-      <div class="activity-row">
-        <span class="activity-badge task">تسک</span>
-        <span class="activity-text">تسک جدید ثبت شد: طراحی داشبورد و ویجت‌های اطلاعاتی</span>
-        <span class="activity-dot" style="background: var(--blue)"></span>
-        <span class="activity-time">17:10 دی‌روز</span>
-      </div>
-    </div>
   </section>
 </div>
