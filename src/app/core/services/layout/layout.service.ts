@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { TaskRange } from '../../../shared/models/task.model';
-
+import { RequestRange } from '../../../shared/models/presence.model';
 @Injectable({
   providedIn: 'root',
 })
@@ -18,6 +18,35 @@ export class LayoutService {
   public isWelcomeSplashVisible = signal<boolean>(false);
 
   dashboardRange = signal<TaskRange>('month_till_today');
+  public isPresencePage = signal<boolean>(false);
+
+  public presenceRange = signal<RequestRange>('month_till_today');
+
+  public presenceRequestTab = signal<'all' | 'leave' | 'mission'>('all');
+
+  public presenceStatus = signal<'all' | 'approved' | 'pending' | 'rejected'>('all');
+
+  setPresenceRange(range: RequestRange): void {
+    this.presenceRange.set(range);
+  }
+
+  setPresenceRequestTab(tab: 'all' | 'leave' | 'mission'): void {
+    this.presenceRequestTab.set(tab);
+  }
+
+  setPresenceStatus(status: 'all' | 'approved' | 'pending' | 'rejected'): void {
+    this.presenceStatus.set(status);
+  }
+
+  applyPresenceFilters(): void {
+    // فیلترها فعلاً reactive هستند.
+  }
+
+  resetPresenceFilters(): void {
+    this.presenceRange.set('month_till_today');
+    this.presenceRequestTab.set('all');
+    this.presenceStatus.set('all');
+  }
 
   private readonly leftSidebarCollapsed = signal(false);
 
