@@ -3,6 +3,7 @@ import { forkJoin } from 'rxjs';
 import { LayoutService } from '../../core/services/layout/layout.service';
 import {
   MissionRequest,
+  ProjectDetailsResponse,
   RequestRange,
   RequestsCountResponse,
   VacationCreatePayload,
@@ -79,6 +80,10 @@ export class PresenceComponent implements OnInit, OnDestroy {
   createRequestError = signal<string | null>(null);
   createRequestSuccess = signal<string | null>(null);
 
+  projects = signal<{ id: number; title: string; description?: string }[]>([]);
+  projectDetails = signal<ProjectDetailsResponse | null>(null);
+  projectDetailsLoading = signal(false);
+
   vacationForm = signal<VacationCreateForm>({
     vacation_type: '',
     start_date: '',
@@ -127,6 +132,7 @@ export class PresenceComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadVacationTypes();
+    this.loadMissionProjects();
   }
 
   ngOnDestroy(): void {
@@ -391,7 +397,7 @@ export class PresenceComponent implements OnInit, OnDestroy {
 
   submitMissionRequest(): void {
     this.createRequestError.set(
-      'برای ثبت واقعی ماموریت، Request Payload مربوط به POST /api/v1/mission/ هنوز لازم است.',
+      'ثبت واقعی ماموریت فعلاً غیرفعال است. فرم و dropdownها آماده‌اند، اما تا زمان تأیید payload رسمی POST /api/v1/mission/ هیچ mutation واقعی ارسال نمی‌شود.',
     );
   }
 
@@ -415,6 +421,41 @@ export class PresenceComponent implements OnInit, OnDestroy {
       case 'rejected':
         return 'bg-rose-500/10 text-rose-500 ring-rose-500/20';
     }
+  }
+
+  loadMissionProjects(): void {
+    this.presenceService.getProjects().subscribe({
+      next: (projects) => this.projects.set(projects),
+      error: () => this.projects.set([]),
+    });
+  }
+
+  onMissionProjectChange(projectId: string): void {
+    this.updateMissionForm({
+      project: projectId,
+      service_type: '',
+      customer: '',
+    });
+
+    const id = Number(projectId);
+
+    if (!id) {
+      this.projectDetails.set(null);
+      return;
+    }
+
+    this.projectDetailsLoading.set(true);
+
+    this.presenceService.getProjectDetails(id).subscribe({
+      next: (details) => {
+        this.projectDetails.set(details);
+        this.projectDetailsLoading.set(false);
+      },
+      error: () => {
+        this.projectDetails.set(null);
+        this.projectDetailsLoading.set(false);
+      },
+    });
   }
 
   private resetVacationForm(): void {
@@ -448,7 +489,8 @@ export class PresenceComponent implements OnInit, OnDestroy {
       type: 'mission',
       title: item.title || item.description || 'ماموریت',
       date: this.formatDateRange(item.start_date || item.date, item.end_date),
-      duration: item.type === 'single' ? 'ماموریت روزانه' : item.end_date ? 'بازه ماموریت' : 'ماموریت',
+      duration:
+        item.type === 'single' ? 'ماموریت روزانه' : item.end_date ? 'بازه ماموریت' : 'ماموریت',
       status: this.mapStatus(item.status),
       approver: item.verified_by
         ? `${item.verified_by.first_name?.charAt(0) ?? ''}${item.verified_by.last_name?.charAt(0) ?? ''}`

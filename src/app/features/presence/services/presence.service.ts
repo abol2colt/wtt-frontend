@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { throwError } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 import {
   ActivePresenceResponse,
@@ -18,6 +19,12 @@ import {
   VacationType,
 } from '../../../shared/models/presence.model';
 
+interface WttProjectsResponse {
+  my_projects?: { id: number; title: string; description?: string }[];
+  all_projects?: { id: number; title: string; description?: string }[];
+  all_active_projects?: { id: number; title: string; description?: string }[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -31,6 +38,18 @@ export class PresenceService {
     return this.http.get<PresenceCountResponse>(`${this.apiBaseUrl}/presence/presence_count/`, {
       params,
     });
+  }
+
+  getProjects() {
+    return this.http
+      .get<WttProjectsResponse>(`${this.apiBaseUrl}/project/get_all_projects/`)
+      .pipe(
+        map((response) =>
+          response.all_active_projects?.length
+            ? response.all_active_projects
+            : (response.all_projects ?? response.my_projects ?? []),
+        ),
+      );
   }
 
   getActivePresence() {
