@@ -2,93 +2,339 @@
   <section
     class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
   >
-    <p class="text-[11px] font-black text-cyan-500">Settings</p>
-    <h1 class="mt-2 text-2xl font-black text-[var(--text-main)]">تنظیمات</h1>
-    <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
-      تنظیمات سبک و demo-safe برای ظاهر، ترجیحات AI و امنیت دمو.
-    </p>
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div>
+        <p class="text-[11px] font-black text-cyan-500">Settings Center</p>
+        <h1 class="mt-2 text-2xl font-black text-[var(--text-main)]">مرکز تنظیمات</h1>
+        <p class="mt-2 max-w-3xl text-xs font-bold leading-6 text-[var(--text-soft)]">
+          تنظیمات امن و محلی برای پروفایل، ترجیحات AI، ظاهر محصول، اتصال‌های نمایشی و وضعیت محافظت
+          دمو.
+        </p>
+      </div>
+
+      <span
+        class="w-fit rounded-full bg-amber-500/10 px-3 py-1 text-[11px] font-black text-amber-600 ring-1 ring-amber-500/20 dark:text-amber-300"
+      >
+        demo-safe local preferences
+      </span>
+    </div>
   </section>
 
-  <section class="grid grid-cols-1 gap-4 xl:grid-cols-3">
-    <article
-      class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
-    >
-      <h2 class="text-sm font-black text-[var(--text-main)]">ظاهر محصول</h2>
-      <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
-        ظاهر برنامه با shell جدید هماهنگ شده و از سطح‌های slate، ring و shadow سبک استفاده می‌کند.
-      </p>
-      <div
-        class="mt-4 rounded-2xl bg-slate-50 p-4 text-xs font-black text-[var(--text-main)] dark:bg-white/5"
-      >
-        Light / Dark mode از ThemeService کنترل می‌شود.
-      </div>
-    </article>
+  <section
+    class="rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
+    aria-label="Settings sections"
+  >
+    <div class="flex flex-wrap gap-2">
+      @for (tab of tabs; track tab.id) {
+        <button type="button" [class]="tabButtonClass(tab.id)" (click)="setActiveTab(tab.id)">
+          <span class="flex flex-col gap-1">
+            <span class="text-xs font-black">{{ tab.eyebrow }}</span>
+            <span class="text-[10px] font-extrabold opacity-70">{{ tab.label }}</span>
+          </span>
+          @if (activeTab() === tab.id) {
+            <span class="size-2 rounded-full bg-current"></span>
+          }
+        </button>
+      }
+    </div>
+  </section>
 
-    <article
-      class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10 xl:col-span-2"
+  @if (activeTab() === 'profile') {
+    <section class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <article
+        class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
+      >
+        <p class="text-[11px] font-black text-cyan-500">Profile</p>
+        <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">پروفایل کاربر</h2>
+        <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
+          این بخش فقط نمایشی است و هیچ تغییری روی حساب کاربری یا سرور اعمال نمی‌کند.
+        </p>
+      </article>
+
+      <article
+        class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10 xl:col-span-2"
+      >
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+            <p class="text-[11px] font-black text-[var(--text-soft)]">Workspace</p>
+            <p class="mt-2 text-sm font-black text-[var(--text-main)]">WTT Frontend Demo</p>
+          </div>
+          <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+            <p class="text-[11px] font-black text-[var(--text-soft)]">Preference storage</p>
+            <p class="mt-2 text-sm font-black text-[var(--text-main)]">localStorage</p>
+          </div>
+          <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+            <p class="text-[11px] font-black text-[var(--text-soft)]">Secrets</p>
+            <p class="mt-2 text-sm font-black text-emerald-600 dark:text-emerald-300">
+              ذخیره نمی‌شود
+            </p>
+          </div>
+        </div>
+      </article>
+    </section>
+  }
+
+  @if (activeTab() === 'ai') {
+    <section
+      class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
     >
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 class="text-sm font-black text-[var(--text-main)]">ترجیحات گزارش AI</h2>
+          <p class="text-[11px] font-black text-cyan-500">AI Preferences</p>
+          <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">ترجیحات گزارش AI</h2>
           <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
-            این تنظیمات فعلاً محلی و نمایشی هستند و روی سرور ذخیره نمی‌شوند.
+            فقط ترجیحات غیرمحرمانه ذخیره می‌شوند و هیچ درخواستی به backend ارسال نمی‌شود.
           </p>
         </div>
         <span
-          class="rounded-full bg-amber-500/10 px-3 py-1 text-[11px] font-black text-amber-500 ring-1 ring-amber-500/20"
+          class="rounded-full bg-cyan-500/10 px-3 py-1 text-[11px] font-black text-cyan-600 ring-1 ring-cyan-500/20 dark:text-cyan-300"
         >
-          local demo state
+          {{ preferencesService.preferences().reportLanguage }}
         </span>
       </div>
 
-      <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
-        <label class="flex flex-col gap-2">
-          <span class="text-xs font-black text-[var(--text-soft)]">لحن گزارش</span>
-          <select
-            class="rounded-2xl bg-white px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-slate-950/70 dark:ring-white/10"
-            [value]="reportTone()"
-            (change)="setTone($any($event.target).value)"
-          >
-            <option value="formal">رسمی</option>
-            <option value="technical">فنی</option>
-            <option value="managerial">مدیریتی</option>
-          </select>
-        </label>
+      <div class="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <div class="xl:col-span-3">
+          <p class="mb-3 text-xs font-black text-[var(--text-soft)]">لحن گزارش</p>
+          <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+            @for (option of aiToneOptions; track option.value) {
+              <button
+                type="button"
+                [class]="
+                  optionButtonClass(preferencesService.preferences().aiTone === option.value)
+                "
+                (click)="setAiTone(option.value)"
+              >
+                <span class="block text-sm">{{ option.label }}</span>
+                <span class="mt-2 block text-[11px] leading-5 opacity-70">{{
+                  option.description
+                }}</span>
+              </button>
+            }
+          </div>
+        </div>
 
         <label class="flex flex-col gap-2">
           <span class="text-xs font-black text-[var(--text-soft)]">سطح جزئیات</span>
           <select
             class="rounded-2xl bg-white px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-slate-950/70 dark:ring-white/10"
-            [value]="detailLevel()"
-            (change)="setDetailLevel($any($event.target).value)"
+            [value]="preferencesService.preferences().aiDetailLevel"
+            (change)="setAiDetailLevel($any($event.target).value)"
           >
-            <option value="short">خلاصه</option>
-            <option value="balanced">متعادل</option>
-            <option value="detailed">کامل</option>
+            @for (option of detailLevelOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
           </select>
         </label>
-      </div>
-    </article>
-  </section>
 
-  <section
-    class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
-  >
-    <h2 class="text-sm font-black text-[var(--text-main)]">وضعیت امنیت دمو</h2>
-    <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-      <div class="rounded-2xl bg-emerald-500/10 p-4 ring-1 ring-emerald-500/20">
-        <p class="text-xs font-black text-emerald-500">Task mutation</p>
-        <p class="mt-2 text-sm font-black text-[var(--text-main)]">
-          enableRealTaskMutation = {{ enableRealTaskMutation }}
-        </p>
+        <label class="flex flex-col gap-2">
+          <span class="text-xs font-black text-[var(--text-soft)]">زبان گزارش</span>
+          <select
+            class="rounded-2xl bg-white px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-slate-950/70 dark:ring-white/10"
+            [value]="preferencesService.preferences().reportLanguage"
+            (change)="setReportLanguage($any($event.target).value)"
+          >
+            @for (option of reportLanguageOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </label>
+
+        <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+          <p class="text-xs font-black text-[var(--text-soft)]">وضعیت ذخیره‌سازی</p>
+          <p class="mt-2 text-sm font-black text-[var(--text-main)]">ترجیحات محلی و غیرمحرمانه</p>
+        </div>
+      </div>
+    </section>
+  }
+
+  @if (activeTab() === 'ui') {
+    <section
+      class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
+    >
+      <p class="text-[11px] font-black text-cyan-500">UI Personalization</p>
+      <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">شخصی‌سازی رابط کاربری</h2>
+
+      <div class="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
+        <div class="xl:col-span-3">
+          <p class="mb-3 text-xs font-black text-[var(--text-soft)]">رنگ تاکیدی</p>
+          <div class="grid grid-cols-2 gap-3 md:grid-cols-5">
+            @for (option of accentOptions; track option.value) {
+              <button
+                type="button"
+                [class]="
+                  optionButtonClass(preferencesService.preferences().uiAccent === option.value)
+                "
+                (click)="setUiAccent(option.value)"
+              >
+                <span class="flex items-center gap-2">
+                  <span [class]="'size-3 rounded-full ' + option.className"></span>
+                  <span>{{ option.label }}</span>
+                </span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <label class="flex flex-col gap-2">
+          <span class="text-xs font-black text-[var(--text-soft)]">سطح انیمیشن</span>
+          <select
+            class="rounded-2xl bg-white px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-slate-950/70 dark:ring-white/10"
+            [value]="preferencesService.preferences().animationLevel"
+            (change)="setAnimationLevel($any($event.target).value)"
+          >
+            @for (option of animationLevelOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="flex flex-col gap-2">
+          <span class="text-xs font-black text-[var(--text-soft)]">تراکم داشبورد</span>
+          <select
+            class="rounded-2xl bg-white px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-slate-950/70 dark:ring-white/10"
+            [value]="preferencesService.preferences().dashboardDensity"
+            (change)="setDashboardDensity($any($event.target).value)"
+          >
+            @for (option of dashboardDensityOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </label>
+
+        <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+          <p class="text-xs font-black text-[var(--text-soft)]">Dark mode</p>
+          <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+            از ThemeService اصلی برنامه کنترل می‌شود.
+          </p>
+        </div>
+      </div>
+    </section>
+  }
+
+  @if (activeTab() === 'integrations') {
+    <section class="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <article
+        class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
+      >
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-[11px] font-black text-cyan-500">Jira</p>
+            <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">اتصال Jira</h2>
+          </div>
+          <span
+            class="rounded-full bg-slate-500/10 px-3 py-1 text-[11px] font-black text-[var(--text-soft)] ring-1 ring-slate-500/20"
+          >
+            demo inactive
+          </span>
+        </div>
+
+        <div class="mt-5 flex flex-col gap-4">
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-black text-[var(--text-soft)]">Jira Base URL</span>
+            <input
+              class="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-black text-[var(--text-soft)] ring-1 ring-slate-200 outline-none disabled:cursor-not-allowed dark:bg-white/5 dark:ring-white/10"
+              type="text"
+              [value]="jiraBaseUrlLabel"
+              disabled
+            />
+          </label>
+          <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+            <p class="text-xs font-black text-[var(--text-soft)]">Jira connection status</p>
+            <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+              غیرفعال در دمو امن؛ وضعیت واقعی از مرورگر تست نمی‌شود.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="rounded-2xl bg-slate-100 px-4 py-3 text-xs font-black text-[var(--text-muted)] ring-1 ring-slate-200 disabled:cursor-not-allowed dark:bg-white/5 dark:ring-white/10"
+            [title]="disabledConnectionTooltip"
+            disabled
+          >
+            Test Connection
+          </button>
+        </div>
+      </article>
+
+      <article
+        class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
+      >
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-[11px] font-black text-cyan-500">GitLab</p>
+            <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">اتصال GitLab</h2>
+          </div>
+          <span
+            class="rounded-full bg-slate-500/10 px-3 py-1 text-[11px] font-black text-[var(--text-soft)] ring-1 ring-slate-500/20"
+          >
+            demo inactive
+          </span>
+        </div>
+
+        <div class="mt-5 flex flex-col gap-4">
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-black text-[var(--text-soft)]">GitLab Base URL</span>
+            <input
+              class="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-black text-[var(--text-soft)] ring-1 ring-slate-200 outline-none disabled:cursor-not-allowed dark:bg-white/5 dark:ring-white/10"
+              type="text"
+              [value]="gitlabBaseUrlLabel"
+              disabled
+            />
+          </label>
+          <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+            <p class="text-xs font-black text-[var(--text-soft)]">GitLab connection status</p>
+            <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+              غیرفعال در دمو امن؛ هیچ secret در مرورگر ذخیره نمی‌شود.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="rounded-2xl bg-slate-100 px-4 py-3 text-xs font-black text-[var(--text-muted)] ring-1 ring-slate-200 disabled:cursor-not-allowed dark:bg-white/5 dark:ring-white/10"
+            [title]="disabledConnectionTooltip"
+            disabled
+          >
+            Test Connection
+          </button>
+        </div>
+      </article>
+    </section>
+  }
+
+  @if (activeTab() === 'security') {
+    <section
+      class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
+    >
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p class="text-[11px] font-black text-cyan-500">Security</p>
+          <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">وضعیت امنیت دمو</h2>
+          <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
+            این صفحه فقط ترجیحات غیرمحرمانه را ذخیره می‌کند و توکن‌های Jira/GitLab را دریافت یا
+            نگهداری نمی‌کند.
+          </p>
+        </div>
+        <span
+          class="rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-black text-emerald-600 ring-1 ring-emerald-500/20 dark:text-emerald-300"
+        >
+          no frontend secrets
+        </span>
       </div>
 
-      <div class="rounded-2xl bg-emerald-500/10 p-4 ring-1 ring-emerald-500/20">
-        <p class="text-xs font-black text-emerald-500">Presence mutation</p>
-        <p class="mt-2 text-sm font-black text-[var(--text-main)]">
-          enableRealPresenceMutation = {{ enableRealPresenceMutation }}
-        </p>
+      <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div class="rounded-2xl bg-emerald-500/10 p-4 ring-1 ring-emerald-500/20">
+          <p class="text-xs font-black text-emerald-600 dark:text-emerald-300">Task mutation</p>
+          <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+            enableRealTaskMutation = {{ enableRealTaskMutation }}
+          </p>
+        </div>
+
+        <div class="rounded-2xl bg-emerald-500/10 p-4 ring-1 ring-emerald-500/20">
+          <p class="text-xs font-black text-emerald-600 dark:text-emerald-300">Presence mutation</p>
+          <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+            enableRealPresenceMutation = {{ enableRealPresenceMutation }}
+          </p>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  }
 </div>
