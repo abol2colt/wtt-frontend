@@ -1,14 +1,17 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../services/auth/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
 
-  // Login request must not include Authorization because we do not have a token yet.
   const isLoginRequest = req.url.includes('/login/');
-  const isSmartProxyRequest = req.url.startsWith('http://localhost:3000/api');
-  if (isLoginRequest || isSmartProxyRequest) {
+  const isIntegrationProxyRequest =
+    Boolean(environment.integrationProxyBaseUrl) &&
+    req.url.startsWith(environment.integrationProxyBaseUrl);
+
+  if (isLoginRequest || isIntegrationProxyRequest) {
     return next(req);
   }
 
@@ -18,12 +21,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req);
   }
 
-  // Attach the current WTT auth token to every protected API request.
-  const authenticatedRequest = req.clone({
-    setHeaders: {
-      Authorization: authHeaderValue,
-    },
-  });
-
-  return next(authenticatedRequest);
+  return next(
+    req.clone({
+      setHeaders: {
+        Authorization: authHeaderValue,
+      },
+    }),
+  );
 };

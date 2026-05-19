@@ -1,23 +1,24 @@
-import { Component, signal } from '@angular/core';
-
-type ReportStatus = 'confirmed' | 'pending' | 'needs_correction';
-
-interface ReportRow {
-  id: number;
-  date: string;
-  title: string;
-  project: string;
-  duration: string;
-  status: ReportStatus;
-}
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { AuthService } from '../../core/services/auth/auth.service';
+import { ApiState } from '../../shared/models/api-state.model';
+import { ReportRange, ReportResponse, ReportStatus } from '../../shared/models/report.model';
+import { ReportsService } from './services/reports.service';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
   templateUrl: './reports.html',
 })
-export class ReportsComponent {
-  selectedRange = signal<'today' | 'week' | 'month' | 'last_month'>('month');
+export class ReportsComponent implements OnInit {
+  private readonly reportsService = inject(ReportsService);
+  private readonly authService = inject(AuthService);
+
+  selectedRange = signal<ReportRange>('month');
+  reportState = signal<ApiState<ReportResponse>>({
+    data: null,
+    loading: true,
+    error: null,
+  });
 
   readonly ranges = [
     { key: 'today', label: 'امروز' },
@@ -26,68 +27,89 @@ export class ReportsComponent {
     { key: 'last_month', label: 'ماه گذشته' },
   ] as const;
 
-  readonly rows: ReportRow[] = [
-    {
-      id: 1,
-      date: '1405/02/28',
-      title: 'بازبینی و تکمیل Smart Worklog',
-      project: 'WTT Frontend',
-      duration: '3س 20د',
-      status: 'confirmed',
-    },
-    {
-      id: 2,
-      date: '1405/02/28',
-      title: 'هماهنگ‌سازی ظاهر Tasks و Dashboard',
-      project: 'WTT Frontend',
-      duration: '1س 45د',
-      status: 'pending',
-    },
-    {
-      id: 3,
-      date: '1405/02/27',
-      title: 'اصلاح خطاهای دمو و حالت‌های خالی',
-      project: 'WTT Frontend',
-      duration: '2س 10د',
-      status: 'needs_correction',
-    },
-  ];
-
-  get totalDuration(): string {
-    return '7س 15د';
+  ngOnInit(): void {
+    this.loadReport();
   }
 
-  get confirmedCount(): number {
-    return this.rows.filter((row) => row.status === 'confirmed').length;
+  get report(): ReportResponse | null {
+    return this.reportState().data;
   }
 
-  get correctionCount(): number {
-    return this.rows.filter((row) => row.status === 'needs_correction').length;
+  loadReport(): void {
+    const userId = this.authService.getCurrentUserId();
+
+    if (!userId) {
+      this.reportState.set({
+        data: null,
+        loading: false,
+        error: 'شناسه کاربر پیدا نشد. لطفاً دوباره وارد شوید.',
+      });
+
+      return;
+    }
+
+    this.reportState.set({
+      data: null,
+      loading: true,
+      error: null,
+    });
+
+    this.reportsService.getReport(userId, this.selectedRange()).subscribe({
+      next: (response) => {
+        this.reportState.set({
+          data: response,
+          loading: false,
+          error: null,
+        });
+      },
+      error: () => {
+        this.reportState.set({
+          data: null,
+          loading: false,
+          error: 'خطا در دریافت گزارش وظایف WTT',
+        });
+      },
+    });
   }
 
-  setRange(range: 'today' | 'week' | 'month' | 'last_month'): void {
+  setRange(range: ReportRange): void {
+    if (this.selectedRange() === range) return;
+
     this.selectedRange.set(range);
+    this.loadReport();
   }
 
   statusLabel(status: ReportStatus): string {
     switch (status) {
-      case 'confirmed':
+      case 'approved':
         return 'تایید شده';
       case 'pending':
         return 'در انتظار بررسی';
-      case 'needs_correction':
+      case 'rejected':
         return 'نیازمند اصلاح';
+      case 'draft':
+        return 'پیش‌نویس';
+      case 'edited':
+        return 'ویرایش‌شده';
+      case 'unknown':
+        return 'نامشخص';
     }
   }
 
   statusClass(status: ReportStatus): string {
     switch (status) {
-      case 'confirmed':
+      case 'approved':
         return 'bg-emerald-500/10 text-emerald-500 ring-emerald-500/20';
       case 'pending':
         return 'bg-amber-500/10 text-amber-500 ring-amber-500/20';
-      case 'needs_correction':
+      case 'rejected':
         return 'bg-rose-500/10 text-rose-500 ring-rose-500/20';
+      case 'draft':
+        return 'bg-slate-500/10 text-slate-500 ring-slate-500/20';
+      case 'edited':
+        return 'bg-cyan-500/10 text-cyan-500 ring-cyan-500/20';
+      case 'unknown':
+        return 'bg-zinc-500/10 text-zinc-500 ring-zinc-500/20';
     }
   }
 }
