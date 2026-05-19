@@ -34,7 +34,129 @@
     </button>
   </div>
 
-  @if (layout.isPresencePage()) {
+  @if (layout.isReportsPage()) {
+    <section class="left-card reports-sidebar-card mt-3">
+      <div class="reports-sidebar-header">
+        <div>
+          <h3>کنترل گزارش‌ها</h3>
+          <p>بازه، نوع گزارش، خروجی و آماده‌سازی AI</p>
+        </div>
+
+        <div class="reports-sidebar-icon">
+          <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M4 19V5M4 19H20M8 16V11M12 16V8M16 16V13"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+      </div>
+
+      <div class="reports-sidebar-group">
+        <div class="reports-sidebar-label">بازه گزارش</div>
+
+        <div class="reports-sidebar-grid">
+          <button
+            type="button"
+            class="reports-sidebar-button"
+            [class.is-active]="layout.reportsRange() === 'month_till_today'"
+            (click)="layout.setReportsRange('month_till_today')"
+          >
+            ماه جاری
+          </button>
+
+          <button
+            type="button"
+            class="reports-sidebar-button"
+            [class.is-active]="layout.reportsRange() === 'last_month'"
+            (click)="layout.setReportsRange('last_month')"
+          >
+            ماه گذشته
+          </button>
+
+          <button
+            type="button"
+            class="reports-sidebar-button"
+            [class.is-active]="layout.reportsRange() === 'week'"
+            (click)="layout.setReportsRange('week')"
+          >
+            هفته جاری
+          </button>
+
+          <button
+            type="button"
+            class="reports-sidebar-button"
+            [class.is-active]="layout.reportsRange() === 'today'"
+            (click)="layout.setReportsRange('today')"
+          >
+            امروز
+          </button>
+        </div>
+      </div>
+
+      <div class="reports-sidebar-group">
+        <div class="reports-sidebar-label">نوع گزارش</div>
+
+        <div class="reports-sidebar-grid">
+          <button
+            type="button"
+            class="reports-sidebar-button"
+            [class.is-active]="layout.reportsTab() === 'attendance'"
+            (click)="layout.setReportsTab('attendance')"
+          >
+            گزارش کلی
+          </button>
+
+          <button
+            type="button"
+            class="reports-sidebar-button"
+            [class.is-active]="layout.reportsTab() === 'activity'"
+            (click)="layout.setReportsTab('activity')"
+          >
+            درصد فعالیت
+          </button>
+        </div>
+      </div>
+
+      <div class="reports-sidebar-group">
+        <div class="reports-sidebar-label">AI Actions</div>
+
+        <div class="reports-sidebar-ai">
+          <button
+            type="button"
+            class="reports-sidebar-button is-active"
+            title="از داخل صفحه گزارش، پیش‌نویس AI-ready ساخته می‌شود"
+            disabled
+          >
+            ✨ خلاصه مدیریتی
+          </button>
+
+          <button type="button" class="reports-sidebar-button" disabled>بررسی کمبودها</button>
+
+          <button type="button" class="reports-sidebar-button" disabled>گزارش فنی لید</button>
+        </div>
+
+        <div class="reports-sidebar-note">
+          AI واقعی هنوز به Proxy وصل نشده؛ فعلاً صفحه اصلی از داده واقعی پیش‌نویس demo-safe می‌سازد.
+        </div>
+      </div>
+
+      <div class="reports-sidebar-group">
+        <div class="reports-sidebar-label">Export</div>
+
+        <div class="reports-sidebar-grid">
+          <button type="button" class="reports-sidebar-button is-active" disabled>
+            CSV از صفحه
+          </button>
+
+          <button type="button" class="reports-sidebar-button" disabled>PDF بعداً</button>
+        </div>
+      </div>
+    </section>
+  } @else if (layout.isPresencePage()) {
     <section class="left-card task-filter-card p-4 mt-3">
       <div class="task-filter-header">
         <h3 class="text-[13px] font-black text-[var(--text-main)] flex items-center gap-2">

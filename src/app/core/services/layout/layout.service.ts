@@ -1,6 +1,8 @@
 import { Injectable, signal } from '@angular/core';
 import { TaskRange } from '../../../shared/models/task.model';
 import { RequestRange } from '../../../shared/models/presence.model';
+import { ReportRange, ReportsTab } from '../../../shared/models/report.model';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -19,12 +21,30 @@ export class LayoutService {
 
   dashboardRange = signal<TaskRange>('month_till_today');
   public isPresencePage = signal<boolean>(false);
+  public isReportsPage = signal<boolean>(false);
+
+  public reportsRange = signal<ReportRange>('month_till_today');
+
+  public reportsTab = signal<ReportsTab>('attendance');
 
   public presenceRange = signal<RequestRange>('month_till_today');
 
   public presenceRequestTab = signal<'all' | 'leave' | 'mission'>('all');
 
   public presenceStatus = signal<'all' | 'approved' | 'pending' | 'rejected'>('all');
+
+  setReportsRange(range: ReportRange): void {
+    this.reportsRange.set(range);
+  }
+
+  setReportsTab(tab: ReportsTab): void {
+    this.reportsTab.set(tab);
+  }
+
+  resetReportsFilters(): void {
+    this.reportsRange.set('month_till_today');
+    this.reportsTab.set('attendance');
+  }
 
   setPresenceRange(range: RequestRange): void {
     this.presenceRange.set(range);
