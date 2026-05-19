@@ -5,7 +5,7 @@ export const environment = {
   apiBaseUrl: '/wtt-api/api/v1',
 
   // Local integration proxy for Jira-compatible tasks, GitLab evidence and AI draft generation.
-  integrationProxyBaseUrl: 'http://localhost:3000/api',
+  integrationProxyBaseUrl: 'http://192.168.130.184:3000/api',
 
   // Demo safety flags. Dangerous real mutations must stay off unless explicitly enabled locally.
   enableRealTaskMutation: false,

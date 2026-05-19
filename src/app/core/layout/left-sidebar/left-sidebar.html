@@ -34,7 +34,204 @@
     </button>
   </div>
 
-  @if (!layout.isTasksPage()) {
+  @if (layout.isPresencePage()) {
+    <section class="left-card task-filter-card p-4 mt-3">
+      <div class="task-filter-header">
+        <h3 class="text-[13px] font-black text-[var(--text-main)] flex items-center gap-2">
+          <svg class="w-4 h-4 text-cyan-500" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 5H21M6 12H18M10 19H14"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+            />
+          </svg>
+          فیلترهای ماموریت/مرخصی
+        </h3>
+
+        <p class="mt-1 text-[10px] font-bold text-[var(--text-soft)]">
+          کنترل بازه، نوع درخواست و وضعیت لیست
+        </p>
+      </div>
+
+      <div class="mt-4 text-[10px] font-black text-[var(--text-soft)] mb-2">بازه زمانی</div>
+
+      <div class="task-filter-quick">
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="layout.presenceRange() === 'month_till_today'"
+          (click)="layout.setPresenceRange('month_till_today')"
+        >
+          ماه جاری
+        </button>
+
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="layout.presenceRange() === 'last_month'"
+          (click)="layout.setPresenceRange('last_month')"
+        >
+          ماه گذشته
+        </button>
+
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="layout.presenceRange() === 'today'"
+          (click)="layout.setPresenceRange('today')"
+        >
+          امروز
+        </button>
+
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="layout.presenceRange() === 'yesterday'"
+          (click)="layout.setPresenceRange('yesterday')"
+        >
+          دیروز
+        </button>
+
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="layout.presenceRange() === 'week'"
+          (click)="layout.setPresenceRange('week')"
+        >
+          هفته جاری
+        </button>
+      </div>
+
+      <button type="button" class="task-filter-expand-button" (click)="layout.toggleFilterPanel()">
+        <span>
+          @if (layout.isFilterPanelOpen()) {
+            بستن فیلترهای بیشتر
+          } @else {
+            نمایش فیلترهای بیشتر
+          }
+        </span>
+
+        <svg
+          class="task-filter-chevron"
+          [class.is-open]="layout.isFilterPanelOpen()"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M6 9L12 15L18 9"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+
+      @if (layout.isFilterPanelOpen()) {
+        <div class="task-filter-advanced">
+          <div>
+            <div class="text-[10px] font-black text-[var(--text-soft)] mb-2">نوع درخواست</div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                class="filter-chip"
+                [class.active]="layout.presenceRequestTab() === 'all'"
+                (click)="layout.setPresenceRequestTab('all')"
+              >
+                همه
+              </button>
+
+              <button
+                type="button"
+                class="filter-chip"
+                [class.active]="layout.presenceRequestTab() === 'leave'"
+                (click)="layout.setPresenceRequestTab('leave')"
+              >
+                مرخصی
+              </button>
+
+              <button
+                type="button"
+                class="filter-chip"
+                [class.active]="layout.presenceRequestTab() === 'mission'"
+                (click)="layout.setPresenceRequestTab('mission')"
+              >
+                ماموریت
+              </button>
+            </div>
+          </div>
+
+          <div class="border-t border-[var(--card-border)] pt-3">
+            <div class="text-[10px] font-black text-[var(--text-soft)] mb-2">وضعیت</div>
+
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                class="filter-chip"
+                [class.active]="layout.presenceStatus() === 'all'"
+                (click)="layout.setPresenceStatus('all')"
+              >
+                همه
+              </button>
+
+              <button
+                type="button"
+                class="filter-chip"
+                [class.active]="layout.presenceStatus() === 'approved'"
+                (click)="layout.setPresenceStatus('approved')"
+              >
+                تایید شده
+              </button>
+
+              <button
+                type="button"
+                class="filter-chip"
+                [class.active]="layout.presenceStatus() === 'pending'"
+                (click)="layout.setPresenceStatus('pending')"
+              >
+                در انتظار
+              </button>
+
+              <button
+                type="button"
+                class="filter-chip"
+                [class.active]="layout.presenceStatus() === 'rejected'"
+                (click)="layout.setPresenceStatus('rejected')"
+              >
+                رد شده
+              </button>
+            </div>
+          </div>
+
+          <div class="border-t border-[var(--card-border)] pt-3">
+            <div class="text-[10px] font-black text-[var(--text-soft)] mb-2">راهنما</div>
+
+            <div
+              class="rounded-xl border border-cyan-500/15 bg-cyan-500/10 p-3 text-[10px] font-bold leading-5 text-[var(--text-soft)]"
+            >
+              برای دیدن داده واقعی مرخصی‌های تست‌شده، بازه «ماه گذشته» را انتخاب کن.
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-2">
+            <button
+              type="button"
+              class="filter-chip active"
+              (click)="layout.applyPresenceFilters()"
+            >
+              اعمال
+            </button>
+
+            <button type="button" class="filter-chip" (click)="layout.resetPresenceFilters()">
+              حذف فیلتر
+            </button>
+          </div>
+        </div>
+      }
+    </section>
+  } @else if (!layout.isTasksPage()) {
     <section
       class="left-card attendance-card"
       [class.attendance-card-active]="hasActivePresence()"
