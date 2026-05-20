@@ -5046,3 +5046,59 @@ body {
   font-weight: 800;
   line-height: 1.9;
 }
+.reports-ai-error {
+  grid-column: 1 / -1;
+  border-radius: 1rem;
+  padding: 0.85rem 1rem;
+  background: rgba(244, 63, 94, 0.1);
+  border: 1px solid rgba(244, 63, 94, 0.18);
+  color: #f43f5e;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+.reports-ai-options {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.reports-ai-options label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.reports-ai-options span {
+  color: var(--text-soft);
+  font-size: 0.68rem;
+  font-weight: 950;
+}
+
+.reports-ai-options select {
+  border: 1px solid var(--card-border);
+  border-radius: 1rem;
+  padding: 0.7rem 0.85rem;
+  background: var(--card-bg);
+  color: var(--text-main);
+  font-size: 0.75rem;
+  font-weight: 900;
+  outline: none;
+}
+
+.reports-ai-data-note {
+  grid-column: 1 / -1;
+  border-radius: 1rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(34, 211, 238, 0.08);
+  border: 1px solid rgba(34, 211, 238, 0.14);
+  color: var(--text-soft);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+@media (max-width: 860px) {
+  .reports-ai-options {
+    grid-template-columns: 1fr;
+  }
+}

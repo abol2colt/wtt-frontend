@@ -1,10 +1,13 @@
-import { Injectable, inject } from '@angular/core';
-import { Observable, map, of, switchMap } from 'rxjs';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { environment } from '../../../../environments/environment';
+import { map } from 'rxjs';
+import { TaskItem } from '../../../shared/models/task.model';
 import {
-  ReportRange,
   ActivityInProjectsReportResponse,
+  ReportAiSummaryPayload,
+  ReportAiSummaryResponse,
+  ReportRange,
   UserAttendanceReportResponse,
 } from '../../../shared/models/report.model';
 
@@ -14,6 +17,7 @@ import {
 export class ReportsService {
   private readonly http = inject(HttpClient);
   private readonly apiBaseUrl = environment.apiBaseUrl;
+  private readonly integrationProxyBaseUrl = environment.integrationProxyBaseUrl;
 
   getUserAttendance(range: ReportRange) {
     const params = new HttpParams().set('range', range);
@@ -33,6 +37,24 @@ export class ReportsService {
     );
   }
 
+  generateAiSummary(payload: ReportAiSummaryPayload) {
+    return this.http.post<ReportAiSummaryResponse>(
+      `${this.integrationProxyBaseUrl}/reports/ai-summary`,
+      payload,
+    );
+  }
+
+  getReportTasks(range: ReportRange) {
+    const params = new HttpParams().set('range', range).set('page', 1);
+
+    return this.http
+      .get<{
+        data?: TaskItem[];
+        results?: TaskItem[];
+      }>(`${this.apiBaseUrl}/tasks/`, { params })
+      .pipe(map((response) => response.data ?? response.results ?? []));
+  }
+
   formatMinutes(minutes: number | null | undefined): string {
     const safe = Math.max(0, Math.floor(Number(minutes) || 0));
     const hours = Math.floor(safe / 60);
@@ -42,6 +64,7 @@ export class ReportsService {
     if (mins === 0) return `${hours}ساعت`;
     return `${hours}ساعت ${mins}دقیقه`;
   }
+
   formatSignedMinutes(minutes: number | null | undefined): string {
     const value = Math.floor(Number(minutes) || 0);
     const sign = value < 0 ? '-' : value > 0 ? '+' : '';

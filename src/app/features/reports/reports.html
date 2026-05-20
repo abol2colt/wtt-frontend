@@ -342,18 +342,79 @@
     }
 
     <section class="reports-ai-panel">
-      <div>
+      <div class="reports-ai-copy">
         <p>AI Report Workspace</p>
-        <h2>پیش‌نویس گزارش هوشمند</h2>
+        <h2>گزارش هوشمند از داده‌های همین بازه</h2>
         <span>
-          این بخش فعلاً demo-safe است. داده واقعی همین صفحه آماده می‌شود و در مرحله بعد به AI Proxy
-          وصل خواهد شد.
+          این بخش اطلاعات حضور، درصد فعالیت پروژه‌ها و تسک‌های همین بازه را به AI Proxy می‌فرستد و
+          یک متن قابل بازبینی تولید می‌کند. هیچ mutation واقعی انجام نمی‌شود.
         </span>
       </div>
 
-      <button type="button" class="reports-action primary" (click)="prepareAiReport()">
-        ساخت پیش‌نویس از داده‌های همین بازه
-      </button>
+      <div class="reports-ai-actions">
+        <button
+          type="button"
+          class="reports-action primary"
+          [disabled]="aiReportLoading() || isLoading || hasError"
+          (click)="prepareAiReport()"
+        >
+          @if (aiReportLoading()) {
+            در حال تولید...
+          } @else {
+            ✨ ساخت گزارش AI
+          }
+        </button>
+
+        <button
+          type="button"
+          class="reports-action"
+          [disabled]="!aiReportPreview()"
+          (click)="copyAiReport()"
+        >
+          کپی متن
+        </button>
+      </div>
+
+      <div class="reports-ai-options">
+        <label>
+          <span>هدف گزارش</span>
+          <select [value]="aiPurpose()" (change)="aiPurpose.set($any($event.target).value)">
+            <option value="daily">ارائه دیلی خیلی خلاصه</option>
+            <option value="lead">ارائه به لید</option>
+            <option value="self_review">ارزیابی شخصی</option>
+            <option value="managerial">گزارش مدیریتی</option>
+          </select>
+        </label>
+
+        <label>
+          <span>لحن</span>
+          <select [value]="aiTone()" (change)="aiTone.set($any($event.target).value)">
+            <option value="formal">رسمی</option>
+            <option value="technical">فنی</option>
+            <option value="managerial">مدیریتی</option>
+          </select>
+        </label>
+
+        <label>
+          <span>جزئیات</span>
+          <select [value]="aiDetailLevel()" (change)="aiDetailLevel.set($any($event.target).value)">
+            <option value="short">خلاصه</option>
+            <option value="balanced">متعادل</option>
+            <option value="detailed">کامل</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="reports-ai-data-note">
+        این گزارش با اطلاعات حضور، درصد فعالیت پروژه‌ها و {{ reportTasks.length }} تسک این بازه
+        ساخته می‌شود.
+      </div>
+
+      @if (aiReportError()) {
+        <div class="reports-ai-error">
+          {{ aiReportError() }}
+        </div>
+      }
 
       @if (aiReportPreview()) {
         <pre>{{ aiReportPreview() }}</pre>

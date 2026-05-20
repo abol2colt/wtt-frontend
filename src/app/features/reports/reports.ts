@@ -1,16 +1,22 @@
-import { Component, OnDestroy, effect, inject, signal, untracked } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
-import { LayoutService } from '../../core/services/layout/layout.service';
 import { ApiState } from '../../shared/models/api-state.model';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   ActivityInProjectsReportResponse,
   ActivityUserRow,
+  ReportAiDetailLevel,
+  ReportAiLanguage,
+  ReportAiTone,
   ReportRange,
   ReportsTab,
+  ReportAiSummaryResponse,
+  ReportAiPurpose,
   UserAttendanceReportResponse,
   UserAttendanceRow,
 } from '../../shared/models/report.model';
 import { ReportsService } from './services/reports.service';
+import { TaskItem } from '../../shared/models/task.model';
 
 interface AttendanceSummaryView {
   usersCount: number;
@@ -42,13 +48,18 @@ interface ActivityProjectView {
   standalone: true,
   templateUrl: './reports.html',
 })
-export class ReportsComponent implements OnDestroy {
+export class ReportsComponent implements OnInit {
   private readonly reportsService = inject(ReportsService);
-  readonly layout = inject(LayoutService);
 
-  selectedRange = this.layout.reportsRange;
-  activeTab = this.layout.reportsTab;
+  selectedRange = signal<ReportRange>('month_till_today');
+  activeTab = signal<ReportsTab>('attendance');
 
+  aiTone = signal<ReportAiTone>('managerial');
+  aiDetailLevel = signal<ReportAiDetailLevel>('balanced');
+  aiLanguage = signal<ReportAiLanguage>('fa');
+
+  aiReportLoading = signal(false);
+  aiReportError = signal<string | null>(null);
   aiReportPreview = signal<string | null>(null);
 
   attendanceState = signal<ApiState<UserAttendanceReportResponse>>({
@@ -58,6 +69,13 @@ export class ReportsComponent implements OnDestroy {
   });
 
   activityState = signal<ApiState<ActivityInProjectsReportResponse>>({
+    data: null,
+    loading: true,
+    error: null,
+  });
+  aiPurpose = signal<ReportAiPurpose>('daily');
+
+  tasksState = signal<ApiState<TaskItem[]>>({
     data: null,
     loading: true,
     error: null,
@@ -72,48 +90,39 @@ export class ReportsComponent implements OnDestroy {
     { key: 'this_year', label: 'سال جاری' },
   ];
 
-  constructor() {
-    this.layout.isReportsPage.set(true);
-    this.layout.isTasksPage.set(false);
-    this.layout.isPresencePage.set(false);
-
-    effect(() => {
-      this.selectedRange();
-
-      untracked(() => {
-        this.aiReportPreview.set(null);
-        this.loadReports();
-      });
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.layout.isReportsPage.set(false);
+  ngOnInit(): void {
+    this.loadReports();
   }
 
   setRange(range: ReportRange): void {
     if (this.selectedRange() === range) return;
 
-    this.layout.setReportsRange(range);
+    this.selectedRange.set(range);
+    this.aiReportPreview.set(null);
+    this.aiReportError.set(null);
+    this.loadReports();
   }
 
   setTab(tab: ReportsTab): void {
-    this.layout.setReportsTab(tab);
+    this.activeTab.set(tab);
   }
 
   loadReports(): void {
     this.attendanceState.set({ data: null, loading: true, error: null });
     this.activityState.set({ data: null, loading: true, error: null });
+    this.tasksState.set({ data: null, loading: true, error: null });
 
     const range = this.selectedRange();
 
     forkJoin({
       attendance: this.reportsService.getUserAttendance(range),
       activity: this.reportsService.getActivityInProjects(range),
+      tasks: this.reportsService.getReportTasks(range),
     }).subscribe({
-      next: ({ attendance, activity }) => {
+      next: ({ attendance, activity, tasks }) => {
         this.attendanceState.set({ data: attendance, loading: false, error: null });
         this.activityState.set({ data: activity, loading: false, error: null });
+        this.tasksState.set({ data: tasks, loading: false, error: null });
       },
       error: () => {
         this.attendanceState.set({
@@ -127,24 +136,43 @@ export class ReportsComponent implements OnDestroy {
           loading: false,
           error: 'خطا در دریافت گزارش درصد فعالیت',
         });
+
+        this.tasksState.set({
+          data: null,
+          loading: false,
+          error: 'خطا در دریافت وظایف گزارش',
+        });
       },
     });
   }
 
   get isLoading(): boolean {
-    return this.attendanceState().loading || this.activityState().loading;
+    return (
+      this.attendanceState().loading || this.activityState().loading || this.tasksState().loading
+    );
   }
 
   get hasError(): boolean {
-    return Boolean(this.attendanceState().error || this.activityState().error);
+    return Boolean(
+      this.attendanceState().error || this.activityState().error || this.tasksState().error,
+    );
   }
 
   get errorMessage(): string {
-    return this.attendanceState().error || this.activityState().error || 'خطا در دریافت گزارش‌ها';
+    return (
+      this.attendanceState().error ||
+      this.activityState().error ||
+      this.tasksState().error ||
+      'خطا در دریافت گزارش‌ها'
+    );
   }
 
   get attendanceRows(): UserAttendanceRow[] {
     return this.attendanceState().data?.data ?? [];
+  }
+
+  get reportTasks(): TaskItem[] {
+    return this.tasksState().data ?? [];
   }
 
   get activityUsers(): ActivityUserRow[] {
@@ -276,20 +304,82 @@ export class ReportsComponent implements OnDestroy {
   }
 
   prepareAiReport(): void {
-    const summary = this.attendanceSummary;
-    const topProject = this.topActivityProject;
+    if (this.isLoading || this.hasError) {
+      this.aiReportError.set('اول باید داده‌های گزارش با موفقیت دریافت شوند.');
+      return;
+    }
 
-    this.aiReportPreview.set(
-      [
-        `پیش‌نویس آماده اتصال به AI برای بازه ${this.dateRangeLabel}`,
-        `حضور کل: ${this.formatMinutes(summary.presenceMinutes)}، کارکرد ثبت‌شده: ${this.formatMinutes(summary.totalWorkMinutes)}، انتظار: ${this.formatMinutes(summary.expectedMinutes)}.`,
-        `وضعیت اضافه/کسری: ${this.formatSignedMinutes(summary.overtimeMinutes)} و راندمان میانگین ${summary.averageEfficiency}٪ است.`,
-        topProject
-          ? `بیشترین فعالیت روی پروژه ${topProject.projectName} / ${topProject.serviceName} با ${topProject.spentLabel} و سهم ${topProject.percentageText} بوده است.`
-          : 'برای این بازه فعالیت پروژه‌ای ثبت نشده است.',
-        'در مرحله بعد، همین داده‌ها به AI Proxy ارسال می‌شوند تا گزارش رسمی/فنی/مدیریتی ساخته شود.',
-      ].join('\n'),
-    );
+    this.aiReportLoading.set(true);
+    this.aiReportError.set(null);
+    this.aiReportPreview.set(null);
+
+    const summary = this.attendanceSummary;
+    const topActivities = this.activityRows
+      .slice()
+      .sort((a, b) => b.spentMinutes - a.spentMinutes)
+      .slice(0, 6)
+      .map((row) => ({
+        projectName: row.projectName,
+        serviceName: row.serviceName,
+        spentMinutes: row.spentMinutes,
+        percentageText: row.percentageText,
+      }));
+
+    this.reportsService;
+    this.reportsService
+      .generateAiSummary({
+        rangeLabel: this.dateRangeLabel,
+        purpose: this.aiPurpose(),
+        tone: this.aiTone(),
+        detailLevel: this.aiDetailLevel(),
+        language: this.aiLanguage(),
+        attendanceSummary: {
+          presenceMinutes: summary.presenceMinutes,
+          totalWorkMinutes: summary.totalWorkMinutes,
+          expectedMinutes: summary.expectedMinutes,
+          overtimeMinutes: summary.overtimeMinutes,
+          averageEfficiency: summary.averageEfficiency,
+          taskDays: summary.taskDays,
+          lunches: summary.lunches,
+          noWorkDays: summary.noWorkDays,
+          acceptedVacations: summary.acceptedVacations,
+          acceptedMissions: summary.acceptedMissions,
+        },
+        topActivities,
+        tasks: this.reportTasks.slice(0, 30).map((task) => ({
+          id: task.id,
+          title: task.title,
+          projectTitle: task.project_title || `پروژه #${task.project_id}`,
+          date: task.date,
+          durationMinutes: task.duration ?? 0,
+          status: task.status,
+          description: task.description,
+        })),
+      })
+      .subscribe({
+        next: (response: ReportAiSummaryResponse) => {
+          this.aiReportLoading.set(false);
+
+          if (!response.success || !response.summary) {
+            this.aiReportError.set(response.error || 'AI گزارشی تولید نکرد.');
+            return;
+          }
+
+          this.aiReportPreview.set(response.summary);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.aiReportLoading.set(false);
+          this.aiReportError.set(error.error?.error || error.message || 'خطا در تولید گزارش AI');
+        },
+      });
+  }
+
+  copyAiReport(): void {
+    const text = this.aiReportPreview();
+
+    if (!text) return;
+
+    navigator.clipboard?.writeText(text);
   }
 
   exportActiveCsv(): void {
