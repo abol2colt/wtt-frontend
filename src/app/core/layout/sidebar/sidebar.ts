@@ -34,8 +34,6 @@ export class SidebarComponent {
   get userFullName(): string {
     const user = this.currentUser;
 
-    console.log('SIDEBAR USER:', user);
-
     const fullName = [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim();
 
     return fullName || user?.username || 'User';

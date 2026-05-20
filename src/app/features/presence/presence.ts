@@ -128,6 +128,14 @@ export class PresenceComponent implements OnInit, OnDestroy {
         this.loadPresenceRequests();
       });
     });
+
+    effect(() => {
+      this.layout.reportsAiActionKey();
+
+      untracked(() => {
+        if (!this.layout.isReportsPage()) return;
+      });
+    });
   }
 
   ngOnInit(): void {

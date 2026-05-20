@@ -33,6 +33,12 @@ export class LayoutService {
 
   public presenceStatus = signal<'all' | 'approved' | 'pending' | 'rejected'>('all');
 
+  reportsAiActionKey = signal(0);
+
+  triggerReportsAiAction(): void {
+    this.reportsAiActionKey.update((value) => value + 1);
+  }
+
   setReportsRange(range: ReportRange): void {
     this.reportsRange.set(range);
   }

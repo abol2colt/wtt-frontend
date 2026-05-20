@@ -93,3 +93,76 @@ export interface ActivityProjectRow {
   project_spent_time: number;
   percentage: string;
 }
+export type ReportAiTone = 'formal' | 'technical' | 'managerial';
+export type ReportAiDetailLevel = 'short' | 'balanced' | 'detailed';
+export type ReportAiLanguage = 'fa' | 'en' | 'bilingual';
+
+export interface ReportAiSummaryPayload {
+  rangeLabel: string;
+  tone: ReportAiTone;
+  detailLevel: ReportAiDetailLevel;
+  language: ReportAiLanguage;
+  attendanceSummary: {
+    presenceMinutes: number;
+    totalWorkMinutes: number;
+    expectedMinutes: number;
+    overtimeMinutes: number;
+    averageEfficiency: number;
+    taskDays: number;
+    lunches: number;
+    noWorkDays: number;
+    acceptedVacations: number;
+    acceptedMissions: number;
+  };
+  topActivities: {
+    projectName: string;
+    serviceName: string;
+    spentMinutes: number;
+    percentageText: string;
+  }[];
+}
+
+export interface ReportAiSummaryResponse {
+  success: boolean;
+  summary?: string;
+  error?: string;
+  model?: string;
+}
+export type ReportAiPurpose = 'daily' | 'lead' | 'self_review' | 'managerial';
+
+export interface ReportAiTaskItem {
+  id: number;
+  title: string;
+  projectTitle: string;
+  date: string;
+  durationMinutes: number;
+  status: string;
+  description?: string;
+}
+
+export interface ReportAiSummaryPayload {
+  rangeLabel: string;
+  purpose: ReportAiPurpose;
+  tone: ReportAiTone;
+  detailLevel: ReportAiDetailLevel;
+  language: ReportAiLanguage;
+  attendanceSummary: {
+    presenceMinutes: number;
+    totalWorkMinutes: number;
+    expectedMinutes: number;
+    overtimeMinutes: number;
+    averageEfficiency: number;
+    taskDays: number;
+    lunches: number;
+    noWorkDays: number;
+    acceptedVacations: number;
+    acceptedMissions: number;
+  };
+  topActivities: {
+    projectName: string;
+    serviceName: string;
+    spentMinutes: number;
+    percentageText: string;
+  }[];
+  tasks: ReportAiTaskItem[];
+}

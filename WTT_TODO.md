@@ -1312,16 +1312,16 @@ Do not add new product features here.
 
 ### Checklist
 
-- [ ] Create `Requests` feature.
-- [ ] Add request type:
-  - [ ] leave
-  - [ ] mission
-- [ ] Build shared list/filter layout.
-- [ ] Build shared create/edit modal.
-- [ ] Keep API integration read-only first if endpoints are uncertain.
-- [ ] Add clean empty state.
-- [ ] Add request status badges.
-- [ ] Write branch report.
+- [x] Create `Requests` feature.
+- [x] Add request type:
+  - [x] leave
+  - [x] mission
+- [x] Build shared list/filter layout.
+- [x] Build shared create/edit modal.
+- [x] Keep API integration read-only first if endpoints are uncertain.
+- [x] Add clean empty state.
+- [x] Add request status badges.
+- [x] Write branch report.
 
 **خلاصه فارسی:** مرخصی و ماموریت را به جای صفحات جدا، در یک ماژول درخواست‌ها جمع می‌کنیم.
 
