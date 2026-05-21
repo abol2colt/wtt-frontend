@@ -14,6 +14,8 @@ import {
   TasksCountResponse,
   TaskRange,
   ExternalTaskSourceItem,
+  GitEvidenceCommit,
+  GitEvidenceSyncResponse,
 } from '../../shared/models/task.model';
 import { TasksService } from './services/tasks.service';
 import { TasksFiltersService } from './services/tasks-filters.service';
@@ -104,6 +106,10 @@ export class TasksComponent implements OnInit {
 
   teleworkingOnly = signal(false);
   favoriteOnly = signal(false);
+
+  recentGitCommits = signal<GitEvidenceCommit[]>([]);
+  selectedRecentCommitIds = signal<string[]>([]);
+  aiFallbackMessage = signal('');
 
   startDate = signal('');
   endDate = signal('');
@@ -591,6 +597,9 @@ export class TasksComponent implements OnInit {
       description: '',
       adjustment_reason: '',
     });
+    this.recentGitCommits.set([]);
+    this.selectedRecentCommitIds.set([]);
+    this.aiFallbackMessage.set('');
     this.suggestedWorklogDurationMinutes.set(null);
     this.aiConfidenceScore.set(null);
     this.aiEvidenceSummary.set('');
@@ -937,6 +946,40 @@ ${adjustmentReason}`
     };
   }
 
+  private applyEvidenceDraftToForm(
+    response: GitEvidenceSyncResponse,
+    selectedTask: ExternalTaskSourceItem,
+  ): void {
+    const rawDurationMinutes = Number(
+      response.suggestedDurationMinutes ??
+        response.durationMinutes ??
+        selectedTask.estimated_minutes ??
+        60,
+    );
+
+    const durationMinutes = rawDurationMinutes > 0 ? rawDurationMinutes : 60;
+    this.suggestedWorklogDurationMinutes.set(durationMinutes);
+    this.taskForm.patchValue({ adjustment_reason: '' });
+
+    const now = new Date();
+
+    const fallbackEndHour = String(now.getHours()).padStart(2, '0');
+    const fallbackEndMinute = String(now.getMinutes()).padStart(2, '0');
+    const fallbackEndTimeStr = `${fallbackEndHour}:${fallbackEndMinute}`;
+
+    const fallbackStartTimeObj = new Date(now.getTime() - durationMinutes * 60000);
+    const fallbackStartHour = String(fallbackStartTimeObj.getHours()).padStart(2, '0');
+    const fallbackStartMinute = String(fallbackStartTimeObj.getMinutes()).padStart(2, '0');
+    const fallbackStartTimeStr = `${fallbackStartHour}:${fallbackStartMinute}`;
+
+    this.taskForm.patchValue({
+      date: this.taskForm.controls.date.value || this.getTodayJalaliDate(),
+      start_time: response.suggestedStartTime || fallbackStartTimeStr,
+      end_time: response.suggestedEndTime || fallbackEndTimeStr,
+      description: response.description ?? response.fallbackDescription ?? '',
+    });
+  }
+
   deleteTask(task: TaskItem): void {
     if (environment.enableRealTaskMutation && !task.title.startsWith(this.testTaskPrefix)) {
       this.deleteError.set(
@@ -1172,6 +1215,48 @@ ${adjustmentReason}`
           if (!response?.success) {
             this.isSyncing.set(false);
 
+            if (response.code === 'NO_GIT_EVIDENCE') {
+              this.recentGitCommits.set(response.recentCommits ?? []);
+              this.selectedRecentCommitIds.set([]);
+              this.aiFallbackMessage.set(
+                response.description ||
+                  `برای ${selectedTask.key ?? selectedTask.id} کامیتی با این کلید در GitLab پیدا نشد.`,
+              );
+
+              this.mutationState.set({
+                data: null,
+                loading: false,
+                error:
+                  response.description ||
+                  'کامیت مرتبطی پیدا نشد. می‌توانی دستی ادامه بدهی یا از کامیت‌های اخیر انتخاب کنی.',
+              });
+
+              return;
+            }
+
+            if (response.code === 'AI_PROVIDER_FAILED' || response.code === 'AI_PROVIDER_TIMEOUT') {
+              this.aiConfidenceScore.set(response.confidenceScore ?? 55);
+              this.aiEvidenceSummary.set(
+                response.code === 'AI_PROVIDER_TIMEOUT'
+                  ? 'کامیت‌ها پیدا شدند اما AI به timeout خورد؛ متن اولیه از کامیت‌ها ساخته شد.'
+                  : 'کامیت‌ها پیدا شدند اما AI محدودیت یا خطا داد؛ متن اولیه از کامیت‌ها ساخته شد.',
+              );
+
+              this.applyEvidenceDraftToForm(response, selectedTask);
+              this.taskForm.patchValue({
+                description: response.fallbackDescription || response.description || '',
+              });
+
+              this.mutationState.set({
+                data: null,
+                loading: false,
+                error: null,
+              });
+
+              this.currentStep.set(4);
+              return;
+            }
+
             this.mutationState.set({
               data: null,
               loading: false,
@@ -1287,6 +1372,9 @@ ${adjustmentReason}`
     event?.preventDefault();
     event?.stopPropagation();
 
+    this.recentGitCommits.set([]);
+    this.selectedRecentCommitIds.set([]);
+    this.aiFallbackMessage.set('');
     this.selectedJiraTask.set(task);
     this.showJiraDropdown.set(false);
     this.flowType.set(null);
@@ -1300,6 +1388,7 @@ ${adjustmentReason}`
       project: task.project_id ?? 0,
       project_service: task.service_id ?? 0,
       project_contract: task.contract_id ?? 0,
+      location: task.location ?? 'teleworking',
     });
 
     if (task.project_id && task.project_id > 0) {
@@ -1310,5 +1399,48 @@ ${adjustmentReason}`
     } else {
       this.projectDetailsState.set({ data: null, loading: false, error: null });
     }
+  }
+  toggleRecentCommitSelection(commitId: string): void {
+    const current = this.selectedRecentCommitIds();
+
+    if (current.includes(commitId)) {
+      this.selectedRecentCommitIds.set(current.filter((id) => id !== commitId));
+      return;
+    }
+
+    this.selectedRecentCommitIds.set([...current, commitId]);
+  }
+
+  useSelectedRecentCommits(): void {
+    const selectedIds = new Set(this.selectedRecentCommitIds());
+    const selectedCommits = this.recentGitCommits().filter((commit) => selectedIds.has(commit.id));
+
+    if (selectedCommits.length === 0) {
+      this.mutationState.set({
+        data: null,
+        loading: false,
+        error: 'حداقل یک کامیت را انتخاب کن یا مسیر دستی را ادامه بده.',
+      });
+      return;
+    }
+
+    const description = [
+      'توضیحات اولیه بر اساس کامیت‌های انتخاب‌شده:',
+      '',
+      ...selectedCommits.map((commit) => `- ${commit.title}`),
+    ].join('\n');
+
+    this.taskForm.patchValue({
+      date: this.taskForm.controls.date.value || this.getTodayJalaliDate(),
+      description,
+    });
+
+    this.aiConfidenceScore.set(45);
+    this.aiEvidenceSummary.set(
+      `${selectedCommits.length} کامیت به صورت دستی انتخاب شد؛ لطفاً توضیحات و زمان را بازبینی کن.`,
+    );
+
+    this.mutationState.set({ data: null, loading: false, error: null });
+    this.currentStep.set(4);
   }
 }

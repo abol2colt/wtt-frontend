@@ -35,7 +35,9 @@ export class GitlabSyncService {
       taskKey: String(task.key ?? task.id),
     };
 
-    if (task.branch_name) {
+    const hasTrustedGitMetadata = Boolean(task.mapping_source || task.gitlab_project_id);
+
+    if (task.branch_name && hasTrustedGitMetadata) {
       params['branch'] = task.branch_name;
     }
 

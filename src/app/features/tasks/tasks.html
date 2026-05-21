@@ -790,6 +790,7 @@
                     </div>
                   </div>
                 }
+
                 @if (mutationState().error && !isSyncing()) {
                   <div class="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
                     <p class="text-xs font-black text-red-500">
@@ -801,6 +802,57 @@
                       </button>
                       <button type="button" class="filter-chip active" (click)="startAiFlow()">
                         تلاش مجدد
+                      </button>
+                    </div>
+                  </div>
+                }
+
+                @if (recentGitCommits().length > 0 && !isSyncing()) {
+                  <div class="rounded-3xl border border-orange-500/25 bg-orange-500/10 p-4">
+                    <p class="text-sm font-black text-orange-500">
+                      کامیتی با کلید این تسک پیدا نشد
+                    </p>
+                    <p class="mt-2 text-xs font-bold text-[var(--text-soft)]">
+                      ممکن است کامیت‌ها بدون کلید Jira ثبت شده باشند یا در پروژه دیگری باشند. ۲۰
+                      کامیت آخر پروژه را می‌بینی؛ موارد مرتبط را انتخاب کن یا مسیر دستی را ادامه
+                      بده.
+                    </p>
+
+                    <div class="mt-4 max-h-64 space-y-2 overflow-y-auto custom-scrollbar">
+                      @for (commit of recentGitCommits(); track commit.id) {
+                        <label
+                          class="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/60 p-3 text-right dark:bg-white/5"
+                        >
+                          <input
+                            type="checkbox"
+                            class="mt-1"
+                            [checked]="selectedRecentCommitIds().includes(commit.id)"
+                            (change)="toggleRecentCommitSelection(commit.id)"
+                          />
+                          <span class="flex-1">
+                            <span class="block text-xs font-black text-[var(--text-main)]">
+                              {{ commit.title }}
+                            </span>
+                            <span class="mt-1 block text-[10px] font-bold text-[var(--text-soft)]">
+                              {{ commit.shortId }} · {{ commit.authorName }} ·
+                              {{ commit.createdAt }}
+                            </span>
+                          </span>
+                        </label>
+                      }
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap justify-end gap-2">
+                      <button type="button" class="filter-chip" (click)="selectFlowType('manual')">
+                        ادامه دستی
+                      </button>
+                      <button
+                        type="button"
+                        class="filter-chip active disabled:opacity-50 disabled:cursor-not-allowed"
+                        [disabled]="selectedRecentCommitIds().length === 0"
+                        (click)="useSelectedRecentCommits()"
+                      >
+                        استفاده از کامیت‌های انتخاب‌شده
                       </button>
                     </div>
                   </div>

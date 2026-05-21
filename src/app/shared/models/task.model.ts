@@ -90,13 +90,13 @@ export interface ExternalTaskSourceItem {
   key?: string;
   title: string;
 
-  project_id: number;
+  project_id: number | null;
   project_title?: string;
 
-  service_id: number;
+  service_id: number | null;
   service_title?: string;
 
-  contract_id: number;
+  contract_id: number | null;
   contract_title?: string;
 
   branch_name?: string;
@@ -120,11 +120,16 @@ export interface GitEvidenceSummary {
   lastCommitAt?: string;
   excludedGapMinutes?: number;
   reasoning?: string;
+  matchedBranches?: string[];
+  reason?: string;
 }
 
 export interface GitEvidenceSyncResponse {
   success: boolean;
+  code?: 'NO_GIT_EVIDENCE' | 'AI_PROVIDER_FAILED' | 'AI_PROVIDER_TIMEOUT' | string;
+
   description?: string;
+  fallbackDescription?: string;
 
   durationMinutes?: number;
   suggestedStartTime?: string;
@@ -136,5 +141,19 @@ export interface GitEvidenceSyncResponse {
   confidenceLabel?: 'high' | 'medium' | 'needs-review' | 'manual-review' | string;
 
   evidence?: GitEvidenceSummary;
+
+  commits?: GitEvidenceCommit[];
+  recentCommits?: GitEvidenceCommit[];
+
   error?: string;
+  providerMessage?: string;
+}
+export interface GitEvidenceCommit {
+  id: string;
+  shortId?: string;
+  title: string;
+  message?: string;
+  authorName?: string;
+  createdAt?: string;
+  webUrl?: string;
 }
