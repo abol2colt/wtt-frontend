@@ -1,4 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { IntegrationSettingsService } from './services/integration-settings.service';
 import { environment } from '../../../environments/environment';
 import {
   AiDetailLevel,
@@ -15,18 +17,43 @@ type SettingsTab = 'profile' | 'ai' | 'ui' | 'integrations' | 'security';
 @Component({
   selector: 'app-settings',
   standalone: true,
+  imports: [ReactiveFormsModule],
   templateUrl: './settings.html',
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnInit {
   readonly preferencesService = inject(UserPreferencesService);
   readonly activeTab = signal<SettingsTab>('profile');
 
+  private readonly fb = inject(FormBuilder);
+  private readonly integrationSettingsService = inject(IntegrationSettingsService);
   readonly enableRealTaskMutation = environment.enableRealTaskMutation;
   readonly enableRealPresenceMutation = environment.enableRealPresenceMutation;
   readonly jiraBaseUrlLabel = 'در سمت backend/proxy نگهداری می‌شود';
   readonly gitlabBaseUrlLabel = 'در سمت backend/proxy نگهداری می‌شود';
   readonly disabledConnectionTooltip =
     'در دمو امن، تست اتصال غیرفعال است و هیچ توکن یا درخواست واقعی از مرورگر ارسال نمی‌شود.';
+
+  readonly integrationStatus = signal<string>('در حال بررسی...');
+  readonly jiraTestMessage = signal<string | null>(null);
+  readonly gitlabTestMessage = signal<string | null>(null);
+  readonly integrationLoading = signal(false);
+
+  readonly jiraForm = this.fb.nonNullable.group({
+    baseUrl: ['', [Validators.required]],
+    email: ['', [Validators.required]],
+    token: ['', [Validators.required]],
+    authType: ['bearer'],
+    apiVersion: ['2'],
+    jql: ['statusCategory != Done ORDER BY updated DESC'],
+  });
+
+  readonly gitlabForm = this.fb.nonNullable.group({
+    baseUrl: ['', [Validators.required]],
+    token: ['', [Validators.required]],
+    username: [''],
+    projectId: ['', [Validators.required]],
+    branchPattern: ['feature/{TASK_KEY}'],
+  });
 
   readonly tabs: { id: SettingsTab; label: string; eyebrow: string }[] = [
     { id: 'profile', label: 'Profile', eyebrow: 'پروفایل' },
@@ -72,7 +99,22 @@ export class SettingsComponent {
     { value: 'comfortable', label: 'راحت' },
     { value: 'compact', label: 'فشرده' },
   ];
+  ngOnInit(): void {
+    this.loadIntegrationStatus();
+  }
 
+  loadIntegrationStatus(): void {
+    this.integrationSettingsService.getStatus().subscribe({
+      next: (status) => {
+        this.integrationStatus.set(
+          `Jira: ${status.jira.mode} | GitLab: ${status.gitlab.mode} | AI: ${status.ai.mode}`,
+        );
+      },
+      error: (error) => {
+        this.integrationStatus.set(error.message);
+      },
+    });
+  }
   setActiveTab(tab: SettingsTab): void {
     this.activeTab.set(tab);
   }
@@ -119,5 +161,62 @@ export class SettingsComponent {
 
   setDashboardDensity(value: DashboardDensity): void {
     this.preferencesService.setDashboardDensity(value);
+  }
+  testJiraConnection(): void {
+    if (this.jiraForm.invalid) {
+      this.jiraForm.markAllAsTouched();
+      return;
+    }
+
+    this.jiraTestMessage.set('در حال تست Jira...');
+
+    this.integrationSettingsService.testJira(this.jiraForm.getRawValue()).subscribe({
+      next: () => this.jiraTestMessage.set('اتصال Jira موفق بود.'),
+      error: (error) => this.jiraTestMessage.set(error.message),
+    });
+  }
+
+  saveJiraConnection(): void {
+    if (this.jiraForm.invalid) {
+      this.jiraForm.markAllAsTouched();
+      return;
+    }
+
+    this.integrationSettingsService.configureJira(this.jiraForm.getRawValue()).subscribe({
+      next: () => {
+        this.jiraTestMessage.set('اتصال Jira ذخیره شد.');
+        this.loadIntegrationStatus();
+      },
+      error: (error) => this.jiraTestMessage.set(error.message),
+    });
+  }
+
+  testGitLabConnection(): void {
+    if (this.gitlabForm.invalid) {
+      this.gitlabForm.markAllAsTouched();
+      return;
+    }
+
+    this.gitlabTestMessage.set('در حال تست GitLab...');
+
+    this.integrationSettingsService.testGitLab(this.gitlabForm.getRawValue()).subscribe({
+      next: () => this.gitlabTestMessage.set('اتصال GitLab موفق بود.'),
+      error: (error) => this.gitlabTestMessage.set(error.message),
+    });
+  }
+
+  saveGitLabConnection(): void {
+    if (this.gitlabForm.invalid) {
+      this.gitlabForm.markAllAsTouched();
+      return;
+    }
+
+    this.integrationSettingsService.configureGitLab(this.gitlabForm.getRawValue()).subscribe({
+      next: () => {
+        this.gitlabTestMessage.set('اتصال GitLab ذخیره شد.');
+        this.loadIntegrationStatus();
+      },
+      error: (error) => this.gitlabTestMessage.set(error.message),
+    });
   }
 }

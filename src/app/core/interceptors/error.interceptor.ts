@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth/auth.service';
+import { environment } from '../../../environments/environment';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
@@ -10,13 +11,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
+      const isIntegrationProxyRequest = req.url.startsWith(environment.integrationProxyBaseUrl);
+      if (error.status === 401 && !isIntegrationProxyRequest) {
         // A 401 means the token is missing, expired, or rejected by the backend.
         authService.logout();
         router.navigate(['/auth/login']);
-      } else if (error.status === 403) {
+      } else if (error.status === 401 && isIntegrationProxyRequest) {
         // A 403 means the token is valid, but this user does not have permission.
-        console.error('Forbidden request: the current user has no access to this resource.');
+        console.error('Integration provider unauthorized. Do not logout WTT user.');
       } else if (error.status === 503) {
         // A 503 usually means the backend or gateway is temporarily unavailable.
         console.error('Service unavailable: WTT backend is not available right now.');
