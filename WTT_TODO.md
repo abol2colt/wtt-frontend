@@ -1327,123 +1327,122 @@ Do not add new product features here.
 
 ---
 
-## 🔜 Branch 024 — `feature/024-presence-quick-action-and-history`
+🔥 Branch 023 — feature/023-presence-correction-quick-action-and-history
 
-**Priority:** LATER  
-**Goal:** Replace heavy presence page need with quick action + history drawer/page.
+Priority: P0 / FORCE
+Goal: کاربر بتواند حضور فعلی را ببیند، ورود/خروج سریع بزند، تاریخچه را چک کند و حضور فراموش‌شده را با گارد ثبت کند.
 
-### Checklist
+Checklist
+Review current Presence read endpoints.
+Keep sidebar presence orb as quick action.
+Add compact presence drawer or page:
+today status
+active presence
+last clock-in
+last clock-out
+presence history list
+Connect active presence read.
+Connect today presence history read.
+Add guarded clock-in.
+Add guarded clock-out.
+Prevent double clock-in.
+Prevent clock-out without active clock-in.
+Add forgot-presence correction form:
+date
+start time
+end time
+location
+reason
+Require reason for manual/corrected presence.
+Mark corrected presence as pending/review if backend supports it.
+If backend has no correction endpoint, show honest disabled state.
+Add edit/delete only if company policy and backend allow it.
+Add confirm modal for delete/edit.
+Add clean empty state when no presence history exists.
+Add success/error toast.
+Refetch presence after mutation.
+Run build.
+Write branch report.
 
-- [ ] Keep sidebar presence orb as primary quick action.
-- [ ] Add presence history drawer or compact page.
-- [ ] Connect active presence read.
-- [ ] Add guarded clock-in.
-- [ ] Add guarded clock-out.
-- [ ] Prevent double clock-in.
-- [ ] Add delete/edit only if company policy allows.
-- [ ] Write branch report.
+خلاصه فارسی: حضور فقط یک orb ساده نیست؛ کاربر می‌تواند تاریخچه را ببیند و حضور فراموش‌شده را با دلیل ثبت یا اصلاح کند.
 
-**خلاصه فارسی:** حضور را به جای صفحه سنگین، به اکشن سریع و تاریخچه سبک تبدیل می‌کنیم.
+🔜 Branch 024 — feature/024-notification-center-and-announcements
 
----
+Priority: P1
+Goal: اعلان‌های لحظه‌ای و اطلاعیه‌های ماندگار در یک مرکز اعلان تمیز و غیرمزاحم جمع شوند.
 
-## 🔜 Branch 025 — `feature/025-integration-settings-center`
+Checklist
+Create notification center route/page.
+Use header bell as shortcut.
+Add compact notification dropdown.
+Add notification center page:
+unread notifications
+read notifications
+public announcements
+private announcements
+archive
+Distinguish:
+transient notification
+persistent announcement
+system alert
+task/worklog event
+Connect existing announcement APIs.
+Keep public/private announcements in archive view.
+Add unread count badge in header.
+Add mark-as-read UI if backend supports it.
+If no mark-as-read endpoint exists, keep local read state only with honest limitation.
+Show toast/dropdown only for important new items.
+Avoid intrusive notifications.
+Keep empty states clean.
+Add loading and error states.
+Run build.
+Write branch report.
 
-**Priority:** LATER  
-**Goal:** Add settings UI for WTT/Jira/GitLab/AI integrations.
+خلاصه فارسی: اعلان‌ها و اطلاعیه‌ها در یک مرکز مرتب نمایش داده می‌شوند، بدون اینکه کاربر را با popupهای زیاد اذیت کنند.
 
-### Checklist
+🧹 Branch 025 — feature/025-final-app-polish-and-css-refactor
 
-- [ ] Add integration settings page.
-- [ ] Add Jira-compatible provider config:
-  - [ ] base URL
-  - [ ] token placeholder
-  - [ ] project mapping
-- [ ] Add GitLab provider config:
-  - [ ] base URL
-  - [ ] token placeholder
-  - [ ] project id
-  - [ ] branch pattern
-- [ ] Add AI provider config placeholder.
-- [ ] Do not store secrets insecurely in frontend.
-- [ ] Use backend/proxy for secret storage later.
-- [ ] Add connection test buttons.
-- [ ] Write branch report.
+Priority: P0 / FINAL
+Goal: بعد از بستن featureها، کل پروژه یک‌دست، قابل ارائه و قابل نگهداری شود.
 
-**خلاصه فارسی:** تنظیمات اتصال WTT/Jira/GitLab/AI را حرفه‌ای و قابل توسعه می‌کنیم.
+Checklist
+Full project smoke review:
+login/logout
+dashboard
+tasks
+smart worklog
+settings
+integrations
+presence
+notifications
+reports
+Remove leftover mock/demo wording from user-facing UI.
+Keep honest labels where mock mode still exists.
+Check all dangerous mutations are guarded.
+Check no secrets are stored in frontend.
+Check proxy does not log tokens.
+Add consistent toast messages.
+Add consistent loading states.
+Add consistent empty states.
+Add responsive smoke check.
+CSS cleanup:
+audit styles.scss
+keep only global tokens/reset/utilities in styles.scss
+move feature-specific CSS to feature .scss
+move shared component CSS to shared component files
+remove duplicated classes
+remove dead styles
+normalize naming
+Run format/prettier.
+Run build.
+Final grep:
+mock
+demo
+fake
+temporary
+console.log
+token
+secret
+Write final report.
 
----
-
-## 🔜 Branch 026 — `feature/026-evidence-pack-ui-and-lead-approval`
-
-**Priority:** LATER  
-**Goal:** Make evidence visible for team leads and approval flow.
-
-### Checklist
-
-- [ ] Add Evidence Pack UI.
-- [ ] Show task, branch, commits, MR, AI summary, confidence.
-- [ ] Add developer confirmation state.
-- [ ] Add team lead approval state.
-- [ ] Add reject/rework reason.
-- [ ] Add audit trail.
-- [ ] Keep raw surveillance data minimized.
-- [ ] Write branch report.
-
-**خلاصه فارسی:** برای لید، شواهد کار و جریان تایید را شفاف ولی غیرکنترلی نمایش می‌دهیم.
-
----
-
-## 🔜 Branch 027 — `feature/027-engineering-intelligence-dashboard`
-
-**Priority:** LATER  
-**Goal:** Add team-level engineering intelligence after MVP is stable.
-
-### Checklist
-
-- [ ] Add cycle time metrics.
-- [ ] Add review waiting time.
-- [ ] Add rework indicators.
-- [ ] Add bottleneck summary.
-- [ ] Add team-level report, not individual ranking.
-- [ ] Add AI weekly summary.
-- [ ] Keep privacy/anti-surveillance rules.
-- [ ] Write branch report.
-
-**خلاصه فارسی:** بعد از پایدار شدن MVP، داشبورد هوشمند مهندسی برای تحلیل تیمی اضافه می‌شود.
-
----
-
-# Final Demo Checklist
-
-## Must pass before sleep
-
-- [ ] No secrets in source.
-- [ ] `npm run build` passes.
-- [ ] Login works.
-- [ ] Dashboard loads or shows intentional empty state.
-- [ ] Tasks list loads.
-- [ ] Jira-compatible task dropdown works.
-- [ ] Selected task fills WTT form.
-- [ ] Git evidence sync fills AI description.
-- [ ] Time suggestion works.
-- [ ] Manual time increase over 30 minutes requires reason.
-- [ ] Confidence score is visible or included in draft.
-- [ ] Safe test mutation is either verified or clearly disabled.
-- [ ] Demo script is ready.
-
----
-
-# Final Scope Lock
-
-Until tomorrow demo, do not start:
-
-- Full profile page implementation.
-- Full leave/mission implementation.
-- Full notification center.
-- Full presence page redesign.
-- HR/payroll export.
-- Team lead approval UI.
-- Engineering intelligence dashboard.
-
-Only finish the forced branches 014–020.
+خلاصه فارسی: بعد از فیچرها، کل پروژه تمیز می‌شود؛ مخصوصاً CSSهایی که داخل styles.scss جمع شده‌اند باید برگردند سر جای خودشان.

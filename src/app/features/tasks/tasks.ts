@@ -632,8 +632,7 @@ export class TasksComponent implements OnInit {
         this.mutationState.set({
           data: null,
           loading: false,
-          error:
-            'مپینگ پروژه، سرویس یا قرارداد هنوز کامل نشده است. چند لحظه صبر کن یا تسک دیگری انتخاب کن.',
+          error: 'عنوان تسک از Jira آماده نشد. یک تسک معتبر انتخاب کن.',
         });
         return;
       }
@@ -709,21 +708,25 @@ export class TasksComponent implements OnInit {
 
     return true;
   }
+
   isWizardStepOneValid(): boolean {
     const controls = this.taskForm.controls;
 
+    return this.isJiraTaskSelected() && controls.title.valid && controls.location.valid;
+  }
+  isJiraTaskSelected(): boolean {
+    return Boolean(this.selectedJiraTask());
+  }
+
+  isWttMappingReady(): boolean {
+    const controls = this.taskForm.controls;
+
     return (
-      this.isJiraTaskSelected() &&
-      controls.title.valid &&
       controls.project.valid &&
       controls.project_service.valid &&
       controls.project_contract.valid &&
       controls.location.valid
     );
-  }
-
-  isJiraTaskSelected(): boolean {
-    return Boolean(this.selectedJiraTask());
   }
 
   isManualEntryReady(): boolean {
@@ -768,7 +771,7 @@ export class TasksComponent implements OnInit {
       this.mutationState.set({
         data: null,
         loading: false,
-        error: 'برای شروع AI، اول تسک و مپینگ پروژه/سرویس/قرارداد باید کامل باشد.',
+        error: 'برای شروع AI، اول یک تسک معتبر از Jira انتخاب کن.',
       });
       return;
     }
@@ -1294,12 +1297,18 @@ ${adjustmentReason}`
 
     this.taskForm.patchValue({
       title: `[${task.key ?? task.id}] ${task.title}`,
-      project: task.project_id,
+      project: task.project_id ?? 0,
+      project_service: task.service_id ?? 0,
+      project_contract: task.contract_id ?? 0,
     });
 
-    this.loadProjectDetails(task.project_id, {
-      serviceId: task.service_id,
-      contractId: task.contract_id,
-    });
+    if (task.project_id && task.project_id > 0) {
+      this.loadProjectDetails(task.project_id, {
+        serviceId: task.service_id ?? 0,
+        contractId: task.contract_id ?? 0,
+      });
+    } else {
+      this.projectDetailsState.set({ data: null, loading: false, error: null });
+    }
   }
 }

@@ -39,6 +39,10 @@ export class GitlabSyncService {
       params['branch'] = task.branch_name;
     }
 
+    if (task.gitlab_project_id) {
+      params['projectId'] = task.gitlab_project_id;
+    }
+
     if (task.estimated_minutes) {
       params['estimatedMinutes'] = String(task.estimated_minutes);
     }

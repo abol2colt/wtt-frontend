@@ -430,7 +430,9 @@
                   تسک Jira-compatible را انتخاب کن
                 </h3>
                 <p class="mt-2 text-xs font-bold text-[var(--text-soft)]">
-                  بعد از انتخاب تسک، عنوان و مپینگ پروژه، سرویس و قرارداد به صورت خودکار پر می‌شود.
+                  بعد از انتخاب تسک، عنوان از Jira پر می‌شود. اگر فیلدهای WTT در Jira وجود داشته
+                  باشند، پروژه/سرویس/قرارداد هم خودکار پر می‌شوند؛ در غیر این صورت در مرحله بازبینی
+                  دستی انتخاب می‌کنی.
                 </p>
               </div>
 
@@ -463,13 +465,17 @@
                     {{ selectedJiraTask()?.key ?? selectedJiraTask()?.id }} ·
                     {{ selectedJiraTask()?.title }}
                   </p>
+
                   <p class="mt-2 text-[11px] font-bold text-[var(--text-soft)]">
-                    @if (projectDetailsState().loading) {
-                      در حال تکمیل مپینگ پروژه/سرویس/قرارداد...
-                    } @else if (isWizardStepOneValid()) {
-                      مپینگ آماده است. ادامه بده.
+                    @if (
+                      selectedJiraTask()?.project_id &&
+                      selectedJiraTask()?.service_id &&
+                      selectedJiraTask()?.contract_id
+                    ) {
+                      مپینگ WTT از Jira دریافت شد.
                     } @else {
-                      مپینگ کامل نیست؛ پروژه، سرویس یا قرارداد را بررسی کن.
+                      این تسک از Jira واقعی دریافت شد، اما فیلدهای WTT هنوز در Jira ثبت نشده‌اند؛
+                      پروژه، سرویس و قرارداد را در مرحله بازبینی دستی انتخاب کن.
                     }
                   </p>
                 </div>

@@ -105,6 +105,11 @@ export interface ExternalTaskSourceItem {
 
   source?: ExternalTaskSource;
   raw?: unknown;
+
+  location?: string | null;
+  gitlab_project_id?: string | null;
+  branch_pattern?: string | null;
+  mapping_source?: string | null;
 }
 
 export interface GitEvidenceSummary {
