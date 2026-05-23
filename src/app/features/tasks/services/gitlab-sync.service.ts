@@ -1,7 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import { ExternalTaskSourceItem, GitEvidenceSyncResponse } from '../../../shared/models/task.model';
+import {
+  ExternalTaskSourceItem,
+  GitEvidenceSyncResponse,
+  GitEvidenceCommit,
+} from '../../../shared/models/task.model';
 import { catchError, throwError, Observable } from 'rxjs';
 
 export type AiPromptOptions = {
@@ -27,6 +31,25 @@ export class GitlabSyncService {
 
     return new Error(fallbackMessage);
   }
+  syncEvidenceFromCommits(payload: {
+    taskKey?: string;
+    title: string;
+    commits: GitEvidenceCommit[];
+    tone: 'formal' | 'technical' | 'managerial';
+    detailLevel: 'short' | 'balanced' | 'detailed';
+    extraInstruction?: string;
+  }): Observable<GitEvidenceSyncResponse> {
+    return this.http
+      .post<GitEvidenceSyncResponse>(`${this.proxyUrl}/sync-gitlab/from-commits`, payload)
+      .pipe(
+        catchError((error) =>
+          throwError(() =>
+            this.normalizeIntegrationError(error, 'خطا در تولید گزارش از evidenceهای انتخاب‌شده.'),
+          ),
+        ),
+      );
+  }
+
   syncEvidence(
     task: ExternalTaskSourceItem,
     options?: AiPromptOptions,

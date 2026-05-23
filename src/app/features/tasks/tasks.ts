@@ -115,6 +115,8 @@ export class TasksComponent implements OnInit {
   endDate = signal('');
   jiraTasks = signal<ExternalTaskSourceItem[]>([]);
   selectedJiraTask = signal<ExternalTaskSourceItem | null>(null);
+  manualTaskKey = signal('');
+  manualTaskTitle = signal('');
 
   showJiraDropdown = signal(false);
   flowType = signal<WorklogFlowType | null>(null);
@@ -492,6 +494,8 @@ export class TasksComponent implements OnInit {
     this.currentStep.set(1);
     this.aiConfidenceScore.set(null);
     this.aiEvidenceSummary.set('');
+    this.manualTaskKey.set('');
+    this.manualTaskTitle.set('');
     this.selectedJiraTask.set(null);
     this.showJiraDropdown.set(false);
     this.flowType.set(null);
@@ -600,6 +604,8 @@ export class TasksComponent implements OnInit {
     this.recentGitCommits.set([]);
     this.selectedRecentCommitIds.set([]);
     this.aiFallbackMessage.set('');
+    this.manualTaskKey.set('');
+    this.manualTaskTitle.set('');
     this.suggestedWorklogDurationMinutes.set(null);
     this.aiConfidenceScore.set(null);
     this.aiEvidenceSummary.set('');
@@ -1414,33 +1420,129 @@ ${adjustmentReason}`
   useSelectedRecentCommits(): void {
     const selectedIds = new Set(this.selectedRecentCommitIds());
     const selectedCommits = this.recentGitCommits().filter((commit) => selectedIds.has(commit.id));
+    const selectedTask = this.selectedJiraTask();
 
     if (selectedCommits.length === 0) {
       this.mutationState.set({
         data: null,
         loading: false,
-        error: 'حداقل یک کامیت را انتخاب کن یا مسیر دستی را ادامه بده.',
+        error: 'حداقل یک فعالیت یا کامیت را انتخاب کن یا مسیر دستی را ادامه بده.',
       });
       return;
     }
 
-    const description = [
-      'توضیحات اولیه بر اساس کامیت‌های انتخاب‌شده:',
-      '',
-      ...selectedCommits.map((commit) => `- ${commit.title}`),
-    ].join('\n');
+    if (!selectedTask) {
+      this.mutationState.set({
+        data: null,
+        loading: false,
+        error: 'اول عنوان کار را مشخص کن.',
+      });
+      return;
+    }
+
+    this.currentStep.set(4);
+    this.isSyncing.set(true);
+    this.aiConfidenceScore.set(null);
+    this.aiEvidenceSummary.set('در حال ساخت توضیحات از فعالیت‌های انتخاب‌شده...');
+    this.mutationState.set({ data: null, loading: false, error: null });
 
     this.taskForm.patchValue({
       date: this.taskForm.controls.date.value || this.getTodayJalaliDate(),
-      description,
     });
 
-    this.aiConfidenceScore.set(45);
-    this.aiEvidenceSummary.set(
-      `${selectedCommits.length} کامیت به صورت دستی انتخاب شد؛ لطفاً توضیحات و زمان را بازبینی کن.`,
-    );
+    this.gitlabSyncService
+      .syncEvidenceFromCommits({
+        taskKey: selectedTask.key ?? selectedTask.id,
+        title: selectedTask.title,
+        commits: selectedCommits,
+        tone: this.aiTone(),
+        detailLevel: this.aiDetailLevel(),
+        extraInstruction: this.aiExtraInstruction().trim(),
+      })
+      .subscribe({
+        next: (response) => {
+          this.isSyncing.set(false);
 
-    this.mutationState.set({ data: null, loading: false, error: null });
-    this.currentStep.set(4);
+          if (!response.success) {
+            this.applyEvidenceDraftToForm(response, selectedTask);
+            this.taskForm.patchValue({
+              description: response.fallbackDescription || response.description || '',
+            });
+
+            this.aiConfidenceScore.set(response.confidenceScore ?? 55);
+            this.aiEvidenceSummary.set(
+              response.code === 'AI_PROVIDER_TIMEOUT'
+                ? 'فعالیت‌ها انتخاب شدند اما AI به timeout خورد؛ متن اولیه از evidenceها ساخته شد.'
+                : 'فعالیت‌ها انتخاب شدند اما AI خطا داد؛ متن اولیه از evidenceها ساخته شد.',
+            );
+
+            return;
+          }
+
+          this.applyEvidenceDraftToForm(response, selectedTask);
+
+          this.aiConfidenceScore.set(response.confidenceScore ?? null);
+          this.aiEvidenceSummary.set(
+            [
+              response.evidence?.commitCount != null
+                ? `${response.evidence.commitCount} فعالیت انتخاب‌شده بررسی شد`
+                : null,
+              response.confidenceLabel ? `سطح اطمینان: ${response.confidenceLabel}` : null,
+            ]
+              .filter(Boolean)
+              .join('، ') || 'فعالیت‌های انتخاب‌شده با AI بررسی شدند.',
+          );
+        },
+        error: (err) => {
+          this.isSyncing.set(false);
+
+          const description = [
+            'توضیحات اولیه بر اساس فعالیت‌های انتخاب‌شده:',
+            '',
+            ...selectedCommits.map((commit) => `- ${commit.title}`),
+          ].join('\n');
+
+          this.taskForm.patchValue({ description });
+
+          this.aiConfidenceScore.set(45);
+          this.aiEvidenceSummary.set(
+            'AI خطا داد؛ توضیحات اولیه از روی فعالیت‌های انتخاب‌شده ساخته شد و نیازمند بازبینی است.',
+          );
+
+          this.mutationState.set({
+            data: null,
+            loading: false,
+            error: err?.message || 'خطا در تولید توضیحات AI از فعالیت‌های انتخاب‌شده.',
+          });
+        },
+      });
+  }
+  selectManualTask(): void {
+    const title = this.manualTaskTitle().trim();
+    const rawKey = this.manualTaskKey().trim();
+
+    if (!title) {
+      this.mutationState.set({
+        data: null,
+        loading: false,
+        error: 'برای ثبت کارکرد بدون Jira، عنوان کار را وارد کن.',
+      });
+      return;
+    }
+
+    const key = rawKey || `MANUAL-${Date.now()}`;
+
+    const manualTask: ExternalTaskSourceItem = {
+      id: key,
+      key: rawKey || undefined,
+      title,
+      project_id: null,
+      service_id: null,
+      contract_id: null,
+      location: 'teleworking',
+      source: 'manual',
+    };
+
+    this.selectJiraTask(manualTask);
   }
 }

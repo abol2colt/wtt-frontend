@@ -458,7 +458,47 @@
                   }
                 </select>
               </label>
+              <div
+                class="rounded-3xl border border-dashed border-orange-500/25 bg-orange-500/10 p-4"
+              >
+                <p class="text-sm font-black text-orange-500">تسک در Jira نیست؟</p>
+                <p class="mt-1 text-[11px] font-bold text-[var(--text-soft)]">
+                  اگر کاری انجام شده ولی هنوز در Jira ثبت نشده، عنوانش را دستی وارد کن و در مرحله
+                  بعد از فعالیت‌های GitLab خودت انتخاب کن.
+                </p>
 
+                <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <label class="flex flex-col gap-2">
+                    <span class="text-[11px] font-black text-[var(--text-soft)]">
+                      کلید اختیاری
+                    </span>
+                    <input
+                      type="text"
+                      class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-3 py-3 text-xs font-black text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                      placeholder="مثلاً BBO-1287 یا خالی بگذار"
+                      [value]="manualTaskKey()"
+                      (input)="manualTaskKey.set($any($event.target).value)"
+                    />
+                  </label>
+
+                  <label class="flex flex-col gap-2">
+                    <span class="text-[11px] font-black text-[var(--text-soft)]"> عنوان کار </span>
+                    <input
+                      type="text"
+                      class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-3 py-3 text-xs font-black text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                      placeholder="مثلاً اصلاح خطای نمایش قرارداد"
+                      [value]="manualTaskTitle()"
+                      (input)="manualTaskTitle.set($any($event.target).value)"
+                    />
+                  </label>
+                </div>
+
+                <div class="mt-4 flex justify-end">
+                  <button type="button" class="filter-chip" (click)="selectManualTask()">
+                    استفاده از تسک دستی
+                  </button>
+                </div>
+              </div>
               @if (selectedJiraTask()) {
                 <div class="rounded-3xl border border-emerald-500/20 bg-emerald-500/10 p-4">
                   <p class="text-xs font-black text-emerald-600 dark:text-emerald-300">
@@ -813,9 +853,9 @@
                       کامیتی با کلید این تسک پیدا نشد
                     </p>
                     <p class="mt-2 text-xs font-bold text-[var(--text-soft)]">
-                      ممکن است کامیت‌ها بدون کلید Jira ثبت شده باشند یا در پروژه دیگری باشند. ۲۰
-                      کامیت آخر پروژه را می‌بینی؛ موارد مرتبط را انتخاب کن یا مسیر دستی را ادامه
-                      بده.
+                      ممکن است کامیت‌ها بدون کلید Jira ثبت شده باشند یا در پروژه دیگری باشند.
+                      فعالیت‌ها و کامیت‌های اخیر GitLab خودت را می‌بینی؛ موارد مرتبط را انتخاب کن یا
+                      مسیر دستی را ادامه بده.
                     </p>
 
                     <div class="mt-4 max-h-64 space-y-2 overflow-y-auto custom-scrollbar">
@@ -1055,9 +1095,20 @@
                 </div>
 
                 <label class="flex flex-col gap-2 md:col-span-2">
+                  @if (isSyncing()) {
+                    <div
+                      class="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 md:col-span-2"
+                    >
+                      <p class="text-xs font-black text-cyan-500">
+                        AI هنوز در حال ساخت توضیحات و زمان پیشنهادی است؛ می‌توانی پروژه، سرویس و
+                        قرارداد را انتخاب کنی.
+                      </p>
+                    </div>
+                  }
                   <span class="text-xs font-black text-[var(--text-soft)]">توضیحات نهایی</span>
                   <textarea
                     formControlName="description"
+                    [class.opacity-60]="isSyncing()"
                     rows="6"
                     class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-sm font-bold text-[var(--text-main)] outline-none resize-none dark:bg-[#061525]"
                   ></textarea>
