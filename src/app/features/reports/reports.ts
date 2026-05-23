@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { ApiState } from '../../shared/models/api-state.model';
 import { HttpErrorResponse } from '@angular/common/http';
+import { LayoutService } from '../../core/services/layout/layout.service';
 import {
   ActivityInProjectsReportResponse,
   ActivityUserRow,
@@ -51,6 +52,7 @@ interface ActivityProjectView {
 })
 export class ReportsComponent implements OnInit {
   private readonly reportsService = inject(ReportsService);
+  private readonly layout = inject(LayoutService);
 
   selectedRange = signal<ReportRange>('month_till_today');
   activeTab = signal<ReportsTab>('attendance');

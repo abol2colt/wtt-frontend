@@ -1327,122 +1327,126 @@ Do not add new product features here.
 
 ---
 
-🔥 Branch 023 — feature/023-presence-correction-quick-action-and-history
+### Project Roadmap & Final Todo List
 
-Priority: P0 / FORCE
-Goal: کاربر بتواند حضور فعلی را ببیند، ورود/خروج سریع بزند، تاریخچه را چک کند و حضور فراموش‌شده را با گارد ثبت کند.
+#### 🟢 Branch 023 — `feature/023-presence-and-quick-actions`
 
-Checklist
-Review current Presence read endpoints.
-Keep sidebar presence orb as quick action.
-Add compact presence drawer or page:
-today status
-active presence
-last clock-in
-last clock-out
-presence history list
-Connect active presence read.
-Connect today presence history read.
-Add guarded clock-in.
-Add guarded clock-out.
-Prevent double clock-in.
-Prevent clock-out without active clock-in.
-Add forgot-presence correction form:
-date
-start time
-end time
-location
-reason
-Require reason for manual/corrected presence.
-Mark corrected presence as pending/review if backend supports it.
-If backend has no correction endpoint, show honest disabled state.
-Add edit/delete only if company policy and backend allow it.
-Add confirm modal for delete/edit.
-Add clean empty state when no presence history exists.
-Add success/error toast.
-Refetch presence after mutation.
-Run build.
-Write branch report.
+**توضیح:** تمرکز این برنچ روی تکمیل سیستم حضور و غیاب، مأموریت و مرخصی‌هاست. طراحی مجدد تایمر داشبورد، ثبت حضور فراموش‌شده و جداسازی بخش مرخصی/مأموریت از کارهای اصلی این فاز است.
 
-خلاصه فارسی: حضور فقط یک orb ساده نیست؛ کاربر می‌تواند تاریخچه را ببیند و حضور فراموش‌شده را با دلیل ثبت یا اصلاح کند.
+- **Dashboard Timer & Card**
+- [ ] Redesign the dashboard presence timer for better readability, aesthetics, and theme harmony.
+- [ ] Enlarge the clock-in/out card and make it a shortcut/trigger to open the main presence drawer/page (with safe mutation guards).
 
-🔜 Branch 024 — feature/024-notification-center-and-announcements
+- **Forgot Presence Correction**
+- [ ] Add a contextually appropriate "Log Forgotten Presence" button below the timer.
+- [ ] Implement a slide-down form for manual entry (date, start time, end time) that automatically collapses after submission.
 
-Priority: P1
-Goal: اعلان‌های لحظه‌ای و اطلاعیه‌های ماندگار در یک مرکز اعلان تمیز و غیرمزاحم جمع شوند.
+- **Leave & Mission Pages**
+- [ ] Separate the "Leave" and "Mission" lists completely with a professional UI.
+- [ ] Fix the header title on these pages (currently incorrectly displaying "Dashboard").
 
-Checklist
-Create notification center route/page.
-Use header bell as shortcut.
-Add compact notification dropdown.
-Add notification center page:
-unread notifications
-read notifications
-public announcements
-private announcements
-archive
-Distinguish:
-transient notification
-persistent announcement
-system alert
-task/worklog event
-Connect existing announcement APIs.
-Keep public/private announcements in archive view.
-Add unread count badge in header.
-Add mark-as-read UI if backend supports it.
-If no mark-as-read endpoint exists, keep local read state only with honest limitation.
-Show toast/dropdown only for important new items.
-Avoid intrusive notifications.
-Keep empty states clean.
-Add loading and error states.
-Run build.
-Write branch report.
+#### 🔔 Branch 024 — `feature/024-notifications-and-header-cleanup`
 
-خلاصه فارسی: اعلان‌ها و اطلاعیه‌ها در یک مرکز مرتب نمایش داده می‌شوند، بدون اینکه کاربر را با popupهای زیاد اذیت کنند.
+**توضیح:** هدف این برنچ خلوت کردن و زیباسازی هدر صفحات، راه‌اندازی بخش اطلاعیه‌ها (عمومی و شخصی) به همراه فایل‌های ضمیمه، و فعال‌سازی قابلیت جستجوی واقعی در سیستم است.
 
-🧹 Branch 025 — feature/025-final-app-polish-and-css-refactor
+- **Header Cleanup**
+- [ ] Remove the redundant settings icon from the header to prevent duplication with the right sidebar.
+- [ ] Improve the profile picture and username layout to seamlessly match the overall UI template.
+- [ ] Declutter top-bar fields to make the header cleaner and more readable.
 
-Priority: P0 / FINAL
-Goal: بعد از بستن featureها، کل پروژه یک‌دست، قابل ارائه و قابل نگهداری شود.
+- **Notifications Center**
+- [ ] Connect the header bell icon to real public and private announcement APIs.
+- [ ] Display actual unread notification counts and implement "Mark as read" functionality.
+- [ ] Support viewing and downloading attachments (e.g., PDFs) inside public announcements.
 
-Checklist
-Full project smoke review:
-login/logout
-dashboard
-tasks
-smart worklog
-settings
-integrations
-presence
-notifications
-reports
-Remove leftover mock/demo wording from user-facing UI.
-Keep honest labels where mock mode still exists.
-Check all dangerous mutations are guarded.
-Check no secrets are stored in frontend.
-Check proxy does not log tokens.
-Add consistent toast messages.
-Add consistent loading states.
-Add consistent empty states.
-Add responsive smoke check.
-CSS cleanup:
-audit styles.scss
-keep only global tokens/reset/utilities in styles.scss
-move feature-specific CSS to feature .scss
-move shared component CSS to shared component files
-remove duplicated classes
-remove dead styles
-normalize naming
-Run format/prettier.
-Run build.
-Final grep:
-mock
-demo
-fake
-temporary
-console.log
-token
-secret
-Write final report.
+- **Search Functionality**
+- [ ] Implement real search functionality with a scope selector (search in "Current Page" vs. "Entire App").
 
-خلاصه فارسی: بعد از فیچرها، کل پروژه تمیز می‌شود؛ مخصوصاً CSSهایی که داخل styles.scss جمع شده‌اند باید برگردند سر جای خودشان.
+#### 📊 Branch 025 — `feature/025-dashboard-ux-and-layout`
+
+**توضیح:** بازطراحی کامل داشبورد برای رفع تکرارها، بهبود سایدبارها و یکپارچه کردن فیلترهای بالای صفحه. اضافه کردن نمودارهای جدید و خواناتر کردن Tooltipها در این برنچ انجام می‌شود.
+
+- **Layout & Duplications**
+- [ ] Remove duplicated message fields at the bottom of the projects section.
+- [ ] Remove redundant summary stats at the bottom of the dashboard.
+- [ ] Move the "Project Distribution" section to the bottom, applying a larger, more premium, and graphical UI.
+- [ ] Add a new chart: "Expected Work vs. Registered Work".
+
+- **Dashboard Filters**
+- [ ] Consolidate top filters into a single trigger button: "Dashboard based on: [Current Month to Today]".
+- [ ] Implement an elegant, left-opening dropdown list for date range selection.
+- [ ] Auto-close the filter dropdown after 5 seconds of inactivity using a smooth, dynamic animation.
+
+- **Sidebars & Charts**
+- [ ] Reduce the width of the right sidebar for a more compact look.
+- [ ] Fix the layout shift issue where the center page overlaps the left sidebar when the right sidebar is opened.
+- [ ] Add status-aware icons for items when the left sidebar is collapsed (e.g., an animated green icon indicating active presence).
+- [ ] Add a "Latest Tasks" modal triggered from the left sidebar, allowing users to select a task from the past week and start its timer.
+- [ ] Fix line chart tooltips to display time (HH:mm) and date, rather than raw unformatted numbers.
+
+#### 📝 Branch 026 — `feature/026-tasks-page-and-ai-flow`
+
+**توضیح:** قلب تپنده پروژه! در این برنچ جریان ثبت کارکرد هوشمند (AI)، انتخاب دستی کامیت‌ها و صفحات نمایش لیست و جزئیات تسک‌ها به طور کامل پیاده‌سازی و نهایی می‌شوند.
+
+- **Tasks List & Detail Pages**
+- [ ] Enable real list and grid/card view toggles (currently visual-only).
+- [ ] Build a comprehensive "Task Detail" page with full metadata and excellent design.
+- [ ] Enlarge the "Log Work" action button and add attractive animations.
+
+- **UI Polish**
+- [ ] Increase font sizes and adjust opacity/color contrast for sidebars, especially in Dark Mode.
+- [ ] Optimize scrollbars globally (remove pure white scrollbars, adapt them to light/dark themes, and ensure smoothness).
+
+- **Smart Worklog (AI Flow)**
+- [ ] Display fetched commits to the user for manual selection before dispatching them to the AI.
+- [ ] Allow manual addition of alternative commits to the current task.
+- [ ] **Concurrency Logic:** While AI is processing, redirect the user to the review step so they can fill out missing fields manually.
+- [ ] Auto-fill fields if Jira metadata exists; otherwise, allow user input without overwriting their manual edits when the AI response arrives.
+
+#### 📈 Branch 027 — `feature/027-reports-advanced`
+
+**توضیح:** اختصاصی‌سازی صفحه گزارش‌ها با حذف بخش‌های نامربوط از سایدبار آن و اضافه کردن فیلترهای پیشرفته و اصلاح رنگ‌بندی کارت‌ها.
+
+- **Reports Page Optimization**
+- [ ] Remove "Presence" and "Latest Task" sections from the left sidebar specifically within the Reports route.
+- [ ] Implement advanced filters in the left sidebar for deep report querying.
+- [ ] Improve the background color of the center report card in Light Mode for better visual appeal.
+
+#### ⚙️ Branch 028 — `feature/028-settings-and-customization`
+
+**توضیح:** تکمیل صفحه تنظیمات شامل پروفایل فقط-خواندنی، شخصی‌سازی قالب (رنگ‌ها و فونت‌ها)، تنظیمات اختصاصی هوش مصنوعی و مدیریت امنیت توکن‌ها در نسخه دمو.
+
+- **User Profile (API Read-Only)**
+- [ ] Display 12 profile categories (Basic, Organizational, Identity, Family, Military, Emergency, Education, etc.) via API.
+- [ ] Restrict editing to the profile picture only (UI flow/stages only, no final API mutation required for demo).
+
+- **AI Preferences**
+- [ ] Add separate Tone and Instruction configurations for "Reports" and "Commit Explanations" with 100% strict application.
+- [ ] Add an honest UI badge stating that AI settings are stored locally for the demo environment.
+
+- **UI Personalization**
+- [ ] Allow users to pick background colors and card background colors (for both Light and Dark modes) maintaining a fixed opacity.
+- [ ] Add global font size and item-level font size controls.
+- [ ] Remove unimplemented placeholders (e.g., animation level, dashboard density).
+
+- **Integrations & Security**
+- [ ] Remove `Base URL` fields from all integrations (since they are globally fixed).
+- [ ] Remove `GitLab Username` if it provides no functional value.
+- [ ] Lock `JQL` to the optimal default query (or convert to a preset dropdown).
+- [ ] Lock `Branch Pattern` to `feature/{TASK_KEY}`.
+- [ ] Add token storage security options (e.g., demo local storage rules).
+
+#### 🏗 Branch 029 — `feature/029-proxy-refactor-and-components`
+
+**توضیح:** گام نهایی برای تمیزکاری کدهای فرانت‌اند (کامپوننت‌سازی مشترکات) و جراحی بک‌اند (شکستن فایل سنگین `server.js` به ماژول‌های مستقل و امن).
+
+- **Frontend Refactor**
+- [ ] Extract shared UI elements (especially repetitive left sidebar items) into reusable Angular components.
+
+- **Backend Proxy Refactor**
+- [ ] Deconstruct the monolithic `server.js` file into smaller, modular files.
+- [ ] Extract routes into `routes/jira.routes.js`, `routes/gitlab.routes.js`, `routes/ai.routes.js`.
+- [ ] Extract business logic into `services/jira.service.js`, `services/gitlab.service.js`, `services/ai.service.js`.
+- [ ] Isolate runtime configuration management and data mapper functions.
+
+---

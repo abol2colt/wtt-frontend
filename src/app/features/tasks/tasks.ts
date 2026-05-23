@@ -792,7 +792,11 @@ export class TasksComponent implements OnInit {
       return;
     }
 
-    this.currentStep.set(3);
+    this.currentStep.set(4);
+    this.taskForm.patchValue({
+      date: this.taskForm.controls.date.value || this.getTodayJalaliDate(),
+    });
+
     this.mutationState.set({ data: null, loading: false, error: null });
     this.onSyncGitlab();
   }
