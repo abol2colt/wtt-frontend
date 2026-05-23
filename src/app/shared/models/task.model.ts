@@ -83,7 +83,7 @@ export interface TaskListQuery {
   teleworking?: boolean;
   favorite?: boolean;
 }
-export type ExternalTaskSource = 'jira' | 'mock-jira';
+export type ExternalTaskSource = 'jira' | 'mock-jira' | 'manual';
 
 export interface ExternalTaskSourceItem {
   id: string;
@@ -156,4 +156,8 @@ export interface GitEvidenceCommit {
   authorName?: string;
   createdAt?: string;
   webUrl?: string;
+
+  source?: 'gitlab-commit' | 'gitlab-event' | string;
+  ref?: string | null;
+  commitCount?: number;
 }
