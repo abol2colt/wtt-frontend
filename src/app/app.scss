@@ -1,0 +1,159 @@
+/* Shell , Sidebar */
+.dashboard-shell {
+  width: 100%;
+  max-width: 1440px;
+  min-height: 810px;
+  margin: 0 auto;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) auto;
+  gap: 14px;
+  background: var(--page-bg);
+  direction: ltr;
+}
+
+.main-panel {
+  min-height: 790px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--main-bg);
+  border: 1px solid var(--border-main);
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+:host-context(.dark) .main-panel {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(0, 228, 186, 0.025), transparent 28%),
+    linear-gradient(180deg, #020b16 0%, #010811 100%);
+}
+
+.mobile-sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  border: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 1023px) {
+  .dashboard-shell {
+    max-width: none;
+    min-height: 100vh;
+    display: block;
+  }
+
+  .main-panel {
+    min-height: calc(100vh - 20px);
+  }
+}
+
+@media (max-width: 640px) {
+  .main-panel {
+    padding: 12px;
+    border-radius: 16px;
+  }
+}
+
+.dashboard-shell {
+  min-height: 100vh;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 260px;
+  gap: 14px;
+  padding: 12px 18px;
+  background: var(--app-bg, #020812);
+  overflow: hidden;
+  transition: grid-template-columns 0.3s ease;
+}
+
+.dashboard-shell.shell-sidebar-collapsed {
+  grid-template-columns: 260px minmax(0, 1fr) 76px;
+}
+
+.dashboard-shell.shell-left-sidebar-collapsed {
+  grid-template-columns: 76px minmax(0, 1fr) 260px;
+}
+
+.dashboard-shell.shell-left-sidebar-collapsed.shell-sidebar-collapsed {
+  grid-template-columns: 76px minmax(0, 1fr) 76px;
+}
+
+.main-panel {
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.main-panel > div {
+  min-width: 0;
+}
+
+app-left-sidebar,
+app-sidebar {
+  height: calc(100vh - 24px);
+  min-height: 0;
+  position: sticky;
+  top: 12px;
+  overflow: hidden;
+}
+
+/* =========================
+   DESKTOP SHELL POLISH - SAFE PATCH
+========================= */
+
+.dashboard-shell {
+  --shell-left-width: 280px;
+  --shell-right-width: 260px;
+  --shell-gap: 14px;
+
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  margin: 0;
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: var(--shell-left-width) minmax(0, 1fr) var(--shell-right-width);
+  gap: var(--shell-gap);
+  background: var(--page-bg);
+  overflow: hidden;
+  direction: ltr;
+  transition: grid-template-columns 0.25s ease;
+}
+
+.dashboard-shell.shell-sidebar-collapsed {
+  --shell-right-width: 76px;
+}
+
+.dashboard-shell.shell-left-sidebar-collapsed {
+  --shell-left-width: 76px;
+}
+
+.main-panel {
+  min-width: 0;
+  width: 100%;
+  height: calc(100vh - 20px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.main-panel > div {
+  min-width: 0;
+}
+
+app-left-sidebar,
+app-sidebar {
+  min-width: 0;
+  height: calc(100vh - 20px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+:host-context(.dark) .main-panel {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(34, 211, 238, 0.035), transparent 30%),
+    linear-gradient(180deg, #111c2e 0%, #0f172a 100%);
+}

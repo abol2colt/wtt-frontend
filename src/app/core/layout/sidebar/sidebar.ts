@@ -9,6 +9,7 @@ import { LayoutService } from '../../services/layout/layout.service';
   standalone: true,
   imports: [NgClass, RouterLink, RouterLinkActive],
   templateUrl: './sidebar.html',
+  styleUrl: './sidebar.scss',
 })
 export class SidebarComponent {
   private readonly router = inject(Router);

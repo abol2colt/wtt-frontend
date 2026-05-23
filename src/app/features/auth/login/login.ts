@@ -10,6 +10,7 @@ import { LayoutService } from '../../../core/services/layout/layout.service';
   standalone: true,
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
+  styleUrl: './login.scss',
 })
 export class LoginComponent implements OnInit {
   private readonly fb = inject(FormBuilder);

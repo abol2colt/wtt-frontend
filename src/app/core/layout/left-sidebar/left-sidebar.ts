@@ -41,6 +41,7 @@ type ProjectDistributionItem = DashboardPieItem & {
   standalone: true,
   imports: [NgxEchartsDirective],
   templateUrl: './left-sidebar.html',
+  styleUrl: './left-sidebar.scss',
 })
 export class LeftSidebarComponent implements OnInit, OnDestroy {
   layout = inject(LayoutService);

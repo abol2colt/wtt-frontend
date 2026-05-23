@@ -55,6 +55,7 @@ interface RequestRow {
   selector: 'app-presence',
   standalone: true,
   templateUrl: './presence.html',
+  styleUrl: './presence.scss',
 })
 export class PresenceComponent implements OnInit, OnDestroy {
   private readonly presenceService = inject(PresenceService);
