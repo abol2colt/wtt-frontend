@@ -7,6 +7,7 @@ import { TasksService } from '../../../features/tasks/services/tasks.service';
   selector: 'app-welcome-splash',
   standalone: true,
   templateUrl: './welcome-splash.html',
+  styleUrl: './welcome-splash.scss',
 })
 export class WelcomeSplashComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);

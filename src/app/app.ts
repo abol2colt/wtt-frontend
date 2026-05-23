@@ -20,6 +20,7 @@ import { WelcomeSplashComponent } from './core/layout/welcome-splash/welcome-spl
     WelcomeSplashComponent,
   ],
   templateUrl: './app.html',
+  styleUrl: './app.scss',
 })
 export class App {
   private readonly router = inject(Router);
@@ -29,10 +30,12 @@ export class App {
   title = 'wtt-frontend';
 
   constructor() {
-    this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((event) => {
-      this.isAuthRoute.set(this.isAuthUrl(event.urlAfterRedirects));
-      this.layout.closeMobileSidebar();
-    });
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event) => {
+        this.isAuthRoute.set(this.isAuthUrl(event.urlAfterRedirects));
+        this.layout.closeMobileSidebar();
+      });
   }
 
   private isAuthUrl(url: string): boolean {

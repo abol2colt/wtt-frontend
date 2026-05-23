@@ -47,6 +47,7 @@ interface ActivityProjectView {
   selector: 'app-reports',
   standalone: true,
   templateUrl: './reports.html',
+  styleUrl: './reports.scss',
 })
 export class ReportsComponent implements OnInit {
   private readonly reportsService = inject(ReportsService);

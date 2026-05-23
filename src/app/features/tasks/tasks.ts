@@ -36,6 +36,7 @@ type AiDetailLevel = 'short' | 'balanced' | 'detailed';
   standalone: true,
   imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './tasks.html',
+  styleUrl: './tasks.scss',
 })
 export class TasksComponent implements OnInit {
   layout = inject(LayoutService);

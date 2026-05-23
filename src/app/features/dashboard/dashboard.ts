@@ -18,6 +18,7 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [NgxEchartsDirective, RouterLink],
   templateUrl: './dashboard.html',
+  styleUrl: './dashboard.scss',
 })
 export class DashboardComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
