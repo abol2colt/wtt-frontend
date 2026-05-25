@@ -268,10 +268,19 @@
             در این بازه زمانی کاری ثبت نشده است.
           </p>
         </div>
+      } @else if (visibleTasks().length === 0) {
+        <div
+          class="rounded-2xl border border-dashed border-cyan-500/30 bg-cyan-500/5 p-8 text-center"
+        >
+          <p class="text-sm font-black text-[var(--text-main)]">نتیجه‌ای برای این جستجو پیدا نشد</p>
+          <p class="mt-2 text-xs font-bold text-[var(--text-soft)]">
+            عبارت جستجو را تغییر بده یا محدوده جستجو را روی کل سامانه بگذار.
+          </p>
+        </div>
       } @else {
         @if (isTaskViewMode('grid')) {
           <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-            @for (task of tasks; track trackTask($index, task)) {
+            @for (task of visibleTasks(); track trackTask($index, task)) {
               <article
                 class="rounded-3xl border border-[var(--card-border)] bg-white/75 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:bg-white/5"
               >
@@ -352,7 +361,7 @@
             }
           </div>
         } @else {
-          @for (task of tasks; track trackTask($index, task)) {
+          @for (task of visibleTasks(); track trackTask($index, task)) {
             <div
               class="task-row-card group !grid !h-auto !min-h-[72px] grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 sm:gap-4"
             >

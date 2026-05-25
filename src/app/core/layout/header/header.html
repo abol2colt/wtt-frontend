@@ -14,23 +14,22 @@
     </button>
 
     <div class="w-[290px] text-right">
-    <h1 class="m-0 text-[25px] leading-[1.1] font-black tracking-[-0.5px] text-[var(--text-main)]">
-      {{ layout.isTasksPage() ? 'مرکز وظایف' : 'داشبورد' }}
-    </h1>
-    <p class="mt-[6px] text-[12px] leading-[1.4] font-semibold text-[var(--text-soft)]">
-      {{
-        layout.isTasksPage()
-          ? 'بررسی، ثبت و پیگیری تسک‌های روزانه'
-          : 'نمای کلی از عملکرد و فعالیت‌های شما'
-      }}
-    </p>
+      <h1
+        class="m-0 text-[25px] leading-[1.1] font-black tracking-[-0.5px] text-[var(--text-main)]"
+      >
+        {{ layout.currentPage().title }}
+      </h1>
+
+      <p class="mt-[6px] text-[12px] leading-[1.4] font-semibold text-[var(--text-soft)]">
+        {{ layout.currentPage().subtitle }}
+      </p>
     </div>
   </div>
 
   <div
-    class="mt-[4px] flex h-[36px] w-[330px] items-center gap-[8px] rounded-[10px] border border-[rgba(20,48,74,0.1)] dark:border-[rgba(20,48,74,0.82)] bg-white dark:bg-[#03111d] px-[12px] shadow-[inset_0_1px_0_rgba(255,255,255,0.02),0_8px_18px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.02),0_8px_18px_rgba(0,0,0,0.22)] transition-shadow duration-300"
+    class="mt-[4px] flex h-[38px] w-[420px] items-center gap-[8px] rounded-[12px] border border-[rgba(20,48,74,0.1)] bg-white px-[10px] shadow-[inset_0_1px_0_rgba(255,255,255,0.02),0_8px_18px_rgba(0,0,0,0.05)] transition-shadow duration-300 dark:border-[rgba(20,48,74,0.82)] dark:bg-[#03111d] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.02),0_8px_18px_rgba(0,0,0,0.22)]"
   >
-    <svg class="w-5 h-5 text-[var(--text-soft)]" viewBox="0 0 24 24" fill="none">
+    <svg class="h-5 w-5 text-[var(--text-soft)]" viewBox="0 0 24 24" fill="none">
       <path
         d="M21 21L16.65 16.65M11 19C6.58 19 3 15.42 3 11C3 6.58 6.58 3 11 3C15.42 3 19 6.58 19 11C19 15.42 15.42 19 11 19Z"
         stroke="currentColor"
@@ -39,13 +38,41 @@
       />
     </svg>
 
+    @if (layout.isSearchPanelOpen()) {
+      <select
+        class="h-[28px] rounded-lg border border-[var(--border-main)] bg-slate-50 px-2 text-[11px] font-black text-[var(--text-soft)] outline-none dark:bg-[#0f1a29]"
+        [value]="layout.searchScope()"
+        (change)="layout.setSearchScope($any($event.target).value)"
+        aria-label="محدوده جستجو"
+      >
+        <option value="current_page">همین صفحه</option>
+        <option value="entire_app">کل سامانه</option>
+      </select>
+    }
     <input
+      #searchInput
       class="min-w-0 flex-1 border-0 bg-transparent text-[12px] font-semibold text-[var(--text-main)] outline-none placeholder:text-[var(--text-muted)] dark:placeholder:text-[rgba(104,117,135,0.5)]"
-      placeholder="جستجوی سریع..."
+      placeholder="جستجو..."
+      [value]="layout.searchQuery()"
+      (input)="layout.setSearchQuery($any($event.target).value)"
+      (keydown.enter)="submitSearch()"
+      (focus)="layout.isSearchFocused.set(true)"
+      (blur)="layout.isSearchFocused.set(false)"
     />
 
+    @if (layout.searchQuery()) {
+      <button
+        type="button"
+        class="grid h-6 w-6 place-items-center rounded-full text-[15px] font-black text-[var(--text-soft)] hover:bg-slate-100 hover:text-[var(--text-main)] dark:hover:bg-white/10"
+        aria-label="پاک کردن جستجو"
+        (click)="layout.clearSearch()"
+      >
+        ×
+      </button>
+    }
+
     <kbd
-      class="flex h-[22px] min-w-[58px] items-center justify-center rounded-[6px] bg-[#f1f5f9] dark:bg-[#0f1a29] px-[7px] text-[11px] font-[800] text-[#64748b] dark:text-[#9aa6ba] [direction:ltr]"
+      class="flex h-[22px] min-w-[58px] items-center justify-center rounded-[6px] bg-[#f1f5f9] px-[7px] text-[11px] font-[800] text-[#64748b] [direction:ltr] dark:bg-[#0f1a29] dark:text-[#9aa6ba]"
     >
       Ctrl + K
     </kbd>
@@ -55,7 +82,13 @@
     class="mt-[4px] flex h-[36px] w-[130px] items-center justify-end gap-[18px] text-[var(--text-soft)] hover:text-[var(--text-main)] [direction:ltr]"
   >
     <button
+      type="button"
       class="relative grid size-[24px] place-items-center hover:text-blue-500 transition-colors"
+      [class.text-blue-500]="notificationCount() > 0"
+      [attr.aria-label]="
+        notificationCount() > 0 ? 'مشاهده اطلاعیه‌های خوانده‌نشده' : 'مشاهده اطلاعیه‌ها'
+      "
+      (click)="openNotifications()"
     >
       <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
         <path
@@ -71,10 +104,6 @@
           stroke-linejoin="round"
         />
       </svg>
-      <span
-        class="absolute right-[-6px] top-[-6px] grid size-[16px] place-items-center rounded-full bg-[var(--purple)] text-[9px] font-black text-white shadow-[0_2px_8px_rgba(124,58,237,0.4)]"
-        >3</span
-      >
     </button>
     <button
       (click)="themeService.toggleTheme()"
@@ -100,17 +129,6 @@
           />
         </svg>
       }
-    </button>
-    <button class="grid size-[24px] place-items-center hover:text-blue-500 transition-colors">
-      <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none">
-        <path d="M12 15.5A3.5 3.5 0 1 0 12 8.5A3.5 3.5 0 0 0 12 15.5Z" stroke="currentColor" />
-        <path
-          d="M19.4 15A1.65 1.65 0 0 0 19.73 16.82L19.79 16.88A2 2 0 1 1 16.96 19.71L16.9 19.65A1.65 1.65 0 0 0 15.08 19.32A1.65 1.65 0 0 0 14.08 20.83V21A2 2 0 1 1 10.08 21V20.91A1.65 1.65 0 0 0 9 19.4A1.65 1.65 0 0 0 7.18 19.73L7.12 19.79A2 2 0 1 1 4.29 16.96L4.35 16.9A1.65 1.65 0 0 0 4.68 15.08A1.65 1.65 0 0 0 3.17 14.08H3A2 2 0 1 1 3 10.08H3.09A1.65 1.65 0 0 0 4.6 9A1.65 1.65 0 0 0 4.27 7.18L4.21 7.12A2 2 0 1 1 7.04 4.29L7.1 4.35A1.65 1.65 0 0 0 8.92 4.68H9A1.65 1.65 0 0 0 10 3.17V3A2 2 0 1 1 14 3V3.09A1.65 1.65 0 0 0 15 4.6A1.65 1.65 0 0 0 16.82 4.27L16.88 4.21A2 2 0 1 1 19.71 7.04L19.65 7.1A1.65 1.65 0 0 0 19.32 8.92V9A1.65 1.65 0 0 0 20.83 10H21A2 2 0 1 1 21 14H20.91A1.65 1.65 0 0 0 19.4 15Z"
-          stroke="currentColor"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
     </button>
   </div>
 </header>

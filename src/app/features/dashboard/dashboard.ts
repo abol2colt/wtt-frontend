@@ -1,6 +1,6 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { LayoutService } from '../../core/services/layout/layout.service';
-import { DashboardStats } from '../../shared/models/dashboard.model';
+import { DashboardStats, DashboardPieItem } from '../../shared/models/dashboard.model';
 import { ApiState } from '../../shared/models/api-state.model';
 import { DashboardService } from './services/dashboard.service';
 import { EChartsOption } from 'echarts';
@@ -13,6 +13,20 @@ import {
 } from '../../shared/models/dashboard.model';
 import { RouterLink } from '@angular/router';
 
+type ProjectDistributionItem = DashboardPieItem & {
+  percent: number;
+  color: string;
+};
+type DashboardLineChartPoint = {
+  date?: string | null;
+  day?: string | null;
+  label?: string | null;
+  total_work?: number | null;
+  presence?: number | null;
+  value?: number | null;
+  minutes?: number | null;
+};
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -20,12 +34,40 @@ import { RouterLink } from '@angular/router';
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   private readonly dashboardService = inject(DashboardService);
   private readonly authService = inject(AuthService);
 
   layout = inject(LayoutService);
+  projectDistributionState = signal<ApiState<EChartsOption>>({
+    data: null,
+    loading: true,
+    error: null,
+  });
 
+  projectDistributionItems = signal<DashboardPieItem[]>([]);
+
+  readonly projectDistributionColors = ['#3b82f6', '#a855f7', '#f59e0b', '#22c55e', '#ef4444'];
+
+  readonly projectDistributionLegendItems = computed<ProjectDistributionItem[]>(() => {
+    const items = this.projectDistributionItems();
+
+    const total = items.reduce((sum, item) => {
+      return sum + Number(item.value ?? 0);
+    }, 0);
+
+    if (total <= 0) {
+      return [];
+    }
+
+    return items.map((item, index) => {
+      return {
+        ...item,
+        color: this.projectDistributionColors[index % this.projectDistributionColors.length],
+        percent: Math.round((Number(item.value ?? 0) / total) * 100),
+      };
+    });
+  });
   publicNewsState = signal<ApiState<NewsMessagesResponse>>({
     data: null,
     loading: true,
@@ -63,10 +105,35 @@ export class DashboardComponent implements OnInit {
   ];
 
   selectedRange = signal('month_till_today');
+  dashboardFilterOpen = signal(false);
+
+  private dashboardFilterCloseTimer?: ReturnType<typeof setTimeout>;
 
   constructor() {
     this.layout.isTasksPage.set(false);
     this.layout.dashboardRange.set(this.selectedRange() as TaskRange);
+  }
+
+  hasDashboardSearchResults(): boolean {
+    return this.matchesDashboardSearch(
+      'زمان مورد انتظار',
+      'کل کارکرد',
+      'اضافه کاری',
+      'اضافه‌کاری',
+      'مرخصی',
+      'روند کارکرد',
+      'نمودار',
+      'اطلاعیه',
+      'پیام',
+      'عمومی',
+      'شخصی',
+      'خلاصه',
+      'مرکز پیام‌ها',
+      'ثبت کارکرد',
+      'وظایف',
+      'اقدام سریع',
+      this.selectedRangeLabel,
+    );
   }
 
   ngOnInit(): void {
@@ -76,6 +143,50 @@ export class DashboardComponent implements OnInit {
     this.loadPublicNews();
     this.loadPrivateNews();
     this.loadPublicNewsCount();
+    this.loadProjectDistribution();
+  }
+
+  ngOnDestroy(): void {
+    this.clearDashboardFilterAutoClose();
+  }
+
+  toggleDashboardFilter(): void {
+    if (this.dashboardFilterOpen()) {
+      this.closeDashboardFilter();
+      return;
+    }
+
+    this.openDashboardFilter();
+  }
+
+  openDashboardFilter(): void {
+    this.dashboardFilterOpen.set(true);
+    this.scheduleDashboardFilterAutoClose();
+  }
+
+  closeDashboardFilter(): void {
+    this.dashboardFilterOpen.set(false);
+    this.clearDashboardFilterAutoClose();
+  }
+
+  scheduleDashboardFilterAutoClose(): void {
+    this.clearDashboardFilterAutoClose();
+
+    this.dashboardFilterCloseTimer = setTimeout(() => {
+      this.dashboardFilterOpen.set(false);
+    }, 5000);
+  }
+
+  clearDashboardFilterAutoClose(): void {
+    if (!this.dashboardFilterCloseTimer) return;
+
+    clearTimeout(this.dashboardFilterCloseTimer);
+    this.dashboardFilterCloseTimer = undefined;
+  }
+
+  selectDashboardRangeFromDropdown(range: TaskRange): void {
+    this.setDashboardRange(range);
+    this.closeDashboardFilter();
   }
 
   setDashboardRange(range: TaskRange): void {
@@ -88,6 +199,7 @@ export class DashboardComponent implements OnInit {
     this.loadPublicNews();
     this.loadPrivateNews();
     this.loadPublicNewsCount();
+    this.loadProjectDistribution();
   }
 
   isDashboardRangeActive(range: string): boolean {
@@ -279,107 +391,243 @@ export class DashboardComponent implements OnInit {
       },
     });
   }
+  loadProjectDistribution(): void {
+    const userId = this.authService.getCurrentUserId();
 
-  // ۳. تبدیل دیتای API به تنظیمات نمودار خطی ECharts
-  private buildLineChartOption(data: any[]): EChartsOption {
-    return {
-      backgroundColor: 'transparent',
+    if (!userId) {
+      this.projectDistributionItems.set([]);
 
-      tooltip: {
-        trigger: 'axis',
-        appendToBody: true,
-        backgroundColor: '#020617',
-        borderColor: 'rgba(59, 130, 246, 0.35)',
-        textStyle: {
-          color: '#e5e7eb',
-          fontSize: 11,
-        },
+      this.projectDistributionState.set({
+        data: null,
+        loading: false,
+        error: 'شناسه کاربر پیدا نشد. لطفاً دوباره وارد شوید.',
+      });
+
+      return;
+    }
+
+    this.projectDistributionState.set({
+      data: null,
+      loading: true,
+      error: null,
+    });
+
+    this.dashboardService.getPieChart(userId, this.selectedRange()).subscribe({
+      next: (response) => {
+        if (!response.length) {
+          this.projectDistributionItems.set([]);
+
+          this.projectDistributionState.set({
+            data: null,
+            loading: false,
+            error: null,
+          });
+
+          return;
+        }
+
+        this.projectDistributionItems.set(response);
+
+        this.projectDistributionState.set({
+          data: this.buildProjectDistributionOption(response),
+          loading: false,
+          error: null,
+        });
       },
 
-      grid: {
-        left: 34,
-        right: 20,
-        top: 24,
-        bottom: 24,
-        containLabel: true,
+      error: () => {
+        this.projectDistributionItems.set([]);
+
+        this.projectDistributionState.set({
+          data: null,
+          loading: false,
+          error: 'خطا در دریافت توزیع پروژه‌ها',
+        });
       },
-
-      xAxis: {
-        type: 'category',
-        boundaryGap: false,
-        data: data.map((item) => item.date),
-
-        axisTick: {
-          show: false,
-        },
-
-        axisLine: {
-          lineStyle: {
-            color: 'rgba(148, 163, 184, 0.18)',
-          },
-        },
-
-        axisLabel: {
-          color: 'rgba(148, 163, 184, 0.65)',
-          fontSize: 10,
-          formatter: (value: string) => value.slice(5),
-        },
-
-        splitLine: {
-          show: false,
-        },
-      },
-
-      yAxis: {
-        type: 'value',
-
-        axisTick: {
-          show: false,
-        },
-
-        axisLine: {
-          show: false,
-        },
-
-        axisLabel: {
-          color: 'rgba(148, 163, 184, 0.65)',
-          fontSize: 10,
-          formatter: (value: number) => `${Math.round(value / 60)}h`,
-        },
-
-        splitLine: {
-          show: true,
-          lineStyle: {
-            color: 'rgba(148, 163, 184, 0.05)',
-            width: 1,
-          },
-        },
-      },
-
-      series: [
-        {
-          name: 'کارکرد',
-          type: 'line',
-          smooth: true,
-          symbol: 'circle',
-          symbolSize: 6,
-
-          areaStyle: {
-            opacity: 0.12,
-          },
-
-          lineStyle: {
-            width: 3,
-            color: '#3b82f6',
-          },
-
-          itemStyle: {
-            color: '#3b82f6',
-          },
-
-          data: data.map((item) => item.presence),
-        },
-      ],
-    };
+    });
   }
+private buildProjectDistributionOption(data: DashboardPieItem[]): EChartsOption {
+  return {
+    backgroundColor: 'transparent',
+
+    tooltip: {
+      trigger: 'item',
+      appendToBody: true,
+      backgroundColor: '#020617',
+      borderColor: 'rgba(148, 163, 184, 0.25)',
+      borderWidth: 1,
+      textStyle: {
+        color: '#e5e7eb',
+        fontSize: 11,
+      },
+      extraCssText:
+        'z-index: 9999; border-radius: 12px; box-shadow: 0 16px 34px rgba(0,0,0,0.35);',
+    },
+
+    legend: {
+      show: false,
+    },
+
+    series: [
+      {
+        name: 'توزیع پروژه‌ها',
+        type: 'pie',
+        radius: ['58%', '82%'],
+        center: ['50%', '52%'],
+        avoidLabelOverlap: true,
+
+        itemStyle: {
+          borderRadius: 12,
+          borderColor: 'rgba(255, 255, 255, 0.9)',
+          borderWidth: 3,
+          shadowBlur: 16,
+          shadowColor: 'rgba(59, 130, 246, 0.18)',
+        },
+
+        label: {
+          show: false,
+        },
+
+        labelLine: {
+          show: false,
+        },
+
+        emphasis: {
+          scale: true,
+          scaleSize: 7,
+          itemStyle: {
+            shadowBlur: 24,
+            shadowColor: 'rgba(6, 182, 212, 0.3)',
+          },
+        },
+
+        data: data.map((item) => ({
+          value: item.value,
+          name: item.project,
+        })),
+
+        color: this.projectDistributionColors,
+      },
+    ],
+  };
 }
+
+matchesDashboardSearch(...values: unknown[]): boolean {
+  const request = this.layout.searchRequest();
+
+  if (!request || request.scope !== 'current_page' || request.pageKey !== 'dashboard') {
+    return true;
+  }
+
+  const query = request.query.toLowerCase();
+
+  return values.filter(Boolean).some((value) => String(value).toLowerCase().includes(query));
+}
+
+private buildLineChartOption(data: DashboardLineChartPoint[]): EChartsOption {
+  return {
+    backgroundColor: 'transparent',
+    animation: true,
+    animationDuration: 900,
+    animationEasing: 'cubicOut',
+    animationDurationUpdate: 450,
+
+    tooltip: {
+      trigger: 'axis',
+      appendToBody: true,
+      backgroundColor: '#020617',
+      borderColor: 'rgba(59, 130, 246, 0.35)',
+      textStyle: {
+        color: '#e5e7eb',
+        fontSize: 11,
+      },
+    },
+
+    grid: {
+      left: 34,
+      right: 20,
+      top: 24,
+      bottom: 24,
+      containLabel: true,
+    },
+
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: data.map((item, index) => item.date ?? item.day ?? item.label ?? String(index + 1)),
+      axisTick: {
+        show: false,
+      },
+      axisLine: {
+        lineStyle: {
+          color: 'rgba(148, 163, 184, 0.18)',
+        },
+      },
+      axisLabel: {
+        color: 'rgba(148, 163, 184, 0.65)',
+        fontSize: 10,
+        formatter: (value: string) => value.slice(5),
+      },
+      splitLine: {
+        show: false,
+      },
+    },
+
+    yAxis: {
+      type: 'value',
+      axisTick: {
+        show: false,
+      },
+      axisLine: {
+        show: false,
+      },
+      axisLabel: {
+        color: 'rgba(148, 163, 184, 0.65)',
+        fontSize: 10,
+        formatter: (value: number) => `${Math.round(value / 60)}h`,
+      },
+      splitLine: {
+        show: true,
+        lineStyle: {
+          color: 'rgba(148, 163, 184, 0.05)',
+          width: 1,
+        },
+      },
+    },
+
+    series: [
+      {
+        name: 'کارکرد',
+        type: 'line',
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 6,
+        showSymbol: true,
+        animation: true,
+        animationDuration: 950,
+        animationEasing: 'cubicOut',
+
+        areaStyle: {
+          opacity: 0.12,
+        },
+
+        lineStyle: {
+          width: 3,
+          color: '#3b82f6',
+        },
+
+        itemStyle: {
+          color: '#3b82f6',
+          borderColor: '#ffffff',
+          borderWidth: 2,
+        },
+
+        data: data.map((item) =>
+          Number(item.total_work ?? item.presence ?? item.value ?? item.minutes ?? 0),
+        ),
+      },
+    ],
+  };
+}
+}
+  

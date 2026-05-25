@@ -1,22 +1,72 @@
 <div class="flex flex-col gap-[10px] pb-6">
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <div class="flex flex-wrap gap-2">
-      @for (range of dashboardRanges; track range.key) {
-        <button
-          type="button"
-          class="filter-chip"
-          [class.active]="isDashboardRangeActive(range.key)"
-          (click)="setDashboardRange(range.key)"
+  <div class="dashboard-filter-row">
+    <div class="dashboard-filter-shell">
+      <button
+        type="button"
+        class="dashboard-filter-trigger"
+        [class.is-open]="dashboardFilterOpen()"
+        (click)="toggleDashboardFilter()"
+      >
+        <span class="dashboard-filter-trigger__label">داشبورد بر اساس</span>
+        <strong>{{ selectedRangeLabel }}</strong>
+
+        <svg
+          class="dashboard-filter-trigger__icon"
+          [class.is-open]="dashboardFilterOpen()"
+          viewBox="0 0 24 24"
+          fill="none"
         >
-          {{ range.label }}
-        </button>
+          <path
+            d="M6 9L12 15L18 9"
+            stroke="currentColor"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+
+      @if (dashboardFilterOpen()) {
+        <div
+          class="dashboard-filter-menu"
+          (mouseenter)="clearDashboardFilterAutoClose()"
+          (mouseleave)="scheduleDashboardFilterAutoClose()"
+        >
+          <div class="dashboard-filter-menu__header">
+            <span>انتخاب بازه گزارش داشبورد</span>
+          </div>
+
+          <div class="dashboard-filter-menu__list">
+            @for (range of dashboardRanges; track range.key) {
+              <button
+                type="button"
+                class="dashboard-filter-option"
+                [class.is-active]="isDashboardRangeActive(range.key)"
+                (click)="selectDashboardRangeFromDropdown(range.key)"
+              >
+                <span>{{ range.label }}</span>
+
+                @if (isDashboardRangeActive(range.key)) {
+                  <strong>✓</strong>
+                }
+              </button>
+            }
+          </div>
+        </div>
       }
     </div>
-
-    <span class="text-[11px] font-bold text-[var(--text-soft)]">
-      داشبورد بر اساس: {{ selectedRangeLabel }}
-    </span>
   </div>
+  @if (!hasDashboardSearchResults()) {
+    <div class="rounded-2xl border border-dashed border-cyan-500/30 bg-cyan-500/5 p-8 text-center">
+      <p class="text-sm font-black text-[var(--text-main)]">
+        نتیجه‌ای برای این جستجو در داشبورد پیدا نشد
+      </p>
+      <p class="mt-2 text-xs font-bold text-[var(--text-soft)]">
+        مثلاً «کارکرد»، «اطلاعیه»، «نمودار» یا «وظایف» را جستجو کن.
+      </p>
+    </div>
+  }
+
   <section class="summary-stats-row">
     @if (statsState().loading) {
       @for (i of [1, 2, 3, 4]; track i) {
@@ -32,284 +82,250 @@
         </button>
       </div>
     } @else {
-      <article class="summary-stat-card tint-cyan">
-        <div class="summary-stat-label">زمان مورد انتظار</div>
+      @if (matchesDashboardSearch('زمان مورد انتظار', 'expected', 'انتظار', 'بازه')) {
+        <article class="summary-stat-card tint-cyan">
+          <div class="summary-stat-label">زمان مورد انتظار</div>
+          <div class="summary-stat-value">
+            {{ formatMinutes(statsState().data?.expected_time) }}
+          </div>
+          <div class="summary-stat-growth">بر اساس بازه انتخاب‌شده</div>
+          <div class="summary-stat-icon blue">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path
+                d="M20 6L9 17L4 12"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
+        </article>
+      }
+    }
+    @if (matchesDashboardSearch('کل کارکرد', 'کارکرد', 'work', 'total')) {
+      <article class="summary-stat-card tint-purple">
+        <div class="summary-stat-label">کل کارکرد این ماه</div>
         <div class="summary-stat-value">
-          {{ formatMinutes(statsState().data?.expected_time) }}
+          @if (statsState().loading) {
+            <span>...</span>
+          } @else {
+            {{ formatMinutes(statsState().data?.total_work) }}
+          }
         </div>
-        <div class="summary-stat-growth">بر اساس بازه انتخاب‌شده</div>
-        <div class="summary-stat-icon blue">
+        <div class="summary-stat-growth">مجموع کارکرد ثبت‌شده</div>
+        <div class="summary-stat-icon purple">
           <svg viewBox="0 0 24 24" fill="none">
             <path
-              d="M20 6L9 17L4 12"
+              d="M13 2L4 14H11L10 22L20 9H13L13 2Z"
               stroke="currentColor"
-              stroke-linecap="round"
               stroke-linejoin="round"
             />
           </svg>
         </div>
       </article>
     }
-
-    <article class="summary-stat-card tint-purple">
-      <div class="summary-stat-label">کل کارکرد این ماه</div>
-      <div class="summary-stat-value">
-        @if (statsState().loading) {
-          <span>...</span>
-        } @else {
-          {{ formatMinutes(statsState().data?.total_work) }}
-        }
-      </div>
-      <div class="summary-stat-growth">مجموع کارکرد ثبت‌شده</div>
-      <div class="summary-stat-icon purple">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path
-            d="M13 2L4 14H11L10 22L20 9H13L13 2Z"
-            stroke="currentColor"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </div>
-    </article>
-
-    <article class="summary-stat-card tint-cyan">
-      <div class="summary-stat-label">اضافه‌کاری</div>
-      <div class="summary-stat-value">
-        @if (statsState().loading) {
-          <span>...</span>
-        } @else {
-          {{ formatMinutes(statsState().data?.overtime_working) }}
-        }
-      </div>
-      <div class="summary-stat-growth">بیشتر از زمان مورد انتظار</div>
-      <div class="summary-stat-icon cyan">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path d="M8 2V5" stroke="currentColor" stroke-linecap="round" />
-          <path d="M16 2V5" stroke="currentColor" stroke-linecap="round" />
-          <path d="M3.5 9H20.5" stroke="currentColor" stroke-linecap="round" />
-          <path
-            d="M5 4H19C20.1 4 21 4.9 21 6V20C21 21.1 20.1 22 19 22H5C3.9 22 3 21.1 3 20V6C3 4.9 3.9 4 5 4Z"
-            stroke="currentColor"
-            stroke-linejoin="round"
-          />
-        </svg>
-      </div>
-    </article>
-
-    <article class="summary-stat-card tint-purple">
-      <div class="summary-stat-label">مرخصی امسال</div>
-      <div class="summary-stat-value">
-        @if (statsState().loading) {
-          <span>...</span>
-        } @else {
-          {{ statsState().data?.this_year_vacations ?? '-' }}
-        }
-      </div>
-      <div class="summary-stat-growth">تعداد روزهای ثبت‌شده</div>
-      <div class="summary-stat-icon purple">
-        <svg viewBox="0 0 24 24" fill="none">
-          <path
-            d="M12 8V12L15 15"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <path d="M21 12A9 9 0 1 1 3 12A9 9 0 0 1 21 12Z" stroke="currentColor" />
-        </svg>
-      </div>
-    </article>
-  </section>
-
-  <section class="trend-chart-card">
-    <div class="trend-chart-topbar">
-      <h3 class="trend-chart-title">روند کارکرد بازه انتخاب‌شده</h3>
-      <button class="trend-chart-filter">{{ selectedRangeLabel }}</button>
-    </div>
-
-    @if (lineChartState().loading) {
-      <div class="trend-chart-svg flex items-center justify-center animate-pulse">
-        <span class="text-xs font-bold text-[var(--text-soft)]">در حال دریافت نمودار...</span>
-      </div>
-    } @else if (lineChartState().error) {
-      <div class="trend-chart-svg flex flex-col items-center justify-center gap-3">
-        <p class="text-xs font-bold text-red-500">{{ lineChartState().error }}</p>
-        <button
-          type="button"
-          (click)="loadLineChart()"
-          class="px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-bold"
-        >
-          تلاش مجدد
-        </button>
-      </div>
-    } @else if (lineChartState().data; as lineChartOptions) {
-      <div
-        echarts
-        [options]="lineChartOptions"
-        class="trend-chart-svg block w-full h-[220px]"
-      ></div>
-    } @else {
-      <div class="trend-chart-svg flex items-center justify-center">
-        <span class="text-xs font-bold text-[var(--text-soft)]">داده‌ای برای نمایش وجود ندارد</span>
-      </div>
+    @if (matchesDashboardSearch('اضافه کاری', 'اضافه‌کاری', 'overtime')) {
+      <article class="summary-stat-card tint-cyan">
+        <div class="summary-stat-label">اضافه‌کاری</div>
+        <div class="summary-stat-value">
+          @if (statsState().loading) {
+            <span>...</span>
+          } @else {
+            {{ formatMinutes(statsState().data?.overtime_working) }}
+          }
+        </div>
+        <div class="summary-stat-growth">بیشتر از زمان مورد انتظار</div>
+        <div class="summary-stat-icon cyan">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M8 2V5" stroke="currentColor" stroke-linecap="round" />
+            <path d="M16 2V5" stroke="currentColor" stroke-linecap="round" />
+            <path d="M3.5 9H20.5" stroke="currentColor" stroke-linecap="round" />
+            <path
+              d="M5 4H19C20.1 4 21 4.9 21 6V20C21 21.1 20.1 22 19 22H5C3.9 22 3 21.1 3 20V6C3 4.9 3.9 4 5 4Z"
+              stroke="currentColor"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+      </article>
+    }
+    @if (matchesDashboardSearch('مرخصی', 'vacation', 'امسال')) {
+      <article class="summary-stat-card tint-purple">
+        <div class="summary-stat-label">مرخصی امسال</div>
+        <div class="summary-stat-value">
+          @if (statsState().loading) {
+            <span>...</span>
+          } @else {
+            {{ statsState().data?.this_year_vacations ?? '-' }}
+          }
+        </div>
+        <div class="summary-stat-icon purple">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 8V12L15 15"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path d="M21 12A9 9 0 1 1 3 12A9 9 0 0 1 21 12Z" stroke="currentColor" />
+          </svg>
+        </div>
+      </article>
     }
   </section>
-
-  <section class="announcements-grid">
-    <article
-      class="announcement-card cursor-pointer transition hover:-translate-y-0.5"
-      routerLink="/announcements"
-    >
-      <div class="announcement-card-header">
-        <h3 class="announcement-card-title">اطلاعیه‌های عمومی</h3>
-        <svg class="announcement-card-icon" viewBox="0 0 24 24" fill="none">
-          <path d="M3 11V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          <path d="M7 8V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-          <path d="M11 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-        </svg>
+  @if (matchesDashboardSearch('روند کارکرد', 'نمودار', 'chart', 'کارکرد', selectedRangeLabel)) {
+    <section class="trend-chart-card">
+      <div class="trend-chart-topbar">
+        <h3 class="trend-chart-title">روند کارکرد بازه انتخاب‌شده</h3>
+        <button class="trend-chart-filter">{{ selectedRangeLabel }}</button>
       </div>
-      @if (publicNewsState().loading) {
-        <div class="announcement-item">
-          <span>در حال دریافت اطلاعیه‌ها...</span>
+
+      @if (lineChartState().loading) {
+        <div class="trend-chart-svg flex items-center justify-center animate-pulse">
+          <span class="text-xs font-bold text-[var(--text-soft)]">در حال دریافت نمودار...</span>
         </div>
-      } @else if (publicNewsState().error) {
-        <div class="announcement-item">
-          <span class="text-red-500">{{ publicNewsState().error }}</span>
-          <button type="button" (click)="loadPublicNews()">تلاش مجدد</button>
+      } @else if (lineChartState().error) {
+        <div class="trend-chart-svg flex flex-col items-center justify-center gap-3">
+          <p class="text-xs font-bold text-red-500">{{ lineChartState().error }}</p>
+          <button
+            type="button"
+            (click)="loadLineChart()"
+            class="px-3 py-1.5 rounded-lg bg-red-500 text-white text-xs font-bold"
+          >
+            تلاش مجدد
+          </button>
         </div>
-      } @else if ((publicNewsState().data?.results?.length ?? 0) === 0) {
-        <div class="announcement-item">
-          <span>اطلاعیه‌ای برای نمایش وجود ندارد.</span>
-        </div>
+      } @else if (lineChartState().data; as lineChartOptions) {
+        <div echarts [options]="lineChartOptions" class="trend-chart-svg block w-full"></div>
       } @else {
-        @for (message of publicNewsState().data?.results?.slice(0, 4) ?? []; track message.id) {
-          <div class="announcement-item">
-            <span
-              class="announcement-dot"
-              [style.background]="message.seen ? 'var(--blue)' : 'var(--purple)'"
-            ></span>
-
-            <span>{{ message.title }}</span>
-
-            <span class="announcement-arrow">‹</span>
-          </div>
-        }
+        <div class="trend-chart-svg flex items-center justify-center">
+          <span class="text-xs font-bold text-[var(--text-soft)]"
+            >داده‌ای برای نمایش وجود ندارد</span
+          >
+        </div>
       }
-    </article>
+    </section>
+  }
+  @if (
+    matchesDashboardSearch(
+      'توزیع پروژه‌ها',
+      'پروژه',
+      'project',
+      'distribution',
+      'نمودار',
+      'اطلاعیه',
+      'پیام',
+      'عمومی'
+    )
+  ) {
+    <section class="dashboard-bottom-grid">
+      <div class="dashboard-bottom-side">
+        <article
+          class="announcement-card dashboard-compact-announcement cursor-pointer transition hover:-translate-y-0.5"
+          routerLink="/announcements"
+        >
+          <div class="announcement-card-header">
+            <h3 class="announcement-card-title">اطلاعیه‌های عمومی</h3>
 
-    <article
-      class="announcement-card cursor-pointer transition hover:-translate-y-0.5"
-      routerLink="/announcements"
-    >
-      <div class="announcement-card-header">
-        <h3 class="announcement-card-title">اطلاعیه‌های شخصی</h3>
-        <svg class="announcement-card-icon purple" viewBox="0 0 24 24" fill="none">
-          <path d="M12 12A4 4 0 1 0 12 4A4 4 0 0 0 12 12Z" stroke="currentColor" stroke-width="2" />
-          <path
-            d="M4 20C4.9 16.7 7.8 15 12 15C16.2 15 19.1 16.7 20 20"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-          />
-        </svg>
-      </div>
-      <div class="announcement-list">
-        @if (privateNewsState().loading) {
-          <div class="announcement-item">
-            <span>در حال دریافت اطلاعیه‌های شخصی...</span>
+            <svg class="announcement-card-icon" viewBox="0 0 24 24" fill="none">
+              <path d="M3 11V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <path d="M7 8V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <path d="M11 5V19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
           </div>
-        } @else if (privateNewsState().error) {
-          <div class="announcement-item">
-            <span class="text-red-500">{{ privateNewsState().error }}</span>
-            <button type="button" (click)="loadPrivateNews()">تلاش مجدد</button>
-          </div>
-        } @else if ((privateNewsState().data?.results?.length ?? 0) === 0) {
-          <div class="announcement-item">
-            <span class="announcement-dot" style="background: var(--purple)"></span>
-            <span>اطلاعیه شخصی جدیدی وجود ندارد.</span>
-          </div>
-        } @else {
-          @for (message of privateNewsState().data?.results?.slice(0, 4) ?? []; track message.id) {
+
+          @if (publicNewsState().loading) {
             <div class="announcement-item">
-              <span
-                class="announcement-dot"
-                [style.background]="message.seen ? 'var(--blue)' : 'var(--purple)'"
-              ></span>
+              <span>در حال دریافت اطلاعیه‌ها...</span>
+            </div>
+          } @else if (publicNewsState().error) {
+            <div class="announcement-item">
+              <span class="text-red-500">{{ publicNewsState().error }}</span>
+            </div>
+          } @else if ((publicNewsState().data?.results?.length ?? 0) === 0) {
+            <div class="announcement-item">
+              <span>اطلاعیه‌ای برای نمایش وجود ندارد.</span>
+            </div>
+          } @else {
+            @for (message of publicNewsState().data?.results?.slice(0, 3) ?? []; track message.id) {
+              <div class="announcement-item">
+                <span
+                  class="announcement-dot"
+                  [style.background]="message.seen ? 'var(--blue)' : 'var(--purple)'"
+                ></span>
 
-              <span>{{ message.title }}</span>
+                <span>{{ message.title }}</span>
+              </div>
+            }
+          }
 
-              <span class="announcement-arrow">‹</span>
+          <span class="dashboard-compact-announcement-link">مشاهده همه</span>
+        </article>
+      </div>
+
+      <div class="dashboard-bottom-main">
+        <section class="dashboard-project-distribution-card">
+          <div class="dashboard-project-distribution-header">
+            <div>
+              <p>Project Distribution</p>
+              <h2>توزیع زمان بین پروژه‌ها</h2>
+            </div>
+
+            <span>{{ selectedRangeLabel }}</span>
+          </div>
+
+          @if (projectDistributionState().loading) {
+            <div class="dashboard-project-distribution-loading">
+              <div></div>
+              <p>در حال دریافت توزیع پروژه‌ها...</p>
+            </div>
+          } @else if (projectDistributionState().error) {
+            <div class="dashboard-project-distribution-empty">
+              <h3>توزیع پروژه‌ها دریافت نشد</h3>
+              <p>{{ projectDistributionState().error }}</p>
+              <button type="button" class="filter-chip active" (click)="loadProjectDistribution()">
+                تلاش مجدد
+              </button>
+            </div>
+          } @else if (projectDistributionState().data; as projectDistributionOptions) {
+            <div class="dashboard-project-distribution-content">
+              <div class="dashboard-project-chart-wrap">
+                <span class="dashboard-project-glow"></span>
+                <span class="dashboard-project-orbit"></span>
+
+                <div
+                  echarts
+                  [options]="projectDistributionOptions"
+                  class="dashboard-project-distribution-chart"
+                ></div>
+              </div>
+
+              <div class="dashboard-project-distribution-legend">
+                @for (item of projectDistributionLegendItems(); track item.project) {
+                  <div class="dashboard-project-distribution-legend-item">
+                    <span
+                      class="dashboard-project-distribution-dot"
+                      [style.background]="item.color"
+                    ></span>
+
+                    <div>
+                      <strong [title]="item.project">{{ item.project }}</strong>
+                      <small>{{ item.value }} دقیقه ثبت‌شده</small>
+                    </div>
+
+                    <b [style.color]="item.color">{{ item.percent }}٪</b>
+                  </div>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="dashboard-project-distribution-empty">
+              <h3>داده‌ای برای توزیع پروژه‌ها وجود ندارد</h3>
+              <p>برای این بازه هنوز زمان پروژه‌ای کافی ثبت نشده است.</p>
             </div>
           }
-        }
+        </section>
       </div>
-    </article>
-  </section>
-  <section class="dashboard-insight-grid">
-    <article class="dashboard-insight-card">
-      <div>
-        <p class="dashboard-insight-eyebrow">خلاصه بازه</p>
-        <h3 class="dashboard-insight-title">{{ selectedRangeLabel }}</h3>
-      </div>
-
-      @if (statsState().loading) {
-        <p class="dashboard-insight-text">در حال دریافت خلاصه عملکرد...</p>
-      } @else if (statsState().error) {
-        <p class="dashboard-insight-text text-red-500">{{ statsState().error }}</p>
-      } @else {
-        <div class="dashboard-insight-metrics">
-          <div>
-            <span>کارکرد</span>
-            <strong>{{ formatMinutes(statsState().data?.total_work) }}</strong>
-          </div>
-          <div>
-            <span>مورد انتظار</span>
-            <strong>{{ formatMinutes(statsState().data?.expected_time) }}</strong>
-          </div>
-          <div>
-            <span>اضافه‌کاری</span>
-            <strong>{{ formatMinutes(statsState().data?.overtime_working) }}</strong>
-          </div>
-        </div>
-      }
-    </article>
-
-    <article class="dashboard-insight-card">
-      <div>
-        <p class="dashboard-insight-eyebrow">وضعیت اطلاعیه‌ها</p>
-        <h3 class="dashboard-insight-title">مرکز پیام‌ها</h3>
-      </div>
-
-      @if (publicNewsState().loading || privateNewsState().loading) {
-        <p class="dashboard-insight-text">در حال بررسی اطلاعیه‌ها...</p>
-      } @else if (!hasAnyAnnouncement) {
-        <p class="dashboard-insight-text">اطلاعیه جدیدی برای نمایش وجود ندارد.</p>
-      } @else {
-        <div class="dashboard-insight-metrics two">
-          <div>
-            <span>عمومی</span>
-            <strong>{{ publicAnnouncementsCount }}</strong>
-          </div>
-          <div>
-            <span>شخصی</span>
-            <strong>{{ privateAnnouncementsCount }}</strong>
-          </div>
-        </div>
-      }
-
-      <a routerLink="/announcements" class="dashboard-insight-link">مشاهده اطلاعیه‌ها</a>
-    </article>
-
-    <article class="dashboard-insight-card">
-      <div>
-        <p class="dashboard-insight-eyebrow">اقدام سریع</p>
-        <h3 class="dashboard-insight-title">ثبت و بررسی کارکرد</h3>
-      </div>
-
-      <p class="dashboard-insight-text">
-        برای ثبت هوشمند کارکرد یا بررسی وضعیت وظایف، وارد مرکز وظایف شو.
-      </p>
-
-      <a routerLink="/tasks" class="dashboard-insight-link primary">رفتن به وظایف</a>
-    </article>
-  </section>
+    </section>
+  }
 </div>
