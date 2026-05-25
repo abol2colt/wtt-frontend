@@ -256,6 +256,56 @@ export class ReportsComponent implements OnInit {
     return 'بدون راندمان ثبت‌شده';
   }
 
+  get visibleAttendanceRows(): UserAttendanceRow[] {
+    const request = this.layout.searchRequest();
+
+    if (!request || request.scope !== 'current_page' || request.pageKey !== 'reports') {
+      return this.attendanceRows;
+    }
+
+    const query = request.query.toLowerCase();
+
+    return this.attendanceRows.filter((row) => {
+      return [
+        this.fullName(row.first_name, row.last_name),
+        row.status,
+        String(row.user_id),
+        row.available,
+        row.presence_summation,
+        row.total_work,
+        row.expected_time,
+        row.overtime_working,
+        row.total_randeman,
+        row.all_task_in_days,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+    });
+  }
+
+  get visibleActivityRows(): ActivityProjectView[] {
+    const request = this.layout.searchRequest();
+
+    if (!request || request.scope !== 'current_page' || request.pageKey !== 'reports') {
+      return this.activityRows;
+    }
+
+    const query = request.query.toLowerCase();
+
+    return this.activityRows.filter((row) => {
+      return [
+        row.userFullName,
+        row.username,
+        row.projectName,
+        row.serviceName,
+        row.spentLabel,
+        row.percentageText,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+    });
+  }
+
   fullName(firstName?: string, lastName?: string): string {
     return [firstName, lastName].filter(Boolean).join(' ').trim() || '—';
   }

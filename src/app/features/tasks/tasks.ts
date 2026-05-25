@@ -1,4 +1,13 @@
-import { Component, HostListener, OnInit, effect, inject, signal, untracked } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  OnInit,
+  effect,
+  inject,
+  signal,
+  untracked,
+  computed,
+} from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LayoutService } from '../../core/services/layout/layout.service';
@@ -1525,6 +1534,28 @@ ${adjustmentReason}`
         },
       });
   }
+  visibleTasks = computed(() => {
+    const request = this.layout.searchRequest();
+
+    if (!request || request.scope !== 'current_page' || request.pageKey !== 'tasks') {
+      return this.tasks;
+    }
+
+    const query = request.query.toLowerCase();
+
+    return this.tasks.filter((task) => {
+      return [
+        task.title,
+        task.description,
+        task.project_title,
+        task.status,
+        String(task.id),
+        task.date,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+    });
+  });
   selectManualTask(): void {
     const title = this.manualTaskTitle().trim();
     const rawKey = this.manualTaskKey().trim();

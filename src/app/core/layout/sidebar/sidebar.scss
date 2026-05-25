@@ -1,12 +1,12 @@
 :host {
   display: block;
-  width: 260px;
+  width: 230px;
   height: 100%;
   flex-shrink: 0;
 }
 
 :host-context(.shell-sidebar-collapsed) {
-  width: 76px;
+  width: 70px;
 }
 
 .right-sidebar {
@@ -30,7 +30,7 @@
 }
 
 .sidebar-profile {
-  margin-top: 14px;
+  margin-top: 8px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -59,8 +59,8 @@
 }
 .sidebar-avatar {
   position: relative;
-  width: 65px;
-  height: 92px;
+  width: 50px;
+  height: 72px;
   flex: 0 0 auto;
   border-radius: 999px;
   background: #000000;

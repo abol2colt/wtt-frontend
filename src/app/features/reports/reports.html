@@ -167,7 +167,7 @@
           <span class="reports-section-badge"> {{ attendanceRows.length }} کاربر </span>
         </div>
 
-        @if (attendanceRows.length === 0) {
+        @if (visibleAttendanceRows.length === 0) {
           <div class="reports-empty">
             <h3>داده‌ای برای گزارش کلی وجود ندارد</h3>
             <p>برای این بازه، API گزارش کلی کاربری برنگردانده است.</p>
@@ -192,7 +192,7 @@
               </thead>
 
               <tbody>
-                @for (row of attendanceRows; track row.user_id) {
+                @for (row of visibleAttendanceRows; track row.user_id) {
                   <tr>
                     <td>
                       <div class="reports-user-cell">
@@ -241,7 +241,7 @@
           </div>
 
           <div class="reports-insight-grid">
-            @for (row of attendanceRows; track row.user_id) {
+            @for (row of visibleAttendanceRows; track row.user_id) {
               <article class="reports-insight-card">
                 <div>
                   <p>{{ fullName(row.first_name, row.last_name) }}</p>
@@ -297,7 +297,7 @@
           </article>
         </div>
 
-        @if (activityRows.length === 0) {
+        @if (visibleActivityRows.length === 0) {
           <div class="reports-empty">
             <h3>فعالیتی برای پروژه‌ها ثبت نشده</h3>
             <p>برای این بازه، endpoint درصد فعالیت داده‌ای برنگردانده است.</p>
@@ -305,7 +305,7 @@
         } @else {
           <div class="reports-activity-list">
             @for (
-              row of activityRows;
+              row of visibleActivityRows;
               track row.username + '-' + row.projectName + '-' + row.serviceName
             ) {
               <article class="reports-activity-row">
