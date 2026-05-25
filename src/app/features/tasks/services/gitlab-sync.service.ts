@@ -50,6 +50,54 @@ export class GitlabSyncService {
       );
   }
 
+  getEvidenceCandidates(
+    task: ExternalTaskSourceItem,
+    options?: AiPromptOptions,
+  ): Observable<GitEvidenceSyncResponse> {
+    const params: Record<string, string> = {
+      taskKey: String(task.key ?? task.id),
+      preview: 'true',
+    };
+
+    const hasTrustedGitMetadata = Boolean(task.mapping_source || task.gitlab_project_id);
+
+    if (task.branch_name && hasTrustedGitMetadata) {
+      params['branch'] = task.branch_name;
+    }
+
+    if (task.gitlab_project_id) {
+      params['projectId'] = task.gitlab_project_id;
+    }
+
+    if (task.estimated_minutes) {
+      params['estimatedMinutes'] = String(task.estimated_minutes);
+    }
+
+    if (options?.tone) {
+      params['tone'] = options.tone;
+    }
+
+    if (options?.detailLevel) {
+      params['detailLevel'] = options.detailLevel;
+    }
+
+    if (options?.extraInstruction) {
+      params['extraInstruction'] = options.extraInstruction;
+    }
+
+    return this.http
+      .get<GitEvidenceSyncResponse>(`${this.proxyUrl}/sync-gitlab`, {
+        params,
+      })
+      .pipe(
+        catchError((error) =>
+          throwError(() =>
+            this.normalizeIntegrationError(error, 'خطا در دریافت شواهد Git برای انتخاب دستی.'),
+          ),
+        ),
+      );
+  }
+
   syncEvidence(
     task: ExternalTaskSourceItem,
     options?: AiPromptOptions,

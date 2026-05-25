@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { IntegrationSettingsService } from './services/integration-settings.service';
 import { environment } from '../../../environments/environment';
+import { LayoutService } from '../../core/services/layout/layout.service';
 import {
   AiDetailLevel,
   AiTone,
@@ -22,6 +23,8 @@ type SettingsTab = 'profile' | 'ai' | 'ui' | 'integrations' | 'security';
 })
 export class SettingsComponent implements OnInit {
   readonly preferencesService = inject(UserPreferencesService);
+  private readonly layout = inject(LayoutService);
+
   readonly activeTab = signal<SettingsTab>('profile');
 
   private readonly fb = inject(FormBuilder);

@@ -8,7 +8,6 @@ import { ApiState } from '../../shared/models/api-state.model';
 import { format } from 'date-fns-jalali';
 import {
   TaskItem,
-  TaskListQuery,
   TaskListResponse,
   TaskMutationPayload,
   TasksCountResponse,
@@ -21,12 +20,14 @@ import { TasksService } from './services/tasks.service';
 import { TasksFiltersService } from './services/tasks-filters.service';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { Project, ProjectDetailsResponse } from '../../shared/models/project.model';
+import { NgClass } from '@angular/common';
 
 type ProjectDetailsPreselect = {
   serviceId: number;
   contractId: number;
 };
 
+type TaskViewMode = 'list' | 'grid';
 type TaskStatusFilter = 'all' | 'pending' | 'rejected';
 type WorklogFlowType = 'manual' | 'ai';
 type AiTone = 'formal' | 'technical' | 'managerial';
@@ -34,7 +35,7 @@ type AiDetailLevel = 'short' | 'balanced' | 'detailed';
 @Component({
   selector: 'app-tasks',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, NgClass],
   templateUrl: './tasks.html',
   styleUrl: './tasks.scss',
 })
@@ -82,6 +83,7 @@ export class TasksComponent implements OnInit {
     error: null,
   });
 
+  taskViewMode = signal<TaskViewMode>('list');
   isTaskModalOpen = signal(false);
   isDrawerOpen = signal(false);
   currentStep = signal(1);
@@ -91,6 +93,9 @@ export class TasksComponent implements OnInit {
   editingTask = signal<TaskItem | null>(null);
   aiConfidenceScore = signal<number | null>(null);
   aiEvidenceSummary = signal('');
+
+  manualGitCommits = signal<GitEvidenceCommit[]>([]);
+  manualEvidenceTitle = signal('');
 
   readonly maxAllowedAdjustmentMinutes = 30;
   suggestedWorklogDurationMinutes = signal<number | null>(null);
@@ -111,6 +116,8 @@ export class TasksComponent implements OnInit {
   recentGitCommits = signal<GitEvidenceCommit[]>([]);
   selectedRecentCommitIds = signal<string[]>([]);
   aiFallbackMessage = signal('');
+  matchedGitCommits = signal<GitEvidenceCommit[]>([]);
+  isRecentEvidenceOpen = signal(false);
 
   startDate = signal('');
   endDate = signal('');
@@ -326,6 +333,14 @@ export class TasksComponent implements OnInit {
     this.taskFilters.activeStatus.set(status);
   }
 
+  setTaskViewMode(mode: TaskViewMode): void {
+    this.taskViewMode.set(mode);
+  }
+
+  isTaskViewMode(mode: TaskViewMode): boolean {
+    return this.taskViewMode() === mode;
+  }
+
   isAllFilterActive(): boolean {
     return this.activeRange() === 'month_till_today' && this.activeStatus() === 'all';
   }
@@ -523,9 +538,37 @@ export class TasksComponent implements OnInit {
       loading: false,
       error: null,
     });
-
+    this.manualGitCommits.set([]);
+    this.manualEvidenceTitle.set('');
     this.isTaskModalOpen.set(true);
     this.loadJiraTasks();
+  }
+  addManualGitEvidence(): void {
+    const title = this.manualEvidenceTitle().trim();
+
+    if (!title) return;
+
+    const manualCommit: GitEvidenceCommit = {
+      id: `manual-${Date.now()}`,
+      shortId: 'manual',
+      title,
+      message: title,
+      authorName: 'manual',
+      createdAt: new Date().toISOString(),
+      webUrl: '',
+      source: 'manual' as GitEvidenceCommit['source'],
+      ref: null,
+      commitCount: 1,
+    };
+
+    this.manualGitCommits.update((commits) => [manualCommit, ...commits]);
+    this.selectedRecentCommitIds.update((ids) => [manualCommit.id, ...ids]);
+    this.manualEvidenceTitle.set('');
+  }
+
+  removeManualGitEvidence(commitId: string): void {
+    this.manualGitCommits.update((commits) => commits.filter((commit) => commit.id !== commitId));
+    this.selectedRecentCommitIds.update((ids) => ids.filter((id) => id !== commitId));
   }
   openEditTaskModal(task: TaskItem, event?: Event): void {
     this.lastEditTrigger = event?.currentTarget instanceof HTMLElement ? event.currentTarget : null;
@@ -604,6 +647,7 @@ export class TasksComponent implements OnInit {
     });
     this.recentGitCommits.set([]);
     this.selectedRecentCommitIds.set([]);
+    this.matchedGitCommits.set([]);
     this.aiFallbackMessage.set('');
     this.manualTaskKey.set('');
     this.manualTaskTitle.set('');
@@ -615,6 +659,7 @@ export class TasksComponent implements OnInit {
     this.aiTone.set('formal');
     this.aiDetailLevel.set('balanced');
     this.aiExtraInstruction.set('');
+    this.isRecentEvidenceOpen.set(false);
     this.resetDatePickerToToday();
   }
 
@@ -787,12 +832,16 @@ export class TasksComponent implements OnInit {
       this.mutationState.set({
         data: null,
         loading: false,
-        error: 'برای شروع AI، اول یک تسک معتبر از Jira انتخاب کن.',
+        error: 'برای شروع AI، اول یک تسک معتبر از منبع وظایف انتخاب کن.',
       });
       return;
     }
 
     this.currentStep.set(3);
+    this.taskForm.patchValue({
+      date: this.taskForm.controls.date.value || this.getTodayJalaliDate(),
+    });
+
     this.mutationState.set({ data: null, loading: false, error: null });
     this.onSyncGitlab();
   }
@@ -953,6 +1002,26 @@ ${adjustmentReason}`
     };
   }
 
+  private isEmptyFormValue(value: unknown): boolean {
+    return value === null || value === undefined || value === '' || value === 0;
+  }
+
+  private patchAiValueIfSafe(controlName: string, value: unknown): void {
+    if (value === null || value === undefined || value === '') return;
+
+    const control = this.taskForm.get(controlName);
+
+    if (!control) return;
+
+    const userChangedValue = control.dirty && !this.isEmptyFormValue(control.value);
+
+    if (userChangedValue) {
+      return;
+    }
+
+    control.patchValue(value);
+  }
+
   private applyEvidenceDraftToForm(
     response: GitEvidenceSyncResponse,
     selectedTask: ExternalTaskSourceItem,
@@ -966,7 +1035,11 @@ ${adjustmentReason}`
 
     const durationMinutes = rawDurationMinutes > 0 ? rawDurationMinutes : 60;
     this.suggestedWorklogDurationMinutes.set(durationMinutes);
-    this.taskForm.patchValue({ adjustment_reason: '' });
+
+    const adjustmentReasonControl = this.taskForm.get('adjustment_reason');
+    if (adjustmentReasonControl && !adjustmentReasonControl.dirty) {
+      adjustmentReasonControl.patchValue('');
+    }
 
     const now = new Date();
 
@@ -979,11 +1052,26 @@ ${adjustmentReason}`
     const fallbackStartMinute = String(fallbackStartTimeObj.getMinutes()).padStart(2, '0');
     const fallbackStartTimeStr = `${fallbackStartHour}:${fallbackStartMinute}`;
 
-    this.taskForm.patchValue({
-      date: this.taskForm.controls.date.value || this.getTodayJalaliDate(),
-      start_time: response.suggestedStartTime || fallbackStartTimeStr,
-      end_time: response.suggestedEndTime || fallbackEndTimeStr,
-      description: response.description ?? response.fallbackDescription ?? '',
+    this.patchAiValueIfSafe('date', this.taskForm.controls.date.value || this.getTodayJalaliDate());
+    this.patchAiValueIfSafe('start_time', response.suggestedStartTime || fallbackStartTimeStr);
+    this.patchAiValueIfSafe('end_time', response.suggestedEndTime || fallbackEndTimeStr);
+
+    const generatedDescription = (
+      response.description ||
+      response.fallbackDescription ||
+      ''
+    ).trim();
+
+    if (generatedDescription) {
+      this.patchAiValueIfSafe('description', generatedDescription);
+      return;
+    }
+
+    this.mutationState.set({
+      data: null,
+      loading: false,
+      error:
+        'AI متن قابل استفاده‌ای برنگرداند. شواهد حفظ شده‌اند و می‌توانی توضیح را دستی وارد کنی.',
     });
   }
 
@@ -1159,48 +1247,22 @@ ${adjustmentReason}`
     }
   }
 
-  private buildCurrentTaskQuery(page = this.currentPage()): TaskListQuery {
-    const query: TaskListQuery = {
-      page,
-      range: this.activeRange(),
-    };
-
-    if (this.startDate() && this.endDate()) {
-      query.start_date = this.startDate();
-      query.end_date = this.endDate();
-      delete query.range;
-    }
-
-    if (this.selectedProjectId()) {
-      query.project = this.selectedProjectId()!;
-    }
-
-    if (this.selectedServiceId()) {
-      query.project_service = this.selectedServiceId()!;
-    }
-
-    if (this.selectedContractId()) {
-      query.project_contract = this.selectedContractId()!;
-    }
-
-    if (this.teleworkingOnly()) {
-      query.teleworking = true;
-    }
-
-    if (this.favoriteOnly()) {
-      query.favorite = true;
-    }
-
-    return query;
+  toggleRecentEvidencePanel(): void {
+    this.isRecentEvidenceOpen.update((isOpen) => !isOpen);
   }
+
   onSyncGitlab(): void {
     const selectedTask = this.selectedJiraTask();
+
+    const selectedManualEvidenceIds = this.manualGitCommits()
+      .map((commit) => commit.id)
+      .filter((id) => this.selectedRecentCommitIds().includes(id));
 
     if (!selectedTask) {
       this.mutationState.set({
         data: null,
         loading: false,
-        error: 'اول یک تسک از منبع وظایف انتخاب کن تا شواهد مربوط به همان تسک دریافت شوند.',
+        error: 'اول یک تسک از منبع وظایف انتخاب کن تا شواهد Git دریافت شوند.',
       });
       return;
     }
@@ -1208,131 +1270,62 @@ ${adjustmentReason}`
     if (this.isSyncing()) return;
 
     this.isSyncing.set(true);
+    this.matchedGitCommits.set([]);
+    this.recentGitCommits.set([]);
+    this.selectedRecentCommitIds.set(selectedManualEvidenceIds);
+    this.aiFallbackMessage.set('');
     this.aiConfidenceScore.set(null);
     this.aiEvidenceSummary.set('');
+    this.mutationState.set({ data: null, loading: false, error: null });
+    this.isRecentEvidenceOpen.set(false);
 
     this.gitlabSyncService
-      .syncEvidence(selectedTask, {
+      .getEvidenceCandidates(selectedTask, {
         tone: this.aiTone(),
         detailLevel: this.aiDetailLevel(),
         extraInstruction: this.aiExtraInstruction().trim(),
       })
       .subscribe({
         next: (response) => {
-          if (!response?.success) {
-            this.isSyncing.set(false);
+          this.isSyncing.set(false);
 
-            if (response.code === 'NO_GIT_EVIDENCE') {
-              this.recentGitCommits.set(response.recentCommits ?? []);
-              this.selectedRecentCommitIds.set([]);
-              this.aiFallbackMessage.set(
-                response.description ||
-                  `برای ${selectedTask.key ?? selectedTask.id} کامیتی با این کلید در GitLab پیدا نشد.`,
-              );
+          const matchedCommits = response.commits ?? [];
+          const recentCommits = response.recentCommits ?? [];
 
-              this.mutationState.set({
-                data: null,
-                loading: false,
-                error:
-                  response.description ||
-                  'کامیت مرتبطی پیدا نشد. می‌توانی دستی ادامه بدهی یا از کامیت‌های اخیر انتخاب کنی.',
-              });
+          this.matchedGitCommits.set(matchedCommits);
+          this.recentGitCommits.set(recentCommits);
 
-              return;
-            }
+          this.selectedRecentCommitIds.set([
+            ...matchedCommits.map((commit) => commit.id),
+            ...selectedManualEvidenceIds,
+          ]);
 
-            if (response.code === 'AI_PROVIDER_FAILED' || response.code === 'AI_PROVIDER_TIMEOUT') {
-              this.aiConfidenceScore.set(response.confidenceScore ?? 55);
-              this.aiEvidenceSummary.set(
-                response.code === 'AI_PROVIDER_TIMEOUT'
-                  ? 'کامیت‌ها پیدا شدند اما AI به timeout خورد؛ متن اولیه از کامیت‌ها ساخته شد.'
-                  : 'کامیت‌ها پیدا شدند اما AI محدودیت یا خطا داد؛ متن اولیه از کامیت‌ها ساخته شد.',
-              );
+          this.aiFallbackMessage.set(
+            response.description ||
+              (matchedCommits.length > 0
+                ? `${matchedCommits.length} کامیت مرتبط پیدا شد. انتخاب‌ها را بازبینی کن.`
+                : `برای ${selectedTask.key ?? selectedTask.id} کامیت مستقیمی پیدا نشد. از فعالیت‌های اخیر انتخاب کن.`),
+          );
 
-              this.applyEvidenceDraftToForm(response, selectedTask);
-              this.taskForm.patchValue({
-                description: response.fallbackDescription || response.description || '',
-              });
-
-              this.mutationState.set({
-                data: null,
-                loading: false,
-                error: null,
-              });
-
-              this.currentStep.set(4);
-              return;
-            }
-
+          if (matchedCommits.length === 0 && recentCommits.length === 0) {
             this.mutationState.set({
               data: null,
               loading: false,
               error:
-                response?.error || response?.description || 'کامیت مرتبطی برای این تسک پیدا نشد.',
+                'هیچ کامیت Git برای این تسک یا فعالیت‌های اخیر پیدا نشد. می‌توانی مسیر دستی را ادامه بدهی.',
             });
-
             return;
           }
 
-          const rawDurationMinutes = Number(
-            response.suggestedDurationMinutes ??
-              response.durationMinutes ??
-              selectedTask.estimated_minutes ??
-              60,
-          );
-          const durationMinutes = rawDurationMinutes > 0 ? rawDurationMinutes : 60;
-          this.suggestedWorklogDurationMinutes.set(durationMinutes);
-          this.taskForm.patchValue({ adjustment_reason: '' });
-          const now = new Date();
-
-          const fallbackEndHour = String(now.getHours()).padStart(2, '0');
-          const fallbackEndMinute = String(now.getMinutes()).padStart(2, '0');
-          const fallbackEndTimeStr = `${fallbackEndHour}:${fallbackEndMinute}`;
-
-          const fallbackStartTimeObj = new Date(now.getTime() - durationMinutes * 60000);
-          const fallbackStartHour = String(fallbackStartTimeObj.getHours()).padStart(2, '0');
-          const fallbackStartMinute = String(fallbackStartTimeObj.getMinutes()).padStart(2, '0');
-          const fallbackStartTimeStr = `${fallbackStartHour}:${fallbackStartMinute}`;
-
-          const startTimeStr = response.suggestedStartTime || fallbackStartTimeStr;
-          const endTimeStr = response.suggestedEndTime || fallbackEndTimeStr;
-          this.taskForm.patchValue({
-            date: this.taskForm.controls.date.value || this.getTodayJalaliDate(),
-            start_time: startTimeStr,
-            end_time: endTimeStr,
-          });
-
-          this.aiConfidenceScore.set(response.confidenceScore ?? null);
-          this.aiEvidenceSummary.set(
-            [
-              response.evidence?.commitCount != null
-                ? `${response.evidence.commitCount} کامیت مرتبط بررسی شد`
-                : null,
-              response.evidence?.excludedGapMinutes != null
-                ? `${response.evidence.excludedGapMinutes} دقیقه فاصله غیرکاری کنار گذاشته شد`
-                : null,
-              response.confidenceLabel ? `سطح اطمینان: ${response.confidenceLabel}` : null,
-            ]
-              .filter(Boolean)
-              .join('، ') || 'شواهد Git برای این پیش‌نویس بررسی شد.',
-          );
-
-          this.taskForm.patchValue({
-            description: response.description ?? '',
-          });
-
-          this.mutationState.set({
-            data: null,
-            loading: false,
-            error: null,
-          });
-
-          this.isSyncing.set(false);
-          this.currentStep.set(4);
+          this.mutationState.set({ data: null, loading: false, error: null });
         },
 
         error: (err) => {
           this.isSyncing.set(false);
+          this.matchedGitCommits.set([]);
+          this.recentGitCommits.set([]);
+          this.selectedRecentCommitIds.set(selectedManualEvidenceIds);
+          this.aiFallbackMessage.set('');
           this.aiConfidenceScore.set(null);
           this.aiEvidenceSummary.set('');
 
@@ -1343,7 +1336,7 @@ ${adjustmentReason}`
               err?.message ||
               err?.error?.error ||
               err?.error?.debugMessage ||
-              'خطا در دریافت توضیحات از GitLab/AI proxy.',
+              'خطا در دریافت شواهد Git از integration proxy.',
           });
         },
       });
@@ -1389,6 +1382,8 @@ ${adjustmentReason}`
     this.mutationState.set({ data: null, loading: false, error: null });
     this.aiConfidenceScore.set(null);
     this.aiEvidenceSummary.set('');
+    this.manualGitCommits.set([]);
+    this.manualEvidenceTitle.set('');
 
     this.taskForm.patchValue({
       title: `[${task.key ?? task.id}] ${task.title}`,
@@ -1420,7 +1415,12 @@ ${adjustmentReason}`
 
   useSelectedRecentCommits(): void {
     const selectedIds = new Set(this.selectedRecentCommitIds());
-    const selectedCommits = this.recentGitCommits().filter((commit) => selectedIds.has(commit.id));
+    const allCandidateCommits = [
+      ...this.matchedGitCommits(),
+      ...this.recentGitCommits(),
+      ...this.manualGitCommits(),
+    ];
+    const selectedCommits = allCandidateCommits.filter((commit) => selectedIds.has(commit.id));
     const selectedTask = this.selectedJiraTask();
 
     if (selectedCommits.length === 0) {
@@ -1447,10 +1447,6 @@ ${adjustmentReason}`
     this.aiEvidenceSummary.set('در حال ساخت توضیحات از فعالیت‌های انتخاب‌شده...');
     this.mutationState.set({ data: null, loading: false, error: null });
 
-    this.taskForm.patchValue({
-      date: this.taskForm.controls.date.value || this.getTodayJalaliDate(),
-    });
-
     this.gitlabSyncService
       .syncEvidenceFromCommits({
         taskKey: selectedTask.key ?? selectedTask.id,
@@ -1466,9 +1462,6 @@ ${adjustmentReason}`
 
           if (!response.success) {
             this.applyEvidenceDraftToForm(response, selectedTask);
-            this.taskForm.patchValue({
-              description: response.fallbackDescription || response.description || '',
-            });
 
             this.aiConfidenceScore.set(response.confidenceScore ?? 55);
             this.aiEvidenceSummary.set(
@@ -1477,8 +1470,15 @@ ${adjustmentReason}`
                 : 'فعالیت‌ها انتخاب شدند اما AI خطا داد؛ متن اولیه از evidenceها ساخته شد.',
             );
 
+            this.mutationState.set({
+              data: null,
+              loading: false,
+              error: null,
+            });
+
             return;
           }
+          this.isSyncing.set(false);
 
           this.applyEvidenceDraftToForm(response, selectedTask);
 
@@ -1493,17 +1493,24 @@ ${adjustmentReason}`
               .filter(Boolean)
               .join('، ') || 'فعالیت‌های انتخاب‌شده با AI بررسی شدند.',
           );
+
+          this.mutationState.set({
+            data: null,
+            loading: false,
+            error: null,
+          });
         },
+
         error: (err) => {
           this.isSyncing.set(false);
 
-          const description = [
+          const fallbackDescription = [
             'توضیحات اولیه بر اساس فعالیت‌های انتخاب‌شده:',
             '',
             ...selectedCommits.map((commit) => `- ${commit.title}`),
           ].join('\n');
 
-          this.taskForm.patchValue({ description });
+          this.patchAiValueIfSafe('description', fallbackDescription);
 
           this.aiConfidenceScore.set(45);
           this.aiEvidenceSummary.set(
@@ -1543,7 +1550,8 @@ ${adjustmentReason}`
       location: 'teleworking',
       source: 'manual',
     };
-
+    this.manualGitCommits.set([]);
+    this.manualEvidenceTitle.set('');
     this.selectJiraTask(manualTask);
   }
 }
