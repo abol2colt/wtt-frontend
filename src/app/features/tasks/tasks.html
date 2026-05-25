@@ -172,10 +172,15 @@
     <div class="flex items-center gap-2">
       <button
         type="button"
-        class="px-4 py-2 rounded-xl bg-violet-600 text-white text-xs font-black shadow-[0_0_18px_rgba(124,58,237,0.35)] cursor-pointer"
+        class="log-work-cta"
         (click)="openCreateTaskModal()"
+        aria-label="ثبت کارکرد هوشمند"
       >
-        + ثبت کارکرد هوشمند
+        <span class="log-work-cta__shine"></span>
+
+        <span class="log-work-cta__icon">✨</span>
+
+        <span class="log-work-cta__text">ثبت کارکرد هوشمند</span>
       </button>
     </div>
 
@@ -183,7 +188,14 @@
       class="flex gap-2 bg-white dark:bg-[#061525] border border-[var(--card-border)] rounded-lg p-1"
     >
       <button
-        class="p-1.5 rounded-md bg-slate-100 dark:bg-[#071a2b] text-[var(--text-main)] shadow-sm cursor-pointer"
+        type="button"
+        class="p-1.5 rounded-md cursor-pointer transition"
+        [class.bg-slate-100]="isTaskViewMode('list')"
+        [class.dark:bg-[#071a2b]]="isTaskViewMode('list')"
+        [class.text-[var(--text-main)]]="isTaskViewMode('list')"
+        [class.text-[var(--text-soft)]]="!isTaskViewMode('list')"
+        [class.shadow-sm]="isTaskViewMode('list')"
+        (click)="setTaskViewMode('list')"
         aria-label="نمایش لیستی"
       >
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
@@ -196,8 +208,16 @@
           />
         </svg>
       </button>
+
       <button
-        class="p-1.5 rounded-md text-[var(--text-soft)] hover:text-[var(--text-main)] cursor-pointer"
+        type="button"
+        class="p-1.5 rounded-md cursor-pointer transition"
+        [class.bg-slate-100]="isTaskViewMode('grid')"
+        [class.dark:bg-[#071a2b]]="isTaskViewMode('grid')"
+        [class.text-[var(--text-main)]]="isTaskViewMode('grid')"
+        [class.text-[var(--text-soft)]]="!isTaskViewMode('grid')"
+        [class.shadow-sm]="isTaskViewMode('grid')"
+        (click)="setTaskViewMode('grid')"
         aria-label="نمایش کارت‌ها"
       >
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
@@ -249,70 +269,156 @@
           </p>
         </div>
       } @else {
-        @for (task of tasks; track trackTask($index, task)) {
-          <div
-            class="task-row-card group !grid !h-auto !min-h-[72px] grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 sm:gap-4"
-          >
-            <div [class]="'task-status-rail ' + getStatusRailClass(task.status)"></div>
+        @if (isTaskViewMode('grid')) {
+          <div class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            @for (task of tasks; track trackTask($index, task)) {
+              <article
+                class="rounded-3xl border border-[var(--card-border)] bg-white/75 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg dark:bg-white/5"
+              >
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <a
+                      class="block overflow-hidden text-ellipsis whitespace-nowrap text-sm font-black text-[var(--text-main)] hover:opacity-80"
+                      [routerLink]="['/tasks', task.id]"
+                      [title]="task.title"
+                    >
+                      {{ task.title }}
+                    </a>
 
-            <div class="flex min-w-0 items-center gap-4">
-              <button
-                class="task-play-btn"
-                type="button"
-                title="شروع تایمر"
-                aria-label="شروع تایمر"
-              >
-                <span class="text-sm font-black">▶</span>
-              </button>
-              <a
-                class="min-w-0 max-w-full flex-1 overflow-hidden hover:opacity-80 transition-opacity"
-                [routerLink]="['/tasks', task.id]"
-                [title]="task.title"
-              >
-                <span
-                  class="block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[14px] font-black text-[var(--text-main)]"
+                    <p
+                      class="mt-2 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-bold text-[var(--text-soft)]"
+                    >
+                      {{ task.project_title ?? 'پروژه #' + task.project_id }}
+                    </p>
+                  </div>
+
+                  <span
+                    class="rounded-full bg-cyan-500/10 px-3 py-1 text-[10px] font-black text-cyan-500"
+                  >
+                    #{{ task.id }}
+                  </span>
+                </div>
+
+                <div
+                  class="mt-4 grid grid-cols-2 gap-2 text-[11px] font-bold text-[var(--text-soft)]"
                 >
-                  {{ task.title }}
-                </span>
+                  <div class="rounded-2xl bg-slate-500/10 p-2">
+                    <span class="block text-[10px] font-black opacity-70">تاریخ</span>
+                    <span class="mt-1 block text-[var(--text-main)]">{{ task.date }}</span>
+                  </div>
 
-                <span
-                  class="mt-1.5 block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-bold text-[var(--text-soft)]"
-                >
-                  {{ task.project_title ?? 'پروژه #' + task.project_id }}
-                </span>
-              </a>
-            </div>
+                  <div class="rounded-2xl bg-slate-500/10 p-2">
+                    <span class="block text-[10px] font-black opacity-70">مدت</span>
+                    <span class="mt-1 block text-[var(--text-main)]">
+                      {{ formatMinutes(task.duration) }}
+                    </span>
+                  </div>
+                </div>
 
-            <span
-              class="hidden min-w-[76px] text-left text-blue-500 dark:text-cyan-400 font-black text-sm tracking-wide sm:block"
-            >
-              #{{ task.id }}
-            </span>
+                <div class="mt-4 flex items-center justify-between gap-2">
+                  <button
+                    class="task-play-btn"
+                    type="button"
+                    title="شروع تایمر"
+                    aria-label="شروع تایمر"
+                  >
+                    <span class="text-sm font-black">▶</span>
+                  </button>
 
-            <div
-              class="flex min-w-[76px] items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <button
-                type="button"
-                class="text-[11px] font-black text-blue-500 hover:text-blue-400 cursor-pointer"
-                (click)="openEditTaskModal(task, $event)"
-              >
-                ویرایش
-              </button>
-              <button
-                type="button"
-                class="text-[11px] font-black text-red-500 hover:text-red-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                [disabled]="deletingTaskId() === task.id"
-                (click)="deleteTask(task)"
-              >
-                @if (deletingTaskId() === task.id) {
-                  حذف...
-                } @else {
-                  حذف
-                }
-              </button>
-            </div>
+                  <div class="flex items-center gap-2">
+                    <button
+                      type="button"
+                      class="text-[11px] font-black text-blue-500 hover:text-blue-400 cursor-pointer"
+                      (click)="openEditTaskModal(task, $event)"
+                    >
+                      ویرایش
+                    </button>
+
+                    <button
+                      type="button"
+                      class="text-[11px] font-black text-red-500 hover:text-red-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      [disabled]="deletingTaskId() === task.id"
+                      (click)="deleteTask(task)"
+                    >
+                      @if (deletingTaskId() === task.id) {
+                        حذف...
+                      } @else {
+                        حذف
+                      }
+                    </button>
+                  </div>
+                </div>
+              </article>
+            }
           </div>
+        } @else {
+          @for (task of tasks; track trackTask($index, task)) {
+            <div
+              class="task-row-card group !grid !h-auto !min-h-[72px] grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 sm:gap-4"
+            >
+              <div [class]="'task-status-rail ' + getStatusRailClass(task.status)"></div>
+
+              <div class="flex min-w-0 items-center gap-4">
+                <button
+                  class="task-play-btn"
+                  type="button"
+                  title="شروع تایمر"
+                  aria-label="شروع تایمر"
+                >
+                  <span class="text-sm font-black">▶</span>
+                </button>
+
+                <a
+                  class="min-w-0 max-w-full flex-1 overflow-hidden hover:opacity-80 transition-opacity"
+                  [routerLink]="['/tasks', task.id]"
+                  [title]="task.title"
+                >
+                  <span
+                    class="block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[14px] font-black text-[var(--text-main)]"
+                  >
+                    {{ task.title }}
+                  </span>
+
+                  <span
+                    class="mt-1.5 block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-bold text-[var(--text-soft)]"
+                  >
+                    {{ task.project_title ?? 'پروژه #' + task.project_id }}
+                  </span>
+                </a>
+              </div>
+
+              <span
+                class="hidden min-w-[76px] text-left text-blue-500 dark:text-cyan-400 font-black text-sm tracking-wide sm:block"
+              >
+                #{{ task.id }}
+              </span>
+
+              <div
+                class="flex min-w-[76px] items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <button
+                  type="button"
+                  class="text-[11px] font-black text-blue-500 hover:text-blue-400 cursor-pointer"
+                  (click)="openEditTaskModal(task, $event)"
+                >
+                  ویرایش
+                </button>
+
+                <button
+                  type="button"
+                  class="text-[11px] font-black text-red-500 hover:text-red-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  [disabled]="deletingTaskId() === task.id"
+                  (click)="deleteTask(task)"
+                >
+                  @if (deletingTaskId() === task.id) {
+                    حذف...
+                  } @else {
+                    حذف
+                  }
+                </button>
+              </div>
+            </div>
+          }
         }
       }
       @if (!tasksState().loading && !tasksState().error && listTotalTasks > 0) {
@@ -801,19 +907,29 @@
             } @else {
               <div class="animate-in fade-in slide-in-from-right duration-300 space-y-5">
                 <div
-                  class="rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 to-violet-600/15 p-6 text-center"
+                  class="rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/15 via-white/60 to-violet-600/15 p-5 dark:via-slate-950/40"
                 >
-                  <div
-                    class="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-cyan-500/20 text-3xl"
-                  >
-                    ✨
+                  <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p class="text-[11px] font-black text-cyan-500">مرحله ۳</p>
+                      <h3 class="mt-2 text-xl font-black text-[var(--text-main)]">
+                        انتخاب شواهد Git برای ساخت پیش‌نویس
+                      </h3>
+                      <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
+                        قبل از ارسال به AI، کامیت‌ها و فعالیت‌های مرتبط را بررسی کن. موارد match شده
+                        پیش‌فرض انتخاب شده‌اند و می‌توانی فعالیت‌های اخیر را هم اضافه کنی.
+                      </p>
+                    </div>
+
+                    <div
+                      class="rounded-2xl bg-white/70 px-4 py-3 text-center shadow-sm dark:bg-white/10"
+                    >
+                      <p class="text-[10px] font-black text-[var(--text-soft)]">انتخاب‌شده</p>
+                      <p class="mt-1 text-lg font-black text-cyan-500">
+                        {{ selectedRecentCommitIds().length }}
+                      </p>
+                    </div>
                   </div>
-                  <h3 class="mt-4 text-xl font-black text-[var(--text-main)]">
-                    AI در حال ساخت پیش‌نویس کارکرد است
-                  </h3>
-                  <p class="mt-2 text-xs font-bold text-[var(--text-soft)]">
-                    شواهد Git بررسی می‌شود و تاریخ، زمان و توضیحات روی فرم نوشته می‌شود.
-                  </p>
                 </div>
 
                 @if (isSyncing()) {
@@ -823,76 +939,306 @@
                     <div class="h-4 w-2/5 rounded-full bg-slate-200 dark:bg-white/10"></div>
                     <div class="h-4 w-full rounded-full bg-slate-200 dark:bg-white/10"></div>
                     <div class="h-4 w-10/12 rounded-full bg-slate-200 dark:bg-white/10"></div>
-                    <div class="grid grid-cols-3 gap-3 pt-3">
-                      <div class="h-20 rounded-2xl bg-slate-200 dark:bg-white/10"></div>
-                      <div class="h-20 rounded-2xl bg-slate-200 dark:bg-white/10"></div>
-                      <div class="h-20 rounded-2xl bg-slate-200 dark:bg-white/10"></div>
+                    <div class="grid grid-cols-1 gap-3 pt-3 md:grid-cols-2">
+                      <div class="h-24 rounded-2xl bg-slate-200 dark:bg-white/10"></div>
+                      <div class="h-24 rounded-2xl bg-slate-200 dark:bg-white/10"></div>
                     </div>
                   </div>
-                }
-
-                @if (mutationState().error && !isSyncing()) {
-                  <div class="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
-                    <p class="text-xs font-black text-red-500">
-                      {{ mutationState().error }}
-                    </p>
-                    <div class="mt-3 flex gap-2">
-                      <button type="button" class="filter-chip" (click)="goToPreviousWizardStep()">
-                        برگشت به تنظیمات
-                      </button>
-                      <button type="button" class="filter-chip active" (click)="startAiFlow()">
-                        تلاش مجدد
-                      </button>
+                } @else {
+                  @if (aiFallbackMessage()) {
+                    <div class="rounded-3xl border border-amber-500/25 bg-amber-500/10 p-4">
+                      <p class="text-sm font-black text-amber-500">وضعیت شواهد</p>
+                      <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
+                        {{ aiFallbackMessage() }}
+                      </p>
                     </div>
-                  </div>
-                }
+                  }
 
-                @if (recentGitCommits().length > 0 && !isSyncing()) {
-                  <div class="rounded-3xl border border-orange-500/25 bg-orange-500/10 p-4">
-                    <p class="text-sm font-black text-orange-500">
-                      کامیتی با کلید این تسک پیدا نشد
-                    </p>
-                    <p class="mt-2 text-xs font-bold text-[var(--text-soft)]">
-                      ممکن است کامیت‌ها بدون کلید Jira ثبت شده باشند یا در پروژه دیگری باشند.
-                      فعالیت‌ها و کامیت‌های اخیر GitLab خودت را می‌بینی؛ موارد مرتبط را انتخاب کن یا
-                      مسیر دستی را ادامه بده.
-                    </p>
+                  @if (matchedGitCommits().length > 0) {
+                    <div class="rounded-3xl border border-emerald-500/20 bg-emerald-500/10 p-4">
+                      <div class="mb-4 flex items-center justify-between gap-3">
+                        <div>
+                          <p class="text-sm font-black text-emerald-600 dark:text-emerald-300">
+                            شواهد مستقیم این تسک
+                          </p>
+                          <p class="mt-1 text-[11px] font-bold text-[var(--text-soft)]">
+                            این موارد با کلید تسک یا branch مرتبط پیدا شده‌اند.
+                          </p>
+                        </div>
 
-                    <div class="mt-4 max-h-64 space-y-2 overflow-y-auto custom-scrollbar">
-                      @for (commit of recentGitCommits(); track commit.id) {
-                        <label
-                          class="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/60 p-3 text-right dark:bg-white/5"
+                        <span
+                          class="rounded-full bg-emerald-500/15 px-3 py-1 text-[10px] font-black text-emerald-600 dark:text-emerald-300"
                         >
-                          <input
-                            type="checkbox"
-                            class="mt-1"
-                            [checked]="selectedRecentCommitIds().includes(commit.id)"
-                            (change)="toggleRecentCommitSelection(commit.id)"
-                          />
-                          <span class="flex-1">
-                            <span class="block text-xs font-black text-[var(--text-main)]">
-                              {{ commit.title }}
+                          Matched
+                        </span>
+                      </div>
+
+                      <div class="max-h-72 space-y-2 overflow-y-auto custom-scrollbar">
+                        @for (commit of matchedGitCommits(); track commit.id) {
+                          <label
+                            class="flex cursor-pointer items-start gap-3 rounded-2xl border border-emerald-500/15 bg-white/70 p-3 text-right shadow-sm transition hover:border-emerald-400/50 dark:bg-white/5"
+                          >
+                            <input
+                              type="checkbox"
+                              class="mt-1"
+                              [checked]="selectedRecentCommitIds().includes(commit.id)"
+                              (change)="toggleRecentCommitSelection(commit.id)"
+                            />
+
+                            <span class="min-w-0 flex-1">
+                              <span
+                                class="block text-xs font-black leading-6 text-[var(--text-main)]"
+                              >
+                                {{ commit.title }}
+                              </span>
+
+                              <span
+                                class="mt-1 flex flex-wrap gap-2 text-[10px] font-bold text-[var(--text-soft)]"
+                              >
+                                @if (commit.shortId) {
+                                  <span class="rounded-full bg-slate-500/10 px-2 py-1">{{
+                                    commit.shortId
+                                  }}</span>
+                                }
+                                @if (commit.authorName) {
+                                  <span class="rounded-full bg-slate-500/10 px-2 py-1">{{
+                                    commit.authorName
+                                  }}</span>
+                                }
+                                @if (commit.ref) {
+                                  <span class="rounded-full bg-cyan-500/10 px-2 py-1 text-cyan-500">
+                                    {{ commit.ref }}
+                                  </span>
+                                }
+                                @if (commit.source) {
+                                  <span
+                                    class="rounded-full bg-violet-500/10 px-2 py-1 text-violet-500"
+                                  >
+                                    {{ commit.source }}
+                                  </span>
+                                }
+                              </span>
                             </span>
-                            <span class="mt-1 block text-[10px] font-bold text-[var(--text-soft)]">
-                              {{ commit.shortId }} · {{ commit.authorName }} ·
-                              {{ commit.createdAt }}
-                            </span>
+                          </label>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @if (recentGitCommits().length > 0) {
+                    <div
+                      class="rounded-3xl border border-slate-200 bg-white/75 p-4 dark:border-white/10 dark:bg-white/5"
+                    >
+                      <button
+                        type="button"
+                        class="flex w-full items-center justify-between gap-3 rounded-2xl px-1 py-1 text-right transition hover:opacity-90"
+                        (click)="toggleRecentEvidencePanel()"
+                        [attr.aria-expanded]="isRecentEvidenceOpen()"
+                      >
+                        <span class="min-w-0">
+                          <span class="block text-sm font-black text-[var(--text-main)]">
+                            افزودن از فعالیت‌ها و کامیت‌های اخیر GitLab
                           </span>
-                        </label>
+
+                          <span
+                            class="mt-1 block text-[11px] font-bold leading-6 text-[var(--text-soft)]"
+                          >
+                            اگر کار مرتبطی انجام شده ولی با کلید این تسک ثبت نشده، از این بخش اضافه
+                            کن.
+                          </span>
+                        </span>
+
+                        <span class="flex shrink-0 items-center gap-2">
+                          <span
+                            class="rounded-full bg-slate-500/10 px-3 py-1 text-[10px] font-black text-[var(--text-soft)]"
+                          >
+                            {{ recentGitCommits().length }} مورد
+                          </span>
+
+                          <span
+                            class="grid h-8 w-8 place-items-center rounded-full bg-cyan-500/10 text-sm font-black text-cyan-500 transition"
+                            [class.rotate-180]="isRecentEvidenceOpen()"
+                          >
+                            ↓
+                          </span>
+                        </span>
+                      </button>
+
+                      @if (isRecentEvidenceOpen()) {
+                        <div class="mt-4 max-h-72 space-y-2 overflow-y-auto custom-scrollbar">
+                          @for (commit of recentGitCommits(); track commit.id) {
+                            <label
+                              class="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/60 p-3 text-right transition hover:border-cyan-400/40 dark:bg-white/5"
+                            >
+                              <input
+                                type="checkbox"
+                                class="mt-1"
+                                [checked]="selectedRecentCommitIds().includes(commit.id)"
+                                (change)="toggleRecentCommitSelection(commit.id)"
+                              />
+
+                              <span class="min-w-0 flex-1">
+                                <span
+                                  class="block text-xs font-black leading-6 text-[var(--text-main)]"
+                                >
+                                  {{ commit.title }}
+                                </span>
+
+                                <span
+                                  class="mt-1 flex flex-wrap gap-2 text-[10px] font-bold text-[var(--text-soft)]"
+                                >
+                                  @if (commit.shortId) {
+                                    <span class="rounded-full bg-slate-500/10 px-2 py-1">
+                                      {{ commit.shortId }}
+                                    </span>
+                                  }
+
+                                  @if (commit.authorName) {
+                                    <span class="rounded-full bg-slate-500/10 px-2 py-1">
+                                      {{ commit.authorName }}
+                                    </span>
+                                  }
+
+                                  @if (commit.ref) {
+                                    <span
+                                      class="rounded-full bg-cyan-500/10 px-2 py-1 text-cyan-500"
+                                    >
+                                      {{ commit.ref }}
+                                    </span>
+                                  }
+
+                                  @if (commit.source) {
+                                    <span
+                                      class="rounded-full bg-violet-500/10 px-2 py-1 text-violet-500"
+                                    >
+                                      {{ commit.source }}
+                                    </span>
+                                  }
+                                </span>
+                              </span>
+                            </label>
+                          }
+                        </div>
                       }
                     </div>
+                  }
+                  <div
+                    class="rounded-3xl border border-dashed border-cyan-500/25 bg-cyan-500/5 p-4"
+                  >
+                    <div class="flex flex-col gap-3 md:flex-row md:items-end">
+                      <label class="flex min-w-0 flex-1 flex-col gap-2">
+                        <span class="text-xs font-black text-[var(--text-soft)]">
+                          افزودن evidence دستی
+                        </span>
 
-                    <div class="mt-4 flex flex-wrap justify-end gap-2">
+                        <input
+                          type="text"
+                          class="rounded-2xl border border-[var(--card-border)] bg-white/70 px-4 py-3 text-xs font-bold text-[var(--text-main)] outline-none dark:bg-[#061525]"
+                          placeholder="مثلاً لینک commit، عنوان MR، یا خلاصه فعالیت مرتبط..."
+                          [value]="manualEvidenceTitle()"
+                          (input)="manualEvidenceTitle.set($any($event.target).value)"
+                          (keydown.enter)="$event.preventDefault(); addManualGitEvidence()"
+                        />
+                      </label>
+
+                      <button
+                        type="button"
+                        class="filter-chip active disabled:opacity-50 disabled:cursor-not-allowed"
+                        [disabled]="!manualEvidenceTitle().trim()"
+                        (click)="addManualGitEvidence()"
+                      >
+                        افزودن
+                      </button>
+                    </div>
+
+                    @if (manualGitCommits().length > 0) {
+                      <div class="mt-4 space-y-2">
+                        @for (commit of manualGitCommits(); track commit.id) {
+                          <label
+                            class="flex cursor-pointer items-start gap-3 rounded-2xl border border-cyan-500/15 bg-white/60 p-3 text-right transition hover:border-cyan-400/40 dark:bg-white/5"
+                          >
+                            <input
+                              type="checkbox"
+                              class="mt-1"
+                              [checked]="selectedRecentCommitIds().includes(commit.id)"
+                              (change)="toggleRecentCommitSelection(commit.id)"
+                            />
+
+                            <span class="min-w-0 flex-1">
+                              <span
+                                class="block text-xs font-black leading-6 text-[var(--text-main)]"
+                              >
+                                {{ commit.title }}
+                              </span>
+
+                              <span
+                                class="mt-1 flex flex-wrap gap-2 text-[10px] font-bold text-[var(--text-soft)]"
+                              >
+                                <span class="rounded-full bg-cyan-500/10 px-2 py-1 text-cyan-500">
+                                  manual
+                                </span>
+                              </span>
+                            </span>
+
+                            <button
+                              type="button"
+                              class="text-[11px] font-black text-red-500 hover:text-red-400"
+                              (click)="removeManualGitEvidence(commit.id); $event.preventDefault()"
+                            >
+                              حذف
+                            </button>
+                          </label>
+                        }
+                      </div>
+                    }
+                  </div>
+                  @if (
+                    matchedGitCommits().length === 0 &&
+                    recentGitCommits().length === 0 &&
+                    manualGitCommits().length === 0 &&
+                    !mutationState().error
+                  ) {
+                    <div
+                      class="rounded-3xl border border-dashed border-[var(--card-border)] p-6 text-center"
+                    >
+                      <p class="text-sm font-black text-[var(--text-main)]">
+                        کامیتی برای نمایش وجود ندارد
+                      </p>
+                      <p class="mt-2 text-xs font-bold text-[var(--text-soft)]">
+                        می‌توانی مسیر دستی را ادامه بدهی یا دوباره تلاش کنی.
+                      </p>
+                    </div>
+                  }
+
+                  @if (mutationState().error) {
+                    <div class="rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
+                      <p class="text-xs font-black text-red-500">
+                        {{ mutationState().error }}
+                      </p>
+                    </div>
+                  }
+
+                  <div class="flex flex-wrap items-center justify-between gap-3">
+                    <button type="button" class="filter-chip" (click)="goToPreviousWizardStep()">
+                      برگشت به تنظیمات
+                    </button>
+
+                    <div class="flex flex-wrap justify-end gap-2">
                       <button type="button" class="filter-chip" (click)="selectFlowType('manual')">
                         ادامه دستی
                       </button>
+
+                      <button type="button" class="filter-chip" (click)="onSyncGitlab()">
+                        دریافت مجدد شواهد
+                      </button>
+
                       <button
                         type="button"
                         class="filter-chip active disabled:opacity-50 disabled:cursor-not-allowed"
                         [disabled]="selectedRecentCommitIds().length === 0"
                         (click)="useSelectedRecentCommits()"
                       >
-                        استفاده از کامیت‌های انتخاب‌شده
+                        ساخت پیش‌نویس با AI
                       </button>
                     </div>
                   </div>

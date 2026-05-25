@@ -82,6 +82,12 @@ export class TasksService {
       .pipe(map((response) => this.mapWttTaskListResponse(response, page)));
   }
 
+  getTaskById(taskId: number): Observable<TaskItem> {
+    return this.http
+      .get<WttTaskItem>(`${this.apiBaseUrl}/tasks/${taskId}/`)
+      .pipe(map((task) => this.mapWttTaskItem(task)));
+  }
+
   getProjects(): Observable<Project[]> {
     return this.http
       .get<WttProjectsResponse>(`${this.apiBaseUrl}/project/get_all_projects/`)
