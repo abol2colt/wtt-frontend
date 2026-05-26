@@ -137,10 +137,6 @@
 
           <button type="button" class="reports-sidebar-button" disabled>گزارش فنی لید</button>
         </div>
-
-        <div class="reports-sidebar-note">
-          AI واقعی هنوز به Proxy وصل نشده؛ فعلاً صفحه اصلی از داده واقعی پیش‌نویس demo-safe می‌سازد.
-        </div>
       </div>
 
       <div class="reports-sidebar-group">
@@ -371,16 +367,6 @@
             </div>
           </div>
 
-          <div class="border-t border-[var(--card-border)] pt-3">
-            <div class="text-[10px] font-black text-[var(--text-soft)] mb-2">راهنما</div>
-
-            <div
-              class="rounded-xl border border-cyan-500/15 bg-cyan-500/10 p-3 text-[10px] font-bold leading-5 text-[var(--text-soft)]"
-            >
-              برای دیدن داده واقعی مرخصی‌های تست‌شده، بازه «ماه گذشته» را انتخاب کن.
-            </div>
-          </div>
-
           <div class="grid grid-cols-2 gap-2 pt-2">
             <button
               type="button"
@@ -477,6 +463,239 @@
         <p class="mt-2 text-[10px] font-black text-red-500 text-center">
           {{ presenceActionError() }}
         </p>
+      }
+    </section>
+    <section class="left-card manual-attendance-card">
+      <div class="manual-attendance-actions">
+        <button
+          type="button"
+          class="manual-attendance-button primary"
+          [class.is-open]="manualAttendanceOpen()"
+          (click)="toggleManualAttendanceForm()"
+        >
+          <span class="manual-attendance-icon">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path
+                d="M7 3V6M17 3V6M4 9H20M6 13H11M6 17H9M14 15L16 17L20 13"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+
+          <span>
+            <strong>ثبت دستی ورود/خروج</strong>
+            <small>اصلاح فراموشی حضور</small>
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="manual-attendance-button"
+          [class.is-open]="attendanceHistoryOpen()"
+          (click)="toggleAttendanceHistory()"
+        >
+          <span class="manual-attendance-icon">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path
+                d="M5 5H19M5 12H19M5 19H13"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+              <path
+                d="M17 16L19 18L22 14"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+
+          <span>
+            <strong>لیست ورود و خروج‌ها</strong>
+            <small>نیازمند API واقعی</small>
+          </span>
+        </button>
+      </div>
+
+      @if (manualAttendanceOpen()) {
+        <form
+          class="manual-attendance-form"
+          (submit)="$event.preventDefault(); submitManualAttendanceCorrection()"
+        >
+          <div class="manual-attendance-alert">
+            {{ manualAttendanceApiNotice }}
+          </div>
+
+          <label class="manual-attendance-field">
+            <span>تاریخ</span>
+            <input
+              type="text"
+              inputmode="numeric"
+              maxlength="10"
+              dir="ltr"
+              placeholder="1405-02-21"
+              [value]="manualAttendanceForm().date"
+              (input)="updateManualAttendanceField('date', $any($event.target).value)"
+            />
+          </label>
+
+          <div class="manual-attendance-time-grid">
+            <label class="manual-attendance-field">
+              <span>ساعت ورود</span>
+              <input
+                type="time"
+                dir="ltr"
+                [value]="manualAttendanceForm().startTime"
+                (input)="updateManualAttendanceField('startTime', $any($event.target).value)"
+              />
+            </label>
+
+            <label class="manual-attendance-field">
+              <span>ساعت خروج</span>
+              <input
+                type="time"
+                dir="ltr"
+                [value]="manualAttendanceForm().endTime"
+                (input)="updateManualAttendanceField('endTime', $any($event.target).value)"
+              />
+            </label>
+          </div>
+
+          @if (manualAttendanceValidation().errors.length) {
+            <div class="manual-attendance-error">
+              {{ manualAttendanceValidation().errors[0] }}
+            </div>
+          } @else if (manualAttendanceValidation().softWarning) {
+            <div class="manual-attendance-warning">
+              {{ manualAttendanceValidation().softWarning }}
+            </div>
+          }
+
+          @if (manualAttendanceSubmitMessage()) {
+            <div class="manual-attendance-success">
+              {{ manualAttendanceSubmitMessage() }}
+            </div>
+          }
+
+          <div class="manual-attendance-submit-row">
+            <button
+              type="submit"
+              class="manual-attendance-submit"
+              [disabled]="!manualAttendanceValidation().valid || manualAttendanceLoading()"
+            >
+              @if (manualAttendanceLoading()) {
+                در حال ثبت...
+              } @else {
+                {{ getManualAttendanceSubmitLabel() }}
+              }
+            </button>
+
+            <button
+              type="button"
+              class="manual-attendance-cancel"
+              (click)="closeManualAttendanceForm()"
+            >
+              بستن
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (attendanceHistoryOpen()) {
+        <div class="manual-attendance-history">
+          <div class="manual-attendance-history-head">
+            <strong>ورود و خروج‌های ماه</strong>
+            <span>real WTT</span>
+          </div>
+
+          @if (attendanceHistoryLoading()) {
+            <div class="manual-attendance-empty">در حال دریافت لیست ورود و خروج‌ها...</div>
+          } @else if (attendanceHistoryError()) {
+            <div class="manual-attendance-error">{{ attendanceHistoryError() }}</div>
+          } @else if (attendanceHistoryItems().length) {
+            <div class="manual-attendance-history-list">
+              @for (item of attendanceHistoryItems(); track item.id) {
+                <div class="manual-attendance-history-row">
+                  <button
+                    type="button"
+                    class="manual-attendance-history-item"
+                    [class.is-selected]="selectedAttendanceHistoryId() === item.id"
+                    (click)="toggleAttendanceHistoryItem(item.id)"
+                  >
+                    <div>
+                      <strong>{{ item.date }}</strong>
+                      <span
+                        >ورود {{ item.startTime || '—' }} · خروج {{ item.endTime || 'باز' }}</span
+                      >
+                    </div>
+
+                    <em
+                      [class.needs-review]="item.status === 'needs_review'"
+                      [class.is-open]="item.status === 'open'"
+                    >
+                      @if (item.status === 'open') {
+                        باز
+                      } @else if (item.status === 'needs_review') {
+                        قابل اصلاح
+                      } @else {
+                        ثبت‌شده
+                      }
+                    </em>
+                  </button>
+
+                  @if (selectedAttendanceHistoryId() === item.id) {
+                    <div class="manual-attendance-detail-tab">
+                      <div class="manual-attendance-detail-head">
+                        <strong> ورود و خروج</strong>
+
+                        <button type="button" (click)="closeAttendanceHistoryItem()">بستن</button>
+                      </div>
+
+                      <div class="manual-attendance-detail-grid">
+                        <div>
+                          <span>تاریخ</span>
+                          <strong>{{ item.date }}</strong>
+                        </div>
+
+                        <div>
+                          <span>ورود</span>
+                          <strong>{{ item.startTime || '—' }}</strong>
+                        </div>
+
+                        <div>
+                          <span>خروج</span>
+                          <strong>{{ item.endTime || 'ثبت نشده' }}</strong>
+                        </div>
+
+                        <div>
+                          <span>مدت</span>
+                          <strong>{{ formatShortMinutes(item.duration) }}</strong>
+                        </div>
+                      </div>
+
+                      <div class="manual-attendance-detail-note">
+                        @if (item.status === 'open') {
+                          این حضور هنوز باز است.
+                        } @else if (item.editable) {
+                          قابل اصلاح است.
+                        } @else {
+                          غیرقابل ویرایش
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="manual-attendance-empty">برای ماه جاری ورود و خروجی پیدا نشد.</div>
+          }
+        </div>
       }
     </section>
     <section class="left-card running-task-card">

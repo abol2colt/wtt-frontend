@@ -42,34 +42,111 @@
   @if (activeTab() === 'profile') {
     <section class="grid grid-cols-1 gap-4 xl:grid-cols-3">
       <article
-        class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
-      >
-        <p class="text-[11px] font-black text-cyan-500">Profile</p>
-        <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">پروفایل کاربر</h2>
-        <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
-          این بخش فقط نمایشی است و هیچ تغییری روی حساب کاربری یا سرور اعمال نمی‌کند.
-        </p>
-      </article>
-
-      <article
         class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10 xl:col-span-2"
       >
-        <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-          <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
-            <p class="text-[11px] font-black text-[var(--text-soft)]">Workspace</p>
-            <p class="mt-2 text-sm font-black text-[var(--text-main)]">WTT Frontend Demo</p>
+        @if (profileLoading() && !authService.currentUser()) {
+          <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+            @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+              <div class="h-24 animate-pulse rounded-2xl bg-slate-100 dark:bg-white/10"></div>
+            }
           </div>
-          <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
-            <p class="text-[11px] font-black text-[var(--text-soft)]">Preference storage</p>
-            <p class="mt-2 text-sm font-black text-[var(--text-main)]">localStorage</p>
+        } @else {
+          <div class="flex flex-col gap-5">
+            <div
+              class="flex flex-col gap-4 rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-white/10 md:flex-row md:items-center"
+            >
+              <div
+                class="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-3xl bg-cyan-500/10 text-xl font-black text-cyan-600 ring-1 ring-cyan-500/20 dark:text-cyan-300"
+              >
+                @if (profileAvatarUrl(); as avatarUrl) {
+                  <img
+                    [src]="avatarUrl"
+                    [alt]="profileFullName()"
+                    class="h-full w-full object-cover"
+                    (error)="onProfileAvatarError()"
+                  />
+                } @else {
+                  {{ profileInitials() }}
+                }
+              </div>
+
+              <div class="min-w-0">
+                <p class="text-[11px] font-black text-[var(--text-soft)]">Authenticated user</p>
+                <h3 class="mt-1 text-xl font-black text-[var(--text-main)]">
+                  {{ profileFullName() }}
+                </h3>
+                <p class="mt-2 text-xs font-bold text-[var(--text-soft)]">
+                  {{ profileRoleLabel() }} · {{ profileStatusLabel() }}
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+              <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+                <p class="text-[11px] font-black text-[var(--text-soft)]">User ID</p>
+                <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+                  {{ authService.currentUser()?.id ?? authService.getCurrentUserId() ?? '—' }}
+                </p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+                <p class="text-[11px] font-black text-[var(--text-soft)]">Username</p>
+                <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+                  {{ authService.currentUser()?.username || '—' }}
+                </p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+                <p class="text-[11px] font-black text-[var(--text-soft)]">Email</p>
+                <p class="mt-2 break-all text-sm font-black text-[var(--text-main)]">
+                  {{ authService.currentUser()?.email || '—' }}
+                </p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+                <p class="text-[11px] font-black text-[var(--text-soft)]">Role</p>
+                <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+                  {{ profileRoleLabel() }}
+                </p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+                <p class="text-[11px] font-black text-[var(--text-soft)]">Status</p>
+                <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+                  {{ profileStatusLabel() }}
+                </p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+                <p class="text-[11px] font-black text-[var(--text-soft)]">Manager</p>
+                <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+                  {{ profileManagerName() }}
+                </p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+                <p class="text-[11px] font-black text-[var(--text-soft)]">Admin</p>
+                <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+                  {{ authService.currentUser()?.isAdmin ? 'Yes' : 'No' }}
+                </p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+                <p class="text-[11px] font-black text-[var(--text-soft)]">Staff</p>
+                <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+                  {{ authService.currentUser()?.isStaff ? 'Yes' : 'No' }}
+                </p>
+              </div>
+
+              <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
+                <p class="text-[11px] font-black text-[var(--text-soft)]">Supervisor</p>
+                <p class="mt-2 text-sm font-black text-[var(--text-main)]">
+                  {{ authService.currentUser()?.isSupervisor ? 'Yes' : 'No' }}
+                </p>
+              </div>
+            </div>
           </div>
-          <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
-            <p class="text-[11px] font-black text-[var(--text-soft)]">Secrets</p>
-            <p class="mt-2 text-sm font-black text-emerald-600 dark:text-emerald-300">
-              ذخیره نمی‌شود
-            </p>
-          </div>
-        </div>
+        }
       </article>
     </section>
   }
@@ -81,54 +158,119 @@
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p class="text-[11px] font-black text-cyan-500">AI Preferences</p>
-          <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">ترجیحات گزارش AI</h2>
+          <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">
+            ترجیحات AI برای گزارش و commit
+          </h2>
           <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
-            فقط ترجیحات غیرمحرمانه ذخیره می‌شوند و هیچ درخواستی به backend ارسال نمی‌شود.
+            فقط tone و instructionهای غیرمحرمانه در localStorage ذخیره می‌شوند؛ هیچ توکنی ذخیره
+            نمی‌شود.
           </p>
         </div>
+
         <span
           class="rounded-full bg-cyan-500/10 px-3 py-1 text-[11px] font-black text-cyan-600 ring-1 ring-cyan-500/20 dark:text-cyan-300"
         >
-          {{ preferencesService.preferences().reportLanguage }}
+          {{ preferencesService.preferences().reportLanguage }} · localStorage
         </span>
       </div>
 
-      <div class="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <div class="xl:col-span-3">
-          <p class="mb-3 text-xs font-black text-[var(--text-soft)]">لحن گزارش</p>
-          <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-            @for (option of aiToneOptions; track option.value) {
-              <button
-                type="button"
-                [class]="
-                  optionButtonClass(preferencesService.preferences().aiTone === option.value)
-                "
-                (click)="setAiTone(option.value)"
-              >
-                <span class="block text-sm">{{ option.label }}</span>
-                <span class="mt-2 block text-[11px] leading-5 opacity-70">{{
-                  option.description
-                }}</span>
-              </button>
-            }
+      <div class="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <article
+          class="rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-white/10"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-black text-[var(--text-soft)]">Reports</p>
+              <h3 class="mt-1 text-sm font-black text-[var(--text-main)]">تنظیمات گزارش‌ها</h3>
+            </div>
+            <span
+              class="rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-black text-emerald-600 dark:text-emerald-300"
+            >
+              non-secret
+            </span>
           </div>
-        </div>
 
-        <label class="flex flex-col gap-2">
-          <span class="text-xs font-black text-[var(--text-soft)]">سطح جزئیات</span>
-          <select
-            class="rounded-2xl bg-white px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-slate-950/70 dark:ring-white/10"
-            [value]="preferencesService.preferences().aiDetailLevel"
-            (change)="setAiDetailLevel($any($event.target).value)"
-          >
-            @for (option of detailLevelOptions; track option.value) {
-              <option [value]="option.value">{{ option.label }}</option>
-            }
-          </select>
-        </label>
+          <div class="mt-4">
+            <p class="mb-3 text-xs font-black text-[var(--text-soft)]">لحن گزارش</p>
 
-        <label class="flex flex-col gap-2">
-          <span class="text-xs font-black text-[var(--text-soft)]">زبان گزارش</span>
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+              @for (option of aiToneOptions; track option.value) {
+                <button
+                  type="button"
+                  [class]="
+                    optionButtonClass(preferencesService.preferences().reportTone === option.value)
+                  "
+                  (click)="setReportTone(option.value)"
+                >
+                  <span class="block text-sm">{{ option.label }}</span>
+                  <span class="mt-2 block text-[11px] leading-5 opacity-70">
+                    {{ option.description }}
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <label class="mt-4 flex flex-col gap-2">
+            <span class="text-xs font-black text-[var(--text-soft)]">دستور اختصاصی گزارش</span>
+            <textarea
+              rows="5"
+              class="rounded-2xl bg-white px-4 py-3 text-xs font-bold leading-6 text-[var(--text-main)] ring-1 ring-slate-200 outline-none resize-none dark:bg-slate-950/70 dark:ring-white/10"
+              [value]="preferencesService.preferences().reportInstruction"
+              (input)="setReportInstruction($any($event.target).value)"
+            ></textarea>
+          </label>
+        </article>
+
+        <article
+          class="rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-white/10"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-black text-[var(--text-soft)]">Commit Explanations</p>
+              <h3 class="mt-1 text-sm font-black text-[var(--text-main)]">تنظیمات توضیح commit</h3>
+            </div>
+            <span
+              class="rounded-full bg-violet-500/10 px-3 py-1 text-[10px] font-black text-violet-600 dark:text-violet-300"
+            >
+              local
+            </span>
+          </div>
+
+          <div class="mt-4">
+            <p class="mb-3 text-xs font-black text-[var(--text-soft)]">لحن توضیح commit</p>
+
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+              @for (option of aiToneOptions; track option.value) {
+                <button
+                  type="button"
+                  [class]="
+                    optionButtonClass(preferencesService.preferences().commitTone === option.value)
+                  "
+                  (click)="setCommitTone(option.value)"
+                >
+                  <span class="block text-sm">{{ option.label }}</span>
+                  <span class="mt-2 block text-[11px] leading-5 opacity-70">
+                    {{ option.description }}
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <label class="mt-4 flex flex-col gap-2">
+            <span class="text-xs font-black text-[var(--text-soft)]">دستور اختصاصی commit</span>
+            <textarea
+              rows="5"
+              class="rounded-2xl bg-white px-4 py-3 text-xs font-bold leading-6 text-[var(--text-main)] ring-1 ring-slate-200 outline-none resize-none dark:bg-slate-950/70 dark:ring-white/10"
+              [value]="preferencesService.preferences().commitInstruction"
+              (input)="setCommitInstruction($any($event.target).value)"
+            ></textarea>
+          </label>
+        </article>
+
+        <label class="flex flex-col gap-2 xl:col-span-2">
+          <span class="text-xs font-black text-[var(--text-soft)]">زبان خروجی گزارش</span>
           <select
             class="rounded-2xl bg-white px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-slate-950/70 dark:ring-white/10"
             [value]="preferencesService.preferences().reportLanguage"
@@ -139,11 +281,6 @@
             }
           </select>
         </label>
-
-        <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
-          <p class="text-xs font-black text-[var(--text-soft)]">وضعیت ذخیره‌سازی</p>
-          <p class="mt-2 text-sm font-black text-[var(--text-main)]">ترجیحات محلی و غیرمحرمانه</p>
-        </div>
       </div>
     </section>
   }
@@ -152,12 +289,27 @@
     <section
       class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 dark:bg-slate-900/70 dark:ring-white/10"
     >
-      <p class="text-[11px] font-black text-cyan-500">UI Personalization</p>
-      <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">شخصی‌سازی رابط کاربری</h2>
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p class="text-[11px] font-black text-cyan-500">UI Personalization</p>
+          <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">شخصی‌سازی رابط کاربری</h2>
+          <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
+            گزینه‌های نمایشی بی‌اثر حذف شدند؛ این بخش فقط preferenceهایی را نگه می‌دارد که قابل
+            اعمال یا قابل مصرف هستند.
+          </p>
+        </div>
 
-      <div class="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
-        <div class="xl:col-span-3">
+        <span
+          class="rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-black text-emerald-600 ring-1 ring-emerald-500/20 dark:text-emerald-300"
+        >
+          persisted locally
+        </span>
+      </div>
+
+      <div class="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <div class="xl:col-span-2">
           <p class="mb-3 text-xs font-black text-[var(--text-soft)]">رنگ تاکیدی</p>
+
           <div class="grid grid-cols-2 gap-3 md:grid-cols-5">
             @for (option of accentOptions; track option.value) {
               <button
@@ -176,38 +328,207 @@
           </div>
         </div>
 
-        <label class="flex flex-col gap-2">
-          <span class="text-xs font-black text-[var(--text-soft)]">سطح انیمیشن</span>
-          <select
-            class="rounded-2xl bg-white px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-slate-950/70 dark:ring-white/10"
-            [value]="preferencesService.preferences().animationLevel"
-            (change)="setAnimationLevel($any($event.target).value)"
-          >
-            @for (option of animationLevelOptions; track option.value) {
-              <option [value]="option.value">{{ option.label }}</option>
-            }
-          </select>
-        </label>
+        <article
+          class="rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-white/10"
+        >
+          <p class="text-xs font-black text-[var(--text-soft)]">Light mode colors</p>
 
-        <label class="flex flex-col gap-2">
-          <span class="text-xs font-black text-[var(--text-soft)]">تراکم داشبورد</span>
-          <select
-            class="rounded-2xl bg-white px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-slate-950/70 dark:ring-white/10"
-            [value]="preferencesService.preferences().dashboardDensity"
-            (change)="setDashboardDensity($any($event.target).value)"
-          >
-            @for (option of dashboardDensityOptions; track option.value) {
-              <option [value]="option.value">{{ option.label }}</option>
-            }
-          </select>
-        </label>
+          <div class="mt-4 flex flex-col gap-4">
+            <div>
+              <p class="mb-3 text-xs font-black text-[var(--text-soft)]">پس‌زمینه روشن</p>
+              <div class="grid grid-cols-2 gap-2 md:grid-cols-3">
+                @for (option of colorOptions; track option.value) {
+                  <button
+                    type="button"
+                    [class]="
+                      optionButtonClass(
+                        preferencesService.preferences().lightBackground === option.value
+                      )
+                    "
+                    (click)="setLightBackground(option.value)"
+                  >
+                    <span class="flex items-center gap-2">
+                      <span [class]="'size-3 rounded-full ' + option.className"></span>
+                      <span>{{ option.label }}</span>
+                    </span>
+                  </button>
+                }
+              </div>
+            </div>
 
-        <div class="rounded-2xl bg-slate-50 p-4 dark:bg-white/5">
-          <p class="text-xs font-black text-[var(--text-soft)]">Dark mode</p>
-          <p class="mt-2 text-sm font-black text-[var(--text-main)]">
-            از ThemeService اصلی برنامه کنترل می‌شود.
-          </p>
-        </div>
+            <div>
+              <p class="mb-3 text-xs font-black text-[var(--text-soft)]">کارت روشن</p>
+              <div class="grid grid-cols-2 gap-2 md:grid-cols-3">
+                @for (option of colorOptions; track option.value) {
+                  <button
+                    type="button"
+                    [class]="
+                      optionButtonClass(preferencesService.preferences().lightCard === option.value)
+                    "
+                    (click)="setLightCard(option.value)"
+                  >
+                    <span class="flex items-center gap-2">
+                      <span [class]="'size-3 rounded-full ' + option.className"></span>
+                      <span>{{ option.label }}</span>
+                    </span>
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article
+          class="rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-white/10"
+        >
+          <p class="text-xs font-black text-[var(--text-soft)]">Dark mode colors</p>
+
+          <div class="mt-4 flex flex-col gap-4">
+            <div>
+              <p class="mb-3 text-xs font-black text-[var(--text-soft)]">پس‌زمینه تاریک</p>
+              <div class="grid grid-cols-2 gap-2 md:grid-cols-3">
+                @for (option of colorOptions; track option.value) {
+                  <button
+                    type="button"
+                    [class]="
+                      optionButtonClass(
+                        preferencesService.preferences().darkBackground === option.value
+                      )
+                    "
+                    (click)="setDarkBackground(option.value)"
+                  >
+                    <span class="flex items-center gap-2">
+                      <span [class]="'size-3 rounded-full ' + option.className"></span>
+                      <span>{{ option.label }}</span>
+                    </span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div>
+              <p class="mb-3 text-xs font-black text-[var(--text-soft)]">کارت تاریک</p>
+              <div class="grid grid-cols-2 gap-2 md:grid-cols-3">
+                @for (option of colorOptions; track option.value) {
+                  <button
+                    type="button"
+                    [class]="
+                      optionButtonClass(preferencesService.preferences().darkCard === option.value)
+                    "
+                    (click)="setDarkCard(option.value)"
+                  >
+                    <span class="flex items-center gap-2">
+                      <span [class]="'size-3 rounded-full ' + option.className"></span>
+                      <span>{{ option.label }}</span>
+                    </span>
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article
+          class="rounded-3xl bg-slate-50 p-4 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-white/10"
+        >
+          <p class="text-xs font-black text-[var(--text-soft)]">Font size</p>
+
+          <div class="mt-4 grid grid-cols-1 gap-4">
+            <div>
+              <p class="mb-3 text-xs font-black text-[var(--text-soft)]">اندازه فونت کلی</p>
+              <div class="grid grid-cols-1 gap-2 md:grid-cols-3">
+                @for (option of fontScaleOptions; track option.value) {
+                  <button
+                    type="button"
+                    [class]="
+                      optionButtonClass(
+                        preferencesService.preferences().globalFontScale === option.value
+                      )
+                    "
+                    (click)="setGlobalFontScale(option.value)"
+                  >
+                    <span class="block text-sm">{{ option.label }}</span>
+                    <span class="mt-1 block text-[10px] opacity-70">{{ option.description }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div>
+              <p class="mb-3 text-xs font-black text-[var(--text-soft)]">اندازه فونت آیتم‌ها</p>
+              <div class="grid grid-cols-1 gap-2 md:grid-cols-3">
+                @for (option of fontScaleOptions; track option.value) {
+                  <button
+                    type="button"
+                    [class]="
+                      optionButtonClass(
+                        preferencesService.preferences().itemFontScale === option.value
+                      )
+                    "
+                    (click)="setItemFontScale(option.value)"
+                  >
+                    <span class="block text-sm">{{ option.label }}</span>
+                    <span class="mt-1 block text-[10px] opacity-70">{{ option.description }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article
+          class="rounded-3xl p-4 ring-1 ring-slate-200 dark:ring-white/10"
+          [style.background]="
+            preferencesService.resolveUiColor(
+              preferencesService.preferences().lightBackground,
+              'light'
+            )
+          "
+        >
+          <p class="text-xs font-black text-slate-600">Preview · Light</p>
+
+          <div
+            class="mt-3 rounded-2xl p-4 shadow-sm ring-1 ring-black/5"
+            [style.background]="
+              preferencesService.resolveUiColor(preferencesService.preferences().lightCard, 'light')
+            "
+            [style.font-size]="
+              preferencesService.resolveFontSize(preferencesService.preferences().itemFontScale)
+            "
+          >
+            <p class="font-black text-slate-900">نمونه کارت روشن</p>
+            <p class="mt-2 text-xs font-bold leading-6 text-slate-600">
+              این فقط preview تنظیمات رنگ و فونت است؛ preferenceها در localStorage ذخیره می‌شوند.
+            </p>
+          </div>
+        </article>
+
+        <article
+          class="rounded-3xl p-4 ring-1 ring-slate-700"
+          [style.background]="
+            preferencesService.resolveUiColor(
+              preferencesService.preferences().darkBackground,
+              'dark'
+            )
+          "
+        >
+          <p class="text-xs font-black text-slate-300">Preview · Dark</p>
+
+          <div
+            class="mt-3 rounded-2xl p-4 shadow-sm ring-1 ring-white/10"
+            [style.background]="
+              preferencesService.resolveUiColor(preferencesService.preferences().darkCard, 'dark')
+            "
+            [style.font-size]="
+              preferencesService.resolveFontSize(preferencesService.preferences().itemFontScale)
+            "
+          >
+            <p class="font-black text-white">نمونه کارت تاریک</p>
+            <p class="mt-2 text-xs font-bold leading-6 text-slate-300">
+              این تنظیمات از طریق CSS variables هم روی document root ثبت می‌شوند.
+            </p>
+          </div>
+        </article>
       </div>
     </section>
   }
@@ -219,7 +540,7 @@
         <div class="flex items-start justify-between gap-3">
           <div>
             <p class="text-[11px] font-black text-cyan-500">Jira</p>
-            <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">اتصال Jira واقعی</h2>
+            <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">اتصال Jira</h2>
             <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
               اطلاعات فقط به proxy ارسال می‌شود و در مرورگر ذخیره نمی‌شود.
             </p>
@@ -233,36 +554,6 @@
         </div>
 
         <form [formGroup]="jiraForm" class="mt-5 flex flex-col gap-4">
-          <label class="flex flex-col gap-2">
-            <span class="text-xs font-black text-[var(--text-soft)]">Jira Base URL</span>
-            <input
-              formControlName="baseUrl"
-              class="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-white/5 dark:ring-white/10"
-              type="text"
-              placeholder="https://your-company.atlassian.net"
-            />
-          </label>
-
-          <label class="flex flex-col gap-2">
-            <span class="text-xs font-black text-[var(--text-soft)]">GitLab Username اختیاری</span>
-            <input
-              formControlName="username"
-              class="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-white/5 dark:ring-white/10"
-              type="text"
-              placeholder="مثلاً karimi"
-            />
-          </label>
-
-          <label class="flex flex-col gap-2">
-            <span class="text-xs font-black text-[var(--text-soft)]">Email / Username</span>
-            <input
-              formControlName="email"
-              class="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-white/5 dark:ring-white/10"
-              type="email"
-              placeholder="you@example.com"
-            />
-          </label>
-
           <label class="flex flex-col gap-2">
             <span class="text-xs font-black text-[var(--text-soft)]">Jira Auth Type</span>
             <select
@@ -285,6 +576,21 @@
             />
           </label>
 
+          <div class="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4">
+            <p class="text-xs font-black text-amber-600 dark:text-amber-300">Token security</p>
+            <p class="mt-2 text-[10px] font-bold leading-5 text-[var(--text-soft)]">
+              {{ tokenSecurityNote }}
+            </p>
+
+            <button
+              type="button"
+              class="mt-3 rounded-xl bg-amber-500/10 px-3 py-2 text-[10px] font-black text-amber-600 ring-1 ring-amber-500/20 dark:text-amber-300"
+              (click)="clearJiraToken()"
+            >
+              پاک کردن توکن Jira
+            </button>
+          </div>
+
           <label class="flex flex-col gap-2">
             <span class="text-xs font-black text-[var(--text-soft)]">Jira API Version</span>
             <input
@@ -300,8 +606,12 @@
             <textarea
               formControlName="jql"
               rows="3"
+              readonly
               class="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-bold text-[var(--text-main)] ring-1 ring-slate-200 outline-none resize-none dark:bg-white/5 dark:ring-white/10"
             ></textarea>
+            <p class="text-[10px] font-bold leading-5 text-[var(--text-soft)]">
+              JQL فعلاً preset و قفل است تا رفتار اتصال Jira قابل پیش‌بینی بماند.
+            </p>
           </label>
 
           @if (jiraTestMessage()) {
@@ -340,7 +650,7 @@
         <div class="flex items-start justify-between gap-3">
           <div>
             <p class="text-[11px] font-black text-cyan-500">GitLab</p>
-            <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">اتصال GitLab واقعی</h2>
+            <h2 class="mt-2 text-lg font-black text-[var(--text-main)]">اتصال GitLab</h2>
             <p class="mt-2 text-xs font-bold leading-6 text-[var(--text-soft)]">
               این اتصال برای خواندن commit evidence و ساخت گزارش AI استفاده می‌شود.
             </p>
@@ -355,16 +665,6 @@
 
         <form [formGroup]="gitlabForm" class="mt-5 flex flex-col gap-4">
           <label class="flex flex-col gap-2">
-            <span class="text-xs font-black text-[var(--text-soft)]">GitLab Base URL</span>
-            <input
-              formControlName="baseUrl"
-              class="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-white/5 dark:ring-white/10"
-              type="text"
-              placeholder="https://gitlab.com"
-            />
-          </label>
-
-          <label class="flex flex-col gap-2">
             <span class="text-xs font-black text-[var(--text-soft)]">GitLab Token</span>
             <input
               formControlName="token"
@@ -374,6 +674,21 @@
               autocomplete="off"
             />
           </label>
+
+          <div class="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4">
+            <p class="text-xs font-black text-amber-600 dark:text-amber-300">Token security</p>
+            <p class="mt-2 text-[10px] font-bold leading-5 text-[var(--text-soft)]">
+              {{ tokenSecurityNote }}
+            </p>
+
+            <button
+              type="button"
+              class="mt-3 rounded-xl bg-amber-500/10 px-3 py-2 text-[10px] font-black text-amber-600 ring-1 ring-amber-500/20 dark:text-amber-300"
+              (click)="clearGitLabToken()"
+            >
+              پاک کردن توکن GitLab
+            </button>
+          </div>
 
           <label class="flex flex-col gap-2">
             <span class="text-xs font-black text-[var(--text-soft)]">GitLab Project ID/path </span>
@@ -389,10 +704,14 @@
             <span class="text-xs font-black text-[var(--text-soft)]">Branch Pattern</span>
             <input
               formControlName="branchPattern"
+              readonly
               class="rounded-2xl bg-slate-50 px-4 py-3 text-xs font-black text-[var(--text-main)] ring-1 ring-slate-200 outline-none dark:bg-white/5 dark:ring-white/10"
               type="text"
               placeholder="feature/{TASK_KEY}"
             />
+            <p class="text-[10px] font-bold leading-5 text-[var(--text-soft)]">
+              Branch Pattern برای این پروژه قفل است: {{ lockedBranchPattern }}
+            </p>
           </label>
 
           @if (gitlabTestMessage()) {
