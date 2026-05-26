@@ -1334,16 +1334,16 @@ Do not add new product features here.
 **توضیح:** تمرکز این برنچ روی تکمیل سیستم حضور و غیاب، مأموریت و مرخصی‌هاست. طراحی مجدد تایمر داشبورد، ثبت حضور فراموش‌شده و جداسازی بخش مرخصی/مأموریت از کارهای اصلی این فاز است.
 
 - **Dashboard Timer & Card**
-- [ ] Redesign the dashboard presence timer for better readability, aesthetics, and theme harmony.
-- [ ] Enlarge the clock-in/out card and make it a shortcut/trigger to open the main presence drawer/page (with safe mutation guards).
+- [x] Redesign the dashboard presence timer for better readability, aesthetics, and theme harmony.
+- [x] Enlarge the clock-in/out card and make it a shortcut/trigger to open the main presence drawer/page (with safe mutation guards).
 
 - **Forgot Presence Correction**
-- [ ] Add a contextually appropriate "Log Forgotten Presence" button below the timer.
-- [ ] Implement a slide-down form for manual entry (date, start time, end time) that automatically collapses after submission.
+- [x] Add a contextually appropriate "Log Forgotten Presence" button below the timer.
+- [x] Implement a slide-down form for manual entry (date, start time, end time) that automatically collapses after submission.
 
 - **Leave & Mission Pages**
-- [ ] Separate the "Leave" and "Mission" lists completely with a professional UI.
-- [ ] Fix the header title on these pages (currently incorrectly displaying "Dashboard").
+- [x] Separate the "Leave" and "Mission" lists completely with a professional UI.
+- [x] Fix the header title on these pages (currently incorrectly displaying "Dashboard").
 
 #### 🔔 Branch 024 — `feature/024-notifications-and-header-cleanup`
 
@@ -1389,19 +1389,19 @@ Do not add new product features here.
 **توضیح:** قلب تپنده پروژه! در این برنچ جریان ثبت کارکرد هوشمند (AI)، انتخاب دستی کامیت‌ها و صفحات نمایش لیست و جزئیات تسک‌ها به طور کامل پیاده‌سازی و نهایی می‌شوند.
 
 - **Tasks List & Detail Pages**
-- [ ] Enable real list and grid/card view toggles (currently visual-only).
-- [ ] Build a comprehensive "Task Detail" page with full metadata and excellent design.
-- [ ] Enlarge the "Log Work" action button and add attractive animations.
+- [x] Enable real list and grid/card view toggles (currently visual-only).
+- [x] Build a comprehensive "Task Detail" page with full metadata and excellent design.
+- [x] Enlarge the "Log Work" action button and add attractive animations.
 
 - **UI Polish**
-- [ ] Increase font sizes and adjust opacity/color contrast for sidebars, especially in Dark Mode.
-- [ ] Optimize scrollbars globally (remove pure white scrollbars, adapt them to light/dark themes, and ensure smoothness).
+- [x] Increase font sizes and adjust opacity/color contrast for sidebars, especially in Dark Mode.
+- [x] Optimize scrollbars globally (remove pure white scrollbars, adapt them to light/dark themes, and ensure smoothness).
 
 - **Smart Worklog (AI Flow)**
-- [ ] Display fetched commits to the user for manual selection before dispatching them to the AI.
-- [ ] Allow manual addition of alternative commits to the current task.
-- [ ] **Concurrency Logic:** While AI is processing, redirect the user to the review step so they can fill out missing fields manually.
-- [ ] Auto-fill fields if Jira metadata exists; otherwise, allow user input without overwriting their manual edits when the AI response arrives.
+- [x] Display fetched commits to the user for manual selection before dispatching them to the AI.
+- [x] Allow manual addition of alternative commits to the current task.
+- [x] **Concurrency Logic:** While AI is processing, redirect the user to the review step so they can fill out missing fields manually.
+- [x] Auto-fill fields if Jira metadata exists; otherwise, allow user input without overwriting their manual edits when the AI response arrives.
 
 #### 📈 Branch 027 — `feature/027-reports-advanced`
 

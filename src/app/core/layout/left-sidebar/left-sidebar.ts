@@ -10,13 +10,17 @@ import {
 } from '@angular/core';
 import { EChartsOption } from 'echarts';
 import { NgxEchartsDirective } from 'ngx-echarts';
-import { Subscription, interval, finalize } from 'rxjs';
+import { Subscription, interval, finalize, switchMap } from 'rxjs';
 import { differenceInSeconds, format, parse } from 'date-fns-jalali';
+import { environment } from '../../../../environments/environment';
 
 import { LayoutService } from '../../services/layout/layout.service';
 import { AuthService } from '../../services/auth/auth.service';
 import { DashboardService } from '../../../features/dashboard/services/dashboard.service';
-import { PresenceService } from '../../../features/presence/services/presence.service';
+import {
+  PresenceService,
+  PresenceListItem,
+} from '../../../features/presence/services/presence.service';
 import { TasksService } from '../../../features/tasks/services/tasks.service';
 import { TasksFiltersService } from '../../../features/tasks/services/tasks-filters.service';
 import { Project, ProjectDetailsResponse } from '../../../shared/models/project.model';
@@ -35,6 +39,30 @@ type ProjectDistributionItem = DashboardPieItem & {
   percent: number;
   color: string;
 };
+
+type ManualAttendanceField = 'date' | 'startTime' | 'endTime';
+
+interface ManualAttendanceForm {
+  date: string;
+  startTime: string;
+  endTime: string;
+}
+
+interface ManualAttendanceValidation {
+  valid: boolean;
+  errors: string[];
+  softWarning: string | null;
+}
+
+interface AttendanceHistoryItem {
+  id: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  status: 'registered' | 'needs_review' | 'open';
+  editable: boolean;
+  duration: number;
+}
 
 @Component({
   selector: 'app-left-sidebar',
@@ -81,34 +109,94 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
 
   private taskFilterProjectsLoaded = false;
 
+  manualAttendanceLoading = signal(false);
+
+  readonly enableRealPresenceMutation = environment.enableRealPresenceMutation;
   presenceActionLoading = signal(false);
   presenceActionError = signal<string | null>(null);
+  manualAttendanceOpen = signal(false);
+  attendanceHistoryOpen = signal(false);
+  manualAttendanceSubmitMessage = signal<string | null>(null);
+  attendanceHistoryLoading = signal(false);
+  attendanceHistoryError = signal<string | null>(null);
+
+  readonly manualAttendanceApiNotice = 'در صورت فراموشی دستی ثبت کنید';
+  manualAttendanceForm = signal<ManualAttendanceForm>({
+    date: this.buildCurrentDate(),
+    startTime: '',
+    endTime: '',
+  });
+
+  attendanceHistoryItems = signal<AttendanceHistoryItem[]>([]);
+
+  readonly manualAttendanceValidation = computed<ManualAttendanceValidation>(() => {
+    const form = this.manualAttendanceForm();
+    const errors: string[] = [];
+
+    const hasStartTime = form.startTime.trim().length > 0;
+    const hasEndTime = form.endTime.trim().length > 0;
+
+    if (!form.date.trim()) {
+      errors.push('تاریخ الزامی است.');
+    }
+
+    if (!hasStartTime && !hasEndTime) {
+      errors.push('حداقل ساعت ورود یا خروج را وارد کن.');
+    }
+
+    if (hasStartTime && hasEndTime && form.endTime < form.startTime) {
+      errors.push('ساعت خروج نمی‌تواند قبل از ساعت ورود باشد.');
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+      softWarning:
+        errors.length === 0 && (!hasStartTime || !hasEndTime)
+          ? 'بهتر است هر دو ساعت ورود و خروج تکمیل شوند.'
+          : null,
+    };
+  });
   runningTaskTimerSeconds = signal(0);
   runningTaskTimerActive = signal(false);
+  selectedAttendanceHistoryId = signal<number | null>(null);
 
+  readonly selectedAttendanceHistoryItem = computed(() => {
+    const selectedId = this.selectedAttendanceHistoryId();
+
+    if (!selectedId) {
+      return null;
+    }
+
+    return this.attendanceHistoryItems().find((item) => item.id === selectedId) ?? null;
+  });
+  toggleAttendanceHistoryItem(itemId: number): void {
+    this.selectedAttendanceHistoryId.update((currentId) => (currentId === itemId ? null : itemId));
+  }
+
+  closeAttendanceHistoryItem(): void {
+    this.selectedAttendanceHistoryId.set(null);
+  }
   private runningTaskTimerSub?: Subscription;
-  // Dashboard project distribution chart state.
+
   pieChartState = signal<ApiState<EChartsOption>>({
     data: null,
     loading: true,
     error: null,
   });
 
-  // Real WTT presence counter state.
   presenceCountState = signal<ApiState<PresenceCountResponse>>({
     data: null,
     loading: true,
     error: null,
   });
 
-  // Current open presence record, if the user is currently clocked in.
   activePresenceState = signal<ApiState<ActivePresenceResponse | null>>({
     data: null,
     loading: true,
     error: null,
   });
 
-  // Latest incomplete task used as a running-task shortcut placeholder.
   runningTaskState = signal<ApiState<TaskItem | null>>({
     data: null,
     loading: true,
@@ -562,7 +650,268 @@ export class LeftSidebarComponent implements OnInit, OnDestroy {
         },
       });
   }
+  toggleManualAttendanceForm(): void {
+    this.manualAttendanceOpen.update((isOpen) => !isOpen);
 
+    if (!this.manualAttendanceOpen()) {
+      this.manualAttendanceSubmitMessage.set(null);
+      return;
+    }
+
+    this.attendanceHistoryOpen.set(false);
+    this.manualAttendanceSubmitMessage.set(null);
+
+    if (!this.manualAttendanceForm().date) {
+      this.updateManualAttendanceField('date', this.buildCurrentDate());
+    }
+  }
+
+  toggleAttendanceHistory(): void {
+    this.attendanceHistoryOpen.update((isOpen) => !isOpen);
+
+    if (this.attendanceHistoryOpen()) {
+      this.manualAttendanceOpen.set(false);
+      this.manualAttendanceSubmitMessage.set(null);
+      this.loadAttendanceHistory();
+    }
+  }
+
+  loadAttendanceHistory(): void {
+    const userId = this.authService.getCurrentUserId();
+
+    this.attendanceHistoryLoading.set(true);
+    this.attendanceHistoryError.set(null);
+
+    this.presenceService
+      .getPresences('month', 1, userId)
+      .pipe(
+        finalize(() => {
+          this.attendanceHistoryLoading.set(false);
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          const items = response.results.map((item) => this.mapPresenceToHistoryItem(item));
+
+          this.attendanceHistoryItems.set(items);
+          this.selectedAttendanceHistoryId.set(items[0]?.id ?? null);
+        },
+        error: () => {
+          this.attendanceHistoryItems.set([]);
+          this.attendanceHistoryError.set('خطا در دریافت لیست ورود و خروج‌ها.');
+        },
+      });
+  }
+
+  private mapPresenceToHistoryItem(item: PresenceListItem): AttendanceHistoryItem {
+    return {
+      id: item.id,
+      date: this.extractDatePart(item.start_time),
+      startTime: this.extractTimePart(item.start_time),
+      endTime: item.end_time ? this.extractTimePart(item.end_time) : '',
+      status: !item.end_time ? 'open' : item.editable ? 'needs_review' : 'registered',
+      editable: item.editable,
+      duration: Number(item.duration ?? 0),
+    };
+  }
+
+  private extractDatePart(value: string | null | undefined): string {
+    return value?.split(' ')[0] ?? '—';
+  }
+
+  private extractTimePart(value: string | null | undefined): string {
+    return value?.split(' ')[1]?.slice(0, 5) ?? '—';
+  }
+
+  updateManualAttendanceField(field: ManualAttendanceField, value: string): void {
+    this.manualAttendanceForm.update((current) => ({
+      ...current,
+      [field]: value,
+    }));
+
+    this.manualAttendanceSubmitMessage.set(null);
+  }
+
+  resetManualAttendanceForm(): void {
+    this.manualAttendanceForm.set({
+      date: this.buildCurrentDate(),
+      startTime: '',
+      endTime: '',
+    });
+
+    this.manualAttendanceSubmitMessage.set(null);
+  }
+
+  closeManualAttendanceForm(): void {
+    this.manualAttendanceOpen.set(false);
+    this.resetManualAttendanceForm();
+  }
+
+  submitManualAttendanceCorrection(): void {
+    const validation = this.manualAttendanceValidation();
+
+    if (!validation.valid) {
+      this.manualAttendanceSubmitMessage.set(validation.errors[0] ?? 'فرم را کامل کن.');
+      return;
+    }
+
+    if (!this.enableRealPresenceMutation) {
+      this.manualAttendanceSubmitMessage.set(
+        'فرم معتبر است، اما enableRealPresenceMutation خاموش است؛ برای جلوگیری از تغییر واقعی WTT چیزی ارسال نشد.',
+      );
+      return;
+    }
+
+    if (this.manualAttendanceLoading()) {
+      return;
+    }
+
+    const form = this.manualAttendanceForm();
+    const hasStartTime = form.startTime.trim().length > 0;
+    const hasEndTime = form.endTime.trim().length > 0;
+
+    const confirmed = window.confirm(
+      `${this.getManualAttendanceSubmitLabel()} در WTT واقعی ثبت شود؟ این عملیات حضور واقعی را تغییر می‌دهد.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.manualAttendanceLoading.set(true);
+    this.manualAttendanceSubmitMessage.set(null);
+    this.presenceActionError.set(null);
+
+    if (hasStartTime && hasEndTime) {
+      const startDateTime = this.buildManualDateTime(form.date, form.startTime);
+      const endDateTime = this.buildManualDateTime(form.date, form.endTime);
+
+      this.presenceService
+        .clockIn({ start_time: startDateTime })
+        .pipe(
+          switchMap((createdPresence) => {
+            const createdId = Number(createdPresence?.id ?? 0);
+
+            if (!createdId) {
+              throw new Error('شناسه حضور بعد از ثبت ورود برنگشت.');
+            }
+
+            return this.presenceService.clockOut(createdId, {
+              start_time: startDateTime,
+              end_time: endDateTime,
+            });
+          }),
+          finalize(() => {
+            this.manualAttendanceLoading.set(false);
+          }),
+        )
+        .subscribe({
+          next: () => {
+            this.manualAttendanceSubmitMessage.set('ورود و خروج با موفقیت در WTT ثبت شد.');
+            this.resetManualAttendanceForm();
+            this.loadPresenceState();
+
+            if (this.attendanceHistoryOpen()) {
+              this.loadAttendanceHistory();
+            }
+          },
+          error: (error) => {
+            this.manualAttendanceSubmitMessage.set(
+              error?.message || 'خطا در ثبت ورود و خروج دستی.',
+            );
+          },
+        });
+
+      return;
+    }
+
+    if (hasStartTime) {
+      const startDateTime = this.buildManualDateTime(form.date, form.startTime);
+
+      this.presenceService
+        .clockIn({ start_time: startDateTime })
+        .pipe(
+          finalize(() => {
+            this.manualAttendanceLoading.set(false);
+          }),
+        )
+        .subscribe({
+          next: () => {
+            this.manualAttendanceSubmitMessage.set('ورود دستی با موفقیت در WTT ثبت شد.');
+            this.resetManualAttendanceForm();
+            this.loadPresenceState();
+
+            if (this.attendanceHistoryOpen()) {
+              this.loadAttendanceHistory();
+            }
+          },
+          error: () => {
+            this.manualAttendanceSubmitMessage.set('خطا در ثبت ورود دستی.');
+          },
+        });
+
+      return;
+    }
+
+    const activePresence = this.activePresenceState().data;
+
+    if (!activePresence?.id || !activePresence?.start_time) {
+      this.manualAttendanceLoading.set(false);
+      this.manualAttendanceSubmitMessage.set(
+        'برای ثبت فقط خروج، باید یک حضور فعال با شناسه معتبر وجود داشته باشد.',
+      );
+      return;
+    }
+
+    const endDateTime = this.buildManualDateTime(form.date, form.endTime);
+
+    this.presenceService
+      .clockOut(activePresence.id, {
+        start_time: activePresence.start_time,
+        end_time: endDateTime,
+      })
+      .pipe(
+        finalize(() => {
+          this.manualAttendanceLoading.set(false);
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.manualAttendanceSubmitMessage.set('خروج دستی با موفقیت در WTT ثبت شد.');
+          this.resetManualAttendanceForm();
+          this.loadPresenceState();
+
+          if (this.attendanceHistoryOpen()) {
+            this.loadAttendanceHistory();
+          }
+        },
+        error: () => {
+          this.manualAttendanceSubmitMessage.set('خطا در ثبت خروج دستی.');
+        },
+      });
+  }
+  private buildManualDateTime(date: string, time: string): string {
+    return `${date} ${time}:00`;
+  }
+
+  public getManualAttendanceSubmitLabel(): string {
+    const form = this.manualAttendanceForm();
+
+    if (form.startTime && form.endTime) {
+      return 'ثبت ورود و خروج';
+    }
+
+    if (form.startTime) {
+      return 'ثبت ورود';
+    }
+
+    return 'ثبت خروج';
+  }
+
+  private buildCurrentDate(): string {
+    // WTT v1 uses Jalali dates in yyyy-MM-dd format.
+    return format(new Date(), 'yyyy-MM-dd');
+  }
   formatPresenceTimer(seconds: number): string {
     const safeSeconds = Math.max(0, seconds);
     const hours = Math.floor(safeSeconds / 3600);
