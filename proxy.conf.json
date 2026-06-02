@@ -6,6 +6,12 @@
     "pathRewrite": {
       "^/wtt-api": ""
     },
-    "logLevel": "debug"
+    "logLevel": "warn"
+  },
+  "/api": {
+    "target": "http://localhost:3000",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "warn"
   }
 }

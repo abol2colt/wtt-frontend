@@ -29,22 +29,21 @@ import { TasksService } from './services/tasks.service';
 import { TasksFiltersService } from './services/tasks-filters.service';
 import { AuthService } from '../../core/services/auth/auth.service';
 import { Project, ProjectDetailsResponse } from '../../shared/models/project.model';
-import { NgClass } from '@angular/common';
+import { formatDurationAsHHMM } from '../../shared/utils/time-format';
+import { getTaskStatusMeta } from './utils/task-status-meta';
+import {
+  AiDetailLevel,
+  AiTone,
+  ProjectDetailsPreselect,
+  TaskStatusFilter,
+  TaskViewMode,
+  WorklogFlowType,
+} from './models/tasks-page.model';
 
-type ProjectDetailsPreselect = {
-  serviceId: number;
-  contractId: number;
-};
-
-type TaskViewMode = 'list' | 'grid';
-type TaskStatusFilter = 'all' | 'pending' | 'rejected';
-type WorklogFlowType = 'manual' | 'ai';
-type AiTone = 'formal' | 'technical' | 'managerial';
-type AiDetailLevel = 'short' | 'balanced' | 'detailed';
 @Component({
   selector: 'app-tasks',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, NgClass],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './tasks.html',
   styleUrl: './tasks.scss',
 })
@@ -433,81 +432,22 @@ export class TasksComponent implements OnInit {
     this.loadProjectDetails(id);
   }
   formatMinutes(minutes: number | null | undefined): string {
-    if (minutes == null || minutes <= 0) return '00:00';
-
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-
-    const paddedHours = String(hours).padStart(2, '0');
-    const paddedMinutes = String(mins).padStart(2, '0');
-
-    return `${paddedHours}:${paddedMinutes}`;
+    return formatDurationAsHHMM(minutes);
   }
   getStatusLabel(status: string): string {
-    switch (status) {
-      case 'approved':
-        return 'تایید شده';
-      case 'pending':
-        return 'در انتظار تایید';
-      case 'rejected':
-        return 'نیازمند اصلاح';
-      case 'draft':
-        return 'پیش‌نویس';
-      case 'edited':
-        return 'ویرایش شده';
-      default:
-        return status;
-    }
+    return getTaskStatusMeta(status).label;
   }
+
   getStatusRailClass(status: string): string {
-    switch (status) {
-      case 'approved':
-        return 'done';
-      case 'pending':
-        return 'review';
-      case 'rejected':
-        return 'rejected';
-      case 'edited':
-        return 'progress';
-      case 'draft':
-        return 'draft';
-      default:
-        return 'progress';
-    }
+    return getTaskStatusMeta(status).railClass;
   }
 
   getStatusTextClass(status: string): string {
-    switch (status) {
-      case 'approved':
-        return 'text-emerald-500';
-      case 'pending':
-        return 'text-orange-500';
-      case 'rejected':
-        return 'text-red-500';
-      case 'edited':
-        return 'text-blue-500';
-      case 'draft':
-        return 'text-slate-500';
-      default:
-        return 'text-[var(--text-soft)]';
-    }
+    return getTaskStatusMeta(status).textClass;
   }
 
   getStatusBadgeClass(status: string): string {
-    switch (status) {
-      case 'approved':
-        return 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300';
-      case 'pending':
-        return 'border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300';
-      case 'rejected':
-        return 'border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-300';
-      case 'edited':
-        return 'border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-300';
-      case 'draft':
-        return 'border-slate-500/20 bg-slate-500/10 text-slate-600 dark:text-slate-300';
-      default:
-        return 'border-slate-500/20 bg-slate-500/10 text-[var(--text-soft)]';
-    }
+    return getTaskStatusMeta(status).badgeClass;
   }
 
   trackTask(index: number, task: TaskItem): number {

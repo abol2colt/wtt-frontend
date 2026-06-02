@@ -1,59 +1,61 @@
-# WttFrontend
+# WTT Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.9.
+Angular 21 frontend for the WTT work tracking dashboard. The app covers login, dashboard analytics, task/worklog management, presence flows, reports, settings, and the Smart Worklog draft flow that combines assigned tasks, Git evidence, and AI-generated Persian descriptions.
 
-## Development server
+## Stack
 
-To start a local development server, run:
+- Angular 21 standalone components
+- Angular signals and reactive forms
+- Angular router guards and HTTP interceptors
+- Tailwind CSS 4 + SCSS
+- ECharts through `ngx-echarts`
+- `date-fns-jalali` for Persian date handling
+- Vitest through Angular's unit test builder
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Local setup
 
 ```bash
-ng generate component component-name
+npm ci
+npm start
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Use the API proxy when local browser CORS would block the WTT API:
 
 ```bash
-ng generate --help
+npm run start:proxy
 ```
 
-## Building
+The integration proxy should run from `../wtt-proxy` on `http://localhost:3000`.
 
-To build the project run:
+## Quality commands
 
 ```bash
-ng build
+npm run format:check
+npm run typecheck
+npm test
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Safety policy
 
-## Running unit tests
+- Real WTT task mutations are disabled by default through `enableRealTaskMutation`.
+- Real presence mutations are disabled by default through `enableRealPresenceMutation`.
+- Integration mock mode is enabled only in development.
+- Auth tokens are kept at runtime in browser storage according to the remember-me option and are sent by the HTTP interceptor.
+- No real provider token or API key must be committed.
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Project structure
 
-```bash
-ng test
+```txt
+src/app
+  core/          layout, guards, interceptors and singleton services
+  features/      dashboard, tasks, reports, settings, presence and auth screens
+  shared/        reusable models and utilities
+  environments/  production and development runtime flags
 ```
 
-## Running end-to-end tests
+## Known technical debt
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- `TasksComponent` and `LeftSidebarComponent` are still large and should be split further in dedicated refactor branches.
+- Global Tailwind import in `styles.scss` triggers a Sass deprecation warning, but it does not block the Angular 21 build.
+- Current unit test coverage is minimal; feature-level tests should be added for task form mapping, filters, auth/session behavior, and integration fallback states.

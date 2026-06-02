@@ -32,6 +32,7 @@
 ## Fallback if Git/AI fails
 
 اگر GitLab یا AI در دمو در دسترس نبود:
+
 - فرم WTT همچنان از task source پر می‌شود.
 - توضیح می‌دهم proxy لایه integration است.
 - response mock/local قابل جایگزینی با GitLab واقعی است.

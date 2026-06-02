@@ -7,7 +7,7 @@ export const environment = {
   // Local integration proxy for Jira-compatible tasks, GitLab evidence and AI draft generation.
   integrationProxyBaseUrl: 'http://localhost:3000/api',
 
-  // Demo safety flags. Dangerous real mutations must stay off unless explicitly enabled locally.
+  // Real mutations stay disabled by default for internship/demo safety.
   enableRealTaskMutation: false,
   taskMutationTestPrefix: '[FRONTEND-TEST-DO-NOT-APPROVE]',
   enableRealPresenceMutation: false,

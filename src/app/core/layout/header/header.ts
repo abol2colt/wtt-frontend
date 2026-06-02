@@ -19,7 +19,7 @@ import { LayoutService } from '../../services/layout/layout.service';
 })
 export class HeaderComponent implements OnInit {
   themeService = inject(ThemeService);
-  public layout = inject(LayoutService); // فقط سرویس رو اضافه کن
+  public layout = inject(LayoutService);
 
   private readonly router = inject(Router);
   private readonly dashboardService = inject(DashboardService);

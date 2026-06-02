@@ -1,30 +1,43 @@
-import { Injectable, signal, effect } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Injectable, effect, inject, signal } from '@angular/core';
+
+const THEME_STORAGE_KEY = 'theme';
+type ThemeMode = 'dark' | 'light';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ThemeService {
-  isDarkMode = signal<boolean>(true);
+  private readonly document = inject(DOCUMENT);
+  readonly isDarkMode = signal<boolean>(this.getStoredTheme() !== 'light');
 
   constructor() {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-      this.isDarkMode.set(false);
-    }
-
-    //effect = change => signal
     effect(() => {
-      if (this.isDarkMode()) {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-      }
+      const mode: ThemeMode = this.isDarkMode() ? 'dark' : 'light';
+
+      this.document.documentElement.classList.toggle('dark', mode === 'dark');
+      this.setStoredTheme(mode);
     });
   }
 
-  toggleTheme() {
+  toggleTheme(): void {
     this.isDarkMode.update((current) => !current);
+  }
+
+  private getStoredTheme(): ThemeMode | null {
+    try {
+      const value = localStorage.getItem(THEME_STORAGE_KEY);
+      return value === 'dark' || value === 'light' ? value : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private setStoredTheme(mode: ThemeMode): void {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, mode);
+    } catch {
+      // Storage access can fail in restricted browser modes.
+    }
   }
 }
