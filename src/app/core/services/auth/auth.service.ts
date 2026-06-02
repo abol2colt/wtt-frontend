@@ -100,10 +100,6 @@ export class AuthService {
   constructor() {
     const storedToken =
       sessionStorage.getItem(this.tokenStorageKey) ?? localStorage.getItem(this.tokenStorageKey);
-
-    if (storedToken) {
-      document.cookie = `auth_token=${storedToken}; path=/; SameSite=Lax`;
-    }
   }
 
   login(credentials: LoginRequest, rememberMe = false) {
@@ -120,8 +116,6 @@ export class AuthService {
     sessionStorage.removeItem(this.userIdStorageKey);
     localStorage.removeItem(this.tokenStorageKey);
     localStorage.removeItem(this.userIdStorageKey);
-
-    document.cookie = 'auth_token=; path=/; max-age=0';
 
     this.token.set(null);
     this.currentUser.set(null);
@@ -209,8 +203,6 @@ export class AuthService {
 
     persistentStorage.setItem(this.tokenStorageKey, response.token);
     persistentStorage.setItem(this.userIdStorageKey, String(response.user_id));
-
-    document.cookie = `auth_token=${response.token}; path=/; SameSite=Lax`;
 
     this.token.set(response.token);
 

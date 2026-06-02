@@ -77,7 +77,6 @@
   border-color: rgba(18, 48, 74, 0.75);
 }
 
-/* افکت‌های نوری بسیار ملایم (Tint) در دارک مود */
 :host-context(.dark) .summary-stat-card.tint-cyan::before,
 :host-context(.dark) .summary-stat-card.tint-cyan::before {
   content: '';
@@ -251,8 +250,8 @@
   gap: 8px;
 }
 .announcement-card {
-  height: 92px; /* کمی بزرگتر شد */
-  padding: 10px 12px; /* پدینگ تنظیم شد */
+  height: 92px;
+  padding: 10px 12px;
   border-radius: 16px;
   border: 1px solid var(--card-border);
   background: linear-gradient(180deg, #ffffff 0%, #fbfbfc 100%);
@@ -621,7 +620,6 @@
   background: rgba(255, 255, 255, 0.045);
 }
 
-
 .dashboard-bottom-main,
 .dashboard-bottom-side {
   min-width: 0;
@@ -690,7 +688,7 @@
 .dashboard-project-distribution-chart {
   width: 100%;
   height: 190px;
-  height: 190px
+  height: 190px;
 }
 
 .dashboard-project-distribution-legend {
@@ -718,7 +716,6 @@
   isolation: isolate;
 }
 
-
 .dashboard-project-distribution-chart {
   height: 230px;
 }
@@ -728,8 +725,7 @@
 }
 
 .dashboard-project-distribution-legend-item {
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.45));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.45));
   box-shadow:
     0 8px 22px rgba(15, 23, 42, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.75);
@@ -739,10 +735,8 @@
   box-shadow: 0 0 14px currentColor;
 }
 
-
 :host-context(.dark) .dashboard-project-distribution-legend-item {
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
   box-shadow:
     0 8px 22px rgba(0, 0, 0, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -949,7 +943,6 @@
   height: 220px;
 }
 
-/* نور دقیقاً پشت donut */
 .dashboard-project-glow {
   position: absolute;
   z-index: 0;
@@ -958,12 +951,16 @@
   border-radius: 999px;
   pointer-events: none;
   background:
-    radial-gradient(circle, rgba(59, 130, 246, 0.22) 0%, rgba(59, 130, 246, 0.12) 34%, transparent 68%),
+    radial-gradient(
+      circle,
+      rgba(59, 130, 246, 0.22) 0%,
+      rgba(59, 130, 246, 0.12) 34%,
+      transparent 68%
+    ),
     radial-gradient(circle at 70% 38%, rgba(168, 85, 247, 0.18), transparent 55%);
   filter: blur(14px);
   opacity: 0.72;
 }
-
 
 .dashboard-project-distribution-legend {
   grid-area: legend;
@@ -998,8 +995,7 @@
   padding: 8px 10px;
   border-radius: 15px;
   border: 1px solid rgba(148, 163, 184, 0.16);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.48));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.48));
   box-shadow:
     0 8px 22px rgba(15, 23, 42, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.78);
@@ -1086,7 +1082,6 @@
   height: 260px;
 }
 
-
 /* =========================
    DARK MODE
 ========================= */
@@ -1107,11 +1102,9 @@
   opacity: 0.58;
 }
 
-
 :host-context(.dark) .dashboard-project-distribution-legend-item {
   border-color: rgba(148, 163, 184, 0.14);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
   box-shadow:
     0 8px 22px rgba(0, 0, 0, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
@@ -1198,7 +1191,12 @@
   border-radius: 999px;
   transform: translate(-50%, -50%);
   background:
-    radial-gradient(circle, rgba(59, 130, 246, 0.22) 0%, rgba(59, 130, 246, 0.12) 38%, transparent 70%),
+    radial-gradient(
+      circle,
+      rgba(59, 130, 246, 0.22) 0%,
+      rgba(59, 130, 246, 0.12) 38%,
+      transparent 70%
+    ),
     radial-gradient(circle at 65% 35%, rgba(168, 85, 247, 0.18), transparent 58%);
   filter: blur(12px);
   opacity: 0.55;

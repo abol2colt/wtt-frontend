@@ -1,14 +1,19 @@
 {
   "name": "wtt-frontend",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "start:proxy": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
+    "build:dev": "ng build --configuration development",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
-
+    "test": "ng test --watch=false",
+    "test:watch": "ng test",
+    "typecheck": "ng build --configuration development --progress=false",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "clean": "node -e \"const fs=require('fs'); for (const p of ['.angular','dist','out-tsc','coverage']) fs.rmSync(p,{recursive:true,force:true});\""
   },
   "private": true,
   "packageManager": "npm@10.9.3",
@@ -39,6 +44,10 @@
     "tailwindcss": "^4.2.4",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"
-
+  },
+  "description": "Angular 21 frontend for the WTT work tracking dashboard.",
+  "engines": {
+    "node": ">=22.16.0",
+    "npm": ">=10"
   }
 }

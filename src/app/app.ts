@@ -2,7 +2,7 @@ import { NgClass } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
-import { HeaderComponent } from './core/layout/header/header'; // <-- این خط اضافه شود
+import { HeaderComponent } from './core/layout/header/header';
 import { SidebarComponent } from './core/layout/sidebar/sidebar';
 import { LeftSidebarComponent } from './core/layout/left-sidebar/left-sidebar';
 import { LayoutService } from './core/services/layout/layout.service';

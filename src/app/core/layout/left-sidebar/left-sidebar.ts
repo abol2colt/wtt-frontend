@@ -9,7 +9,6 @@ import {
   untracked,
 } from '@angular/core';
 import { EChartsOption } from 'echarts';
-import { NgxEchartsDirective } from 'ngx-echarts';
 import { Subscription, interval, finalize, switchMap } from 'rxjs';
 import { differenceInSeconds, format, parse } from 'date-fns-jalali';
 import { environment } from '../../../../environments/environment';
@@ -67,7 +66,7 @@ interface AttendanceHistoryItem {
 @Component({
   selector: 'app-left-sidebar',
   standalone: true,
-  imports: [NgxEchartsDirective],
+  imports: [],
   templateUrl: './left-sidebar.html',
   styleUrl: './left-sidebar.scss',
 })

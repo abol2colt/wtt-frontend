@@ -211,9 +211,7 @@ export class LayoutService {
     this.presenceStatus.set(status);
   }
 
-  applyPresenceFilters(): void {
-    // فیلترها فعلاً reactive هستند.
-  }
+  applyPresenceFilters(): void {}
 
   resetPresenceFilters(): void {
     this.presenceRange.set('month_till_today');

@@ -1,17 +1,15 @@
 export const environment = {
-  production: false,
+  production: true,
 
-  // Local dev uses Angular proxy to call the real WTT v1 API without browser CORS issues.
+  // In deployed environments these paths should be handled by the reverse proxy/API gateway.
   apiBaseUrl: '/wtt-api/api/v1',
+  integrationProxyBaseUrl: '/api',
 
-  // Local integration proxy for Jira-compatible tasks, GitLab evidence and AI draft generation.
-  integrationProxyBaseUrl: 'http://192.168.130.184:3000/api',
-
-  // Demo safety flags. Dangerous real mutations must stay off unless explicitly enabled locally.
+  // Real mutations stay disabled by default for internship/demo safety.
   enableRealTaskMutation: false,
   taskMutationTestPrefix: '[FRONTEND-TEST-DO-NOT-APPROVE]',
   enableRealPresenceMutation: false,
-  enableIntegrationMockMode: true,
+  enableIntegrationMockMode: false,
 
   // Legacy flags stay temporarily until each feature service is migrated to real APIs.
   contractBaseUrl: '',

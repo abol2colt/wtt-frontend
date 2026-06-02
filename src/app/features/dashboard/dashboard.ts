@@ -446,188 +446,187 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
     });
   }
-private buildProjectDistributionOption(data: DashboardPieItem[]): EChartsOption {
-  return {
-    backgroundColor: 'transparent',
+  private buildProjectDistributionOption(data: DashboardPieItem[]): EChartsOption {
+    return {
+      backgroundColor: 'transparent',
 
-    tooltip: {
-      trigger: 'item',
-      appendToBody: true,
-      backgroundColor: '#020617',
-      borderColor: 'rgba(148, 163, 184, 0.25)',
-      borderWidth: 1,
-      textStyle: {
-        color: '#e5e7eb',
-        fontSize: 11,
+      tooltip: {
+        trigger: 'item',
+        appendToBody: true,
+        backgroundColor: '#020617',
+        borderColor: 'rgba(148, 163, 184, 0.25)',
+        borderWidth: 1,
+        textStyle: {
+          color: '#e5e7eb',
+          fontSize: 11,
+        },
+        extraCssText:
+          'z-index: 9999; border-radius: 12px; box-shadow: 0 16px 34px rgba(0,0,0,0.35);',
       },
-      extraCssText:
-        'z-index: 9999; border-radius: 12px; box-shadow: 0 16px 34px rgba(0,0,0,0.35);',
-    },
 
-    legend: {
-      show: false,
-    },
+      legend: {
+        show: false,
+      },
 
-    series: [
-      {
-        name: 'توزیع پروژه‌ها',
-        type: 'pie',
-        radius: ['58%', '82%'],
-        center: ['50%', '52%'],
-        avoidLabelOverlap: true,
+      series: [
+        {
+          name: 'توزیع پروژه‌ها',
+          type: 'pie',
+          radius: ['58%', '82%'],
+          center: ['50%', '52%'],
+          avoidLabelOverlap: true,
 
-        itemStyle: {
-          borderRadius: 12,
-          borderColor: 'rgba(255, 255, 255, 0.9)',
-          borderWidth: 3,
-          shadowBlur: 16,
-          shadowColor: 'rgba(59, 130, 246, 0.18)',
-        },
-
-        label: {
-          show: false,
-        },
-
-        labelLine: {
-          show: false,
-        },
-
-        emphasis: {
-          scale: true,
-          scaleSize: 7,
           itemStyle: {
-            shadowBlur: 24,
-            shadowColor: 'rgba(6, 182, 212, 0.3)',
+            borderRadius: 12,
+            borderColor: 'rgba(255, 255, 255, 0.9)',
+            borderWidth: 3,
+            shadowBlur: 16,
+            shadowColor: 'rgba(59, 130, 246, 0.18)',
           },
+
+          label: {
+            show: false,
+          },
+
+          labelLine: {
+            show: false,
+          },
+
+          emphasis: {
+            scale: true,
+            scaleSize: 7,
+            itemStyle: {
+              shadowBlur: 24,
+              shadowColor: 'rgba(6, 182, 212, 0.3)',
+            },
+          },
+
+          data: data.map((item) => ({
+            value: item.value,
+            name: item.project,
+          })),
+
+          color: this.projectDistributionColors,
         },
-
-        data: data.map((item) => ({
-          value: item.value,
-          name: item.project,
-        })),
-
-        color: this.projectDistributionColors,
-      },
-    ],
-  };
-}
-
-matchesDashboardSearch(...values: unknown[]): boolean {
-  const request = this.layout.searchRequest();
-
-  if (!request || request.scope !== 'current_page' || request.pageKey !== 'dashboard') {
-    return true;
+      ],
+    };
   }
 
-  const query = request.query.toLowerCase();
+  matchesDashboardSearch(...values: unknown[]): boolean {
+    const request = this.layout.searchRequest();
 
-  return values.filter(Boolean).some((value) => String(value).toLowerCase().includes(query));
+    if (!request || request.scope !== 'current_page' || request.pageKey !== 'dashboard') {
+      return true;
+    }
+
+    const query = request.query.toLowerCase();
+
+    return values.filter(Boolean).some((value) => String(value).toLowerCase().includes(query));
+  }
+
+  private buildLineChartOption(data: DashboardLineChartPoint[]): EChartsOption {
+    return {
+      backgroundColor: 'transparent',
+      animation: true,
+      animationDuration: 900,
+      animationEasing: 'cubicOut',
+      animationDurationUpdate: 450,
+
+      tooltip: {
+        trigger: 'axis',
+        appendToBody: true,
+        backgroundColor: '#020617',
+        borderColor: 'rgba(59, 130, 246, 0.35)',
+        textStyle: {
+          color: '#e5e7eb',
+          fontSize: 11,
+        },
+      },
+
+      grid: {
+        left: 34,
+        right: 20,
+        top: 24,
+        bottom: 24,
+        containLabel: true,
+      },
+
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: data.map((item, index) => item.date ?? item.day ?? item.label ?? String(index + 1)),
+        axisTick: {
+          show: false,
+        },
+        axisLine: {
+          lineStyle: {
+            color: 'rgba(148, 163, 184, 0.18)',
+          },
+        },
+        axisLabel: {
+          color: 'rgba(148, 163, 184, 0.65)',
+          fontSize: 10,
+          formatter: (value: string) => value.slice(5),
+        },
+        splitLine: {
+          show: false,
+        },
+      },
+
+      yAxis: {
+        type: 'value',
+        axisTick: {
+          show: false,
+        },
+        axisLine: {
+          show: false,
+        },
+        axisLabel: {
+          color: 'rgba(148, 163, 184, 0.65)',
+          fontSize: 10,
+          formatter: (value: number) => `${Math.round(value / 60)}h`,
+        },
+        splitLine: {
+          show: true,
+          lineStyle: {
+            color: 'rgba(148, 163, 184, 0.05)',
+            width: 1,
+          },
+        },
+      },
+
+      series: [
+        {
+          name: 'کارکرد',
+          type: 'line',
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 6,
+          showSymbol: true,
+          animation: true,
+          animationDuration: 950,
+          animationEasing: 'cubicOut',
+
+          areaStyle: {
+            opacity: 0.12,
+          },
+
+          lineStyle: {
+            width: 3,
+            color: '#3b82f6',
+          },
+
+          itemStyle: {
+            color: '#3b82f6',
+            borderColor: '#ffffff',
+            borderWidth: 2,
+          },
+
+          data: data.map((item) =>
+            Number(item.total_work ?? item.presence ?? item.value ?? item.minutes ?? 0),
+          ),
+        },
+      ],
+    };
+  }
 }
-
-private buildLineChartOption(data: DashboardLineChartPoint[]): EChartsOption {
-  return {
-    backgroundColor: 'transparent',
-    animation: true,
-    animationDuration: 900,
-    animationEasing: 'cubicOut',
-    animationDurationUpdate: 450,
-
-    tooltip: {
-      trigger: 'axis',
-      appendToBody: true,
-      backgroundColor: '#020617',
-      borderColor: 'rgba(59, 130, 246, 0.35)',
-      textStyle: {
-        color: '#e5e7eb',
-        fontSize: 11,
-      },
-    },
-
-    grid: {
-      left: 34,
-      right: 20,
-      top: 24,
-      bottom: 24,
-      containLabel: true,
-    },
-
-    xAxis: {
-      type: 'category',
-      boundaryGap: false,
-      data: data.map((item, index) => item.date ?? item.day ?? item.label ?? String(index + 1)),
-      axisTick: {
-        show: false,
-      },
-      axisLine: {
-        lineStyle: {
-          color: 'rgba(148, 163, 184, 0.18)',
-        },
-      },
-      axisLabel: {
-        color: 'rgba(148, 163, 184, 0.65)',
-        fontSize: 10,
-        formatter: (value: string) => value.slice(5),
-      },
-      splitLine: {
-        show: false,
-      },
-    },
-
-    yAxis: {
-      type: 'value',
-      axisTick: {
-        show: false,
-      },
-      axisLine: {
-        show: false,
-      },
-      axisLabel: {
-        color: 'rgba(148, 163, 184, 0.65)',
-        fontSize: 10,
-        formatter: (value: number) => `${Math.round(value / 60)}h`,
-      },
-      splitLine: {
-        show: true,
-        lineStyle: {
-          color: 'rgba(148, 163, 184, 0.05)',
-          width: 1,
-        },
-      },
-    },
-
-    series: [
-      {
-        name: 'کارکرد',
-        type: 'line',
-        smooth: true,
-        symbol: 'circle',
-        symbolSize: 6,
-        showSymbol: true,
-        animation: true,
-        animationDuration: 950,
-        animationEasing: 'cubicOut',
-
-        areaStyle: {
-          opacity: 0.12,
-        },
-
-        lineStyle: {
-          width: 3,
-          color: '#3b82f6',
-        },
-
-        itemStyle: {
-          color: '#3b82f6',
-          borderColor: '#ffffff',
-          borderWidth: 2,
-        },
-
-        data: data.map((item) =>
-          Number(item.total_work ?? item.presence ?? item.value ?? item.minutes ?? 0),
-        ),
-      },
-    ],
-  };
-}
-}
-  
